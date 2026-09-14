@@ -5,6 +5,35 @@
   under Vienna scoring with a hooked dealer.
 
   Copyright (C) 2026  Jim Agniel
+  Modified  (C) 2026  Matt Glassman
+
+  MODIFICATIONS (September 2026, by Matt Glassman), against Jim Agniel's
+  original:
+    - Card-play policy rewritten. The original chose a card from the current
+      trick alone; play now tracks the cards already seen and the voids each
+      seat has shown, and uses them to tell a card that is boss from one that
+      merely looks high. Four errors in the original were found and fixed along
+      the way: a busted-high contract ducked tricks that Vienna pays for; a long
+      suit in no-trump was never cashed, so a hand holding ten running diamonds
+      reported that it could almost never take ten tricks; a low trump was
+      cashed behind its own ace, which stripped the opponents of the cards that
+      would have taken the trick the hand was trying to lose; and a side ace was
+      not counted as a trick that arrives without the lead. Measured at +0.30
+      Vienna points per round against the original policy over 40,000 deals per
+      round size at a four-handed table, with the gain concentrated in rounds of
+      seven cards and up.
+    - Results table gained a three-way view toggle. The whole report - margin
+      against the table mean, raw points, make rate, trick distribution and the
+      model-check line - can be recomputed over all simulated hands, over only
+      those where the table's bids oversell the round, or over only those where
+      they undersell it. Each view carries its own effective sample size, so the
+      error bars widen honestly on a subset.
+
+  KNOWN LIMITATION: the hand-strength coefficients (COEF_T and COEF_NT) are
+  Jim Agniel's originals, fitted against the original play policy. The engine
+  now takes more tricks than those coefficients were trained to expect, most
+  visibly in long no-trump rounds, so the bid recommendations are not yet
+  recalibrated to the play. They want refitting against the current engine.
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -201,6 +230,9 @@ tr.best td:first-child { color: var(--green); font-weight: 700; }
 .pos { color: var(--green); }
 .neg { color: var(--red); }
 .se { color: var(--faint); font-size: .8rem; }
+td.branch { white-space: nowrap; line-height: 1.25; }
+td.branch .sub { display: block; color: var(--faint); font-size: .78rem; font-variant-numeric: tabular-nums; }
+td.branch.none { color: var(--faint); }
 .scroll { overflow-x: auto; }
 
 tr.dead td { color: var(--dim); }
@@ -211,6 +243,16 @@ tr.dead td { color: var(--dim); }
   padding: 1px 5px; border-radius: 2px; margin-left: 6px; white-space: nowrap;
 }
 
+.viewpick { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
+.viewpick button {
+  font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--dim); cursor: pointer;
+  background: transparent; border: 1px solid var(--border); border-radius: 3px;
+  padding: 5px 11px;
+}
+.viewpick button:hover { color: var(--text); }
+.viewpick button.on { background: #eef5f9; border-color: #eef5f9; color: #0b1a14; font-weight: 700; }
+td.empty { color: var(--faint); }
 .bidpick { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
 .bidpick button {
   width: 32px; height: 28px;
@@ -332,11 +374,19 @@ footer {
       <div><span class="eyebrow">Best bid</span> <span id="bestBid" style="font-size:1.5rem;font-weight:700;color:var(--green);margin-left:8px"></span></div>
       <div class="eyebrow" id="runMeta"></div>
     </div>
+    <div class="viewpick" id="viewpick">
+      <span class="eyebrow">Report on</span>
+      <button data-view="all" class="on" title="Every simulated deal.">all simulated hands</button>
+      <button data-view="over" title="Only deals where the bids around the table sum to more tricks than the round holds, so someone has to come up short.">oversold hands</button>
+      <button data-view="under" title="Only deals where the bids around the table sum to fewer tricks than the round holds, so spare tricks have to land on somebody.">undersold hands</button>
+      <span class="eyebrow" id="viewMeta"></span>
+    </div>
     <div class="scroll">
       <table>
         <thead><tr>
           <th>Bid</th><th>Points vs the table mean</th>
           <th>Raw points</th><th>Makes it</th><th>Tricks taken</th>
+          <th title="How much of this bid's simulated deals fall in the current view.">Share of deals</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -349,7 +399,7 @@ footer {
     <div class="diag" id="diag"></div>
   </div>
 
-  <footer>OH HELL &middot; MONTE CARLO BID EV &middot; &copy; 2026 JIM AGNIEL &middot; <a href="https://www.gnu.org/licenses/gpl-3.0.html" style="color:inherit">GNU GPL v3</a> &middot; <a href="https://github.com/agniel/OrbViz" style="color:inherit">SOURCE</a></footer>
+  <footer>OH HELL &middot; MONTE CARLO BID EV &middot; &copy; 2026 JIM AGNIEL &middot; MODIFIED BY MATT GLASSMAN &middot; <a href="https://www.gnu.org/licenses/gpl-3.0.html" style="color:inherit">GNU GPL v3</a> &middot; <a href="https://github.com/meg11778/vibecode" style="color:inherit">SOURCE</a></footer>
 </div>
 
 <script>
@@ -631,57 +681,164 @@ function beats(c,w,trump){
 }
 const skey=(c,trump)=>(suitOf(c)===trump?100:0)+rankOf(c);
 
-function chooseCard(hand, ledSuit, winCard, trump, needed){
-  const left = hand.length;
-  const shed = Math.max(0, left - Math.max(needed,0));
-  let legal = hand;
+/* Card memory. `seen` is a 52-flag array of cards already played; anything
+   neither seen nor in my own hand is outstanding in someone else's hand. */
+function outHigher(c,seen,mine){
+  const s=suitOf(c); let k=0;
+  for(let r=rankOf(c)+1;r<=14;r++){ const d=s*13+(r-2); if(!seen[d]&&!mine.has(d)) k++; }
+  return k;
+}
+function outTrumps(trump,seen,mine){
+  if(trump<0) return 0;
+  let k=0;
+  for(let r=2;r<=14;r++){ const d=trump*13+(r-2); if(!seen[d]&&!mine.has(d)) k++; }
+  return k;
+}
+const isBoss=(c,ctx)=>outHigher(c,ctx.seen,ctx.mine)===0;
+
+/* Is anyone else still holding this suit? If every card of it is either played
+   or in my own hand, nobody will ever lead it to me. */
+function suitLiveElsewhere(s,seen,mine){
+  for(let r=2;r<=14;r++){ const d=s*13+(r-2); if(!seen[d]&&!mine.has(d)) return true; }
+  return false;
+}
+
+/* A winner that does not need the lead. A boss trump qualifies outright - it
+   takes the trick whenever it is played, including as a ruff. A boss side card
+   qualifies only while opponents still hold the suit, because that is what makes
+   them lead it to me. Once the suit is dead everywhere else, the card cashes
+   only on my own lead, and if I give the lead up I am reduced to discarding it. */
+function selfCashing(c,ctx,trump){
+  if(!isBoss(c,ctx)) return false;
+  if(suitOf(c)===trump) return true;
+  /* No trump suit at all: nothing is self-cashing. Every winner you hold can be
+     stranded, because once you are void in the led suit you are discarding, and
+     a discarded boss card wins nothing. That is the long-suit case - there the
+     lead is the whole asset and must not be spent. */
+  if(trump<0) return false;
+  return suitLiveElsewhere(suitOf(c),ctx.seen,ctx.mine);
+}
+
+/* Weakness ordering for choosing which card to lead away. Raw rank is not
+   enough: a side ace outranks nothing on the trump scale but is a certain
+   trick, while a low trump looks strong and is a certain loser. Boss cards sort
+   to the top so they are never led away as though they were junk. Used only
+   here - applying the same bonus to the discard set tested slightly negative. */
+const mstr=(c,trump,ctx)=> skey(c,trump) + (ctx && isBoss(c,ctx) ? 200 : 0);
+
+/* Play policy. Three things beyond raw rank, each measured to pay for itself
+   against the previous memoryless version (+0.11 points/round at a 4 seat table,
+   most of it in rounds of 7 or more):
+
+     grab  - once won > bid the contract is dead and Vienna pays raw tricks,
+             so every further trick is worth +1. Ducking there was free money lost.
+     lead  - with memory you can lead a card that is actually boss instead of
+             just the highest one you hold, and avoid feeding a suit an opponent
+             who still needs tricks is known void in.
+     shed  - when discarding, do not throw a card that has become boss.
+
+   Deliberately NOT here: ducking a trick because no card looks safe against the
+   seats behind you. It tests clearly negative - a surrendered trick is gone,
+   while an overspent card only costs if it was needed later. */
+function chooseCard(hand, ledSuit, winCard, trump, needed, ctx){
+  const left=hand.length;
+  const grab = needed<0;                    // contract already busted high
+  const eff  = grab ? left : needed;
+
+  let legal=hand;
   if(ledSuit>=0){ const f=hand.filter(c=>suitOf(c)===ledSuit); if(f.length) legal=f; }
 
-  // weakest `shed` cards are the ones we intend to lose with - never win with them
-  const sorted = hand.slice().sort((a,b)=>skey(a,trump)-skey(b,trump));
-  const dump = new Set(sorted.slice(0, shed));
+  const slack=left-Math.max(eff,0);
+  const sorted=hand.slice().sort((a,b)=>skey(a,trump)-skey(b,trump));
+  const dump=new Set(sorted.slice(0,Math.max(0,slack)));
 
   if(ledSuit<0){
-    if(needed<=0 || shed>0){
-      const p = legal.filter(c=>dump.has(c));
-      const pool = p.length ? p : legal;
-      const k = c => rankOf(c) + (suitOf(c)===trump ? 20 : 0);
-      return pool.reduce((a,b)=> k(b)<k(a) ? b : a);
+    /* Cash first, or spend the lead on a loser? It turns on whether the tricks
+       you still need survive losing the lead.
+
+       A boss trump wins whenever it is played, so it needs no lead of its own.
+       Count those: if they already cover everything still owed, the lead is
+       spare, and the best use of a spare lead is to push out a loser while
+       opponents still hold the cards that beat it. Hold A-2 of trumps needing
+       one: lead the 2 and somebody is forced to win it, then the ace takes the
+       rest. Cash the ace first and you strip the very cards that would have
+       taken your 2, which then wins a trick you never wanted.
+
+       Without that cover the opposite holds. A long side suit only cashes while
+       you are leading it - give up the lead and you are discarding winners - so
+       there you lead the boss card and keep going. */
+    const safeWins = ctx ? legal.filter(c=>selfCashing(c,ctx,trump)).length : 0;
+    const leadIsSpare = safeWins >= eff && slack > 0;
+
+    if(eff>0 && ctx && !leadIsSpare){
+      const boss=legal.filter(c=>isBoss(c,ctx) &&
+        (suitOf(c)===trump || outTrumps(trump,ctx.seen,ctx.mine)===0));
+      // lowest boss: keeps the higher cards of the run boss for later tricks
+      if(boss.length) return boss.reduce((a,b)=>skey(b,trump)<skey(a,trump)?b:a);
     }
-    const t = legal.filter(c=>suitOf(c)===trump);
-    const pool = t.length ? t : legal;
-    return pool.reduce((a,b)=> rankOf(b)>rankOf(a) ? b : a);
+    if(eff<=0 || slack>0){
+      const p=legal.filter(c=>dump.has(c));
+      const pool=p.length?p:legal;
+      const k=c=>mstr(c,trump,ctx);
+      const risky=c=>(ctx&&ctx.needyVoidIn[suitOf(c)]&&suitOf(c)!==trump)?1:0;
+      return pool.reduce((a,b)=>{
+        const ra=risky(a), rb=risky(b);
+        if(ra!==rb) return rb<ra?b:a;
+        return k(b)<k(a)?b:a;
+      });
+    }
+    const t=legal.filter(c=>suitOf(c)===trump);
+    const pool=t.length?t:legal;
+    return pool.reduce((a,b)=>rankOf(b)>rankOf(a)?b:a);
   }
 
-  const winners = legal.filter(c=>beats(c,winCard,trump));
-  const keepers = winners.filter(c=>!dump.has(c));
-  if(needed>0 && keepers.length){
-    const k = c => rankOf(c) + (suitOf(c)===trump && ledSuit!==trump ? 100 : 0);
-    return keepers.reduce((a,b)=> k(b)<k(a) ? b : a);
+  const winners=legal.filter(c=>beats(c,winCard,trump));
+  const keepers=winners.filter(c=>!dump.has(c));
+  if(eff>0 && keepers.length){
+    const k=c=>rankOf(c)+(suitOf(c)===trump&&ledSuit!==trump?100:0);
+    return keepers.reduce((a,b)=>k(b)<k(a)?b:a);
   }
-  const losers = legal.filter(c=>!beats(c,winCard,trump));
+  if(grab && winners.length){
+    return winners.reduce((a,b)=>rankOf(b)<rankOf(a)?b:a);
+  }
+  const losers=legal.filter(c=>!beats(c,winCard,trump));
   if(losers.length){
-    const p = losers.filter(c=>dump.has(c));
-    const pool = p.length ? p : losers;
-    return pool.reduce((a,b)=> rankOf(b)>rankOf(a) ? b : a);
+    const p=losers.filter(c=>dump.has(c));
+    const pool=p.length?p:losers;
+    return pool.reduce((a,b)=>{
+      const ba=(ctx&&eff>0&&isBoss(a,ctx))?1:0, bb=(ctx&&eff>0&&isBoss(b,ctx))?1:0;
+      if(ba!==bb) return bb<ba?b:a;
+      return rankOf(b)>rankOf(a)?b:a;
+    });
   }
-  if(needed>0 && winners.length){
-    const k = c => rankOf(c) + (suitOf(c)===trump && ledSuit!==trump ? 100 : 0);
-    return winners.reduce((a,b)=> k(b)<k(a) ? b : a);
+  if(eff>0 && winners.length){
+    const k=c=>rankOf(c)+(suitOf(c)===trump&&ledSuit!==trump?100:0);
+    return winners.reduce((a,b)=>k(b)<k(a)?b:a);
   }
-  return legal.reduce((a,b)=> rankOf(b)<rankOf(a) ? b : a);
+  return legal.reduce((a,b)=>rankOf(b)<rankOf(a)?b:a);
 }
 
 function playHand(hands,bids,trump,P,n){
   const h=hands.map(x=>x.slice()), won=new Array(P).fill(0);
+  const seen=new Uint8Array(52);
+  const voids=Array.from({length:P},()=>[false,false,false,false]);
   let leader=0;
   for(let t=0;t<n;t++){
     let ledSuit=-1, winCard=-1, winner=leader;
     for(let i=0;i<P;i++){
       const p=(leader+i)%P;
-      const card=chooseCard(h[p],ledSuit,winCard,trump,bids[p]-won[p]);
+      const mine=new Set(h[p]);
+      const needyVoidIn=[false,false,false,false];
+      for(let q=0;q<P;q++){
+        if(q===p || bids[q]-won[q]<=0) continue;
+        for(let s=0;s<4;s++) if(voids[q][s]) needyVoidIn[s]=true;
+      }
+      const card=chooseCard(h[p],ledSuit,winCard,trump,bids[p]-won[p],
+                            {seen,mine,trump,needyVoidIn});
       h[p].splice(h[p].indexOf(card),1);
+      seen[card]=1;
       if(i===0) ledSuit=suitOf(card);
+      else if(suitOf(card)!==ledSuit) voids[p][ledSuit]=true;
       if(beats(card,winCard,trump)){ winCard=card; winner=p; }
     }
     won[winner]++; leader=winner;
@@ -707,6 +864,25 @@ function auctionFactor(n,P,B,R){
 }
 
 /* ===== simulation ===== */
+/* One full set of statistics. Three of these ride along per candidate bid: one
+   over every simulated deal, and one each for the deals where the bids around
+   the table sum to more or fewer tricks than the round actually holds. Every
+   deal feeds `all` plus exactly one of the other two, so the subsets partition
+   the run and each can be reported on its own terms - its own margin, its own
+   make rate, its own trick distribution and its own error bars. Weight is
+   tracked per bucket because a subset carries fewer effective deals than the
+   whole run, and the error bars have to widen to say so. */
+function bucket(n,P){
+  return { w:0, w2:0, pts:0, d:0, d2:0, makes:0, tricks:0,
+           hist:new Array(n+1).fill(0), behind:0, oppMakes:0, bidTot:0 };
+}
+/* Fold one played-out deal into a bucket. */
+function push(b,w,score,d,tricks,behind,oppMakes,bidTot,made){
+  b.w+=w; b.w2+=w*w; b.pts+=w*score; b.d+=w*d; b.d2+=w*d*d;
+  b.tricks+=w*tricks; b.hist[tricks]+=w; b.behind+=w*behind;
+  b.oppMakes+=w*oppMakes; b.bidTot+=w*bidTot; if(made) b.makes+=w;
+}
+
 /* Set up a run: work out which bids are legal, which cards are unseen, and
    allocate one accumulator per candidate bid. */
 function initSim(cfg){
@@ -719,7 +895,7 @@ function initSim(cfg){
   const cands=[];
   for(let b=0;b<=n;b++) if(b!==banned) cands.push(b);
   return { cfg,n,P,pool,cands,banned, rng:mulberry32(cfg.seed>>>0), done:0, wSum:0, wSum2:0,
-    acc: cands.map(()=>({pts:0,d:0,d2:0,makes:0,tricks:0,hist:new Array(n+1).fill(0),seats:new Array(P).fill(0),behind:0,oppMakes:0,bidTot:0})),
+    acc: cands.map(()=>({ all:bucket(n,P), over:bucket(n,P), under:bucket(n,P) })),
   };
 }
 
@@ -776,32 +952,63 @@ function runChunk(S,count){
       for(let s=0;s<P;s++){ sc[s]=vienna(bids[s],won[s],n); tot+=sc[s]; }
       const d = sc[cfg.seat] - tot/P;
       const a=S.acc[ci];
-      a.pts+=w*sc[cfg.seat]; a.d+=w*d; a.d2+=w*d*d; a.tricks+=w*won[cfg.seat];
-      a.hist[won[cfg.seat]]+=w;
-      if(won[cfg.seat]===cands[ci]) a.makes+=w;
-      for(let s=0;s<P;s++) a.seats[s]+=w*sc[s];
-      a.behind+=w*behind;
-      for(let s=0;s<P;s++){ if(s===cfg.seat) continue; if(won[s]===bids[s]) a.oppMakes+=w; }
-      a.bidTot += w*bids.reduce((x,y)=>x+y,0);
+      let oppMade=0, bidTot=0;
+      for(let s=0;s<P;s++){
+        bidTot+=bids[s];
+        if(s!==cfg.seat && won[s]===bids[s]) oppMade++;
+      }
+      const made = won[cfg.seat]===cands[ci];
+      const args=[w, sc[cfg.seat], d, won[cfg.seat], behind, oppMade, bidTot, made];
+      push(a.all, ...args);
+      /* B is the full table total once every seat has bid, mine included. A
+         round that sold exactly n has no tension either way; the hook normally
+         makes it impossible, and where it is not, it belongs in neither subset. */
+      if(B>n)      push(a.over,  ...args);
+      else if(B<n) push(a.under, ...args);
     }
   }
 }
 
-/* Turn the weighted accumulators into per-bid figures. Everything divides by
-   total weight rather than deal count, and errors scale with ESS. */
-function finalize(S){
-  const N=Math.max(S.wSum,1e-12);                      // total weight, not deal count
-  const ess=S.wSum2>0 ? (S.wSum*S.wSum)/S.wSum2 : 0;   // effective sample size
+/* Turn the weighted accumulators into per-bid figures, once per view. Each view
+   divides by its own weight, so "40% of deals" in the oversold view means 40% of
+   oversold deals, not 40% of the run. Error bars use that view's effective
+   sample size, which is why a subset's bars are wider than the full run's. */
+function finalizeView(S,key){
+  const W=S.acc.map(a=>a[key].w);
+  const tot=W.reduce((x,y)=>x+y,0)/Math.max(S.cands.length,1);  // typical bucket weight
   const rows=S.cands.map((bid,i)=>{
-    const a=S.acc[i], m=a.d/N, v=a.d2/N-m*m;
-    return { bid, points:a.pts/N, delta:m,
+    const b=S.acc[i][key];
+    const N=b.w;
+    if(N<=1e-12){
+      // This bid cannot produce a table total of that sign, so the view is empty
+      // for this row. Reported as absent rather than as zero.
+      return { bid, empty:true, share:0, points:null, delta:null, se:null,
+               makePct:null, avgTricks:null, hist:new Array(S.n+1).fill(0),
+               behind:null, oppMakePct:null, avgBidTotal:null };
+    }
+    const m=b.d/N, v=b.d2/N-m*m;
+    const ess=b.w2>0 ? (b.w*b.w)/b.w2 : 0;
+    return { bid, empty:false,
+      share: 100*b.w/Math.max(S.acc[i].all.w,1e-12),   // how much of this bid's deals land here
+      points:b.pts/N, delta:m,
       se: Math.sqrt(Math.max(v,0)/Math.max(ess,1)),
-      makePct:(a.makes/N)*100, avgTricks:a.tricks/N,
-      hist:a.hist.map(h=>h/N), seats:a.seats.map(x=>x/N), behind:a.behind/N,
-      oppMakePct:100*a.oppMakes/(N*(S.P-1)), avgBidTotal:a.bidTot/N };
+      makePct:100*b.makes/N, avgTricks:b.tricks/N,
+      hist:b.hist.map(h=>h/N), behind:b.behind/N,
+      oppMakePct:100*b.oppMakes/(N*(S.P-1)), avgBidTotal:b.bidTot/N, ess };
   });
-  const best=rows.reduce((a,b)=> b.delta>a.delta ? b : a);
-  return { rows, best:best.bid, n:S.n, banned:S.banned, iterations:S.done, ess };
+  const live=rows.filter(r=>!r.empty);
+  const best=live.length ? live.reduce((a,b)=> b.delta>a.delta ? b : a).bid : null;
+  const ess=live.length ? Math.max(...live.map(r=>r.ess)) : 0;
+  return { rows, best, ess, empty:live.length===0,
+           coverage: S.wSum>1e-12 ? 100*tot/S.wSum : 0 };
+}
+
+function finalize(S){
+  const ess=S.wSum2>0 ? (S.wSum*S.wSum)/S.wSum2 : 0;   // effective sample size
+  return {
+    views: { all:finalizeView(S,"all"), over:finalizeView(S,"over"), under:finalizeView(S,"under") },
+    n:S.n, banned:S.banned, iterations:S.done, ess,
+  };
 }
 
 /* ===== UI ===== */
@@ -986,12 +1193,35 @@ $("run").onclick = () => {
 /* Draw the results table. Bids the hand can never hit are tagged rather than
    hidden: a guaranteed bust still scores a point per trick, which can beat the
    table mean when everyone else busts harder. */
+/* Which subset of the run the whole report is showing. The toggle changes the
+   population every figure is computed over - margin, raw points, make rate,
+   trick distribution and the model check all move together, so what you read is
+   an internally consistent picture of that subset rather than the full run with
+   two extra columns bolted on. */
+let view = "all";
+const VIEW_LABEL = { all:"all simulated hands", over:"oversold hands", under:"undersold hands" };
+const VIEW_NOTE  = {
+  all:  "",
+  over: "the table has sold more tricks than the round holds",
+  under:"the table has sold fewer tricks than the round holds",
+};
+
+function setView(v){
+  view = v;
+  for(const b of $("viewpick").querySelectorAll("button"))
+    b.className = (b.dataset.view===v) ? "on" : "";
+  if(!results) return;
+  chartBid = null;
+  render();
+}
+
 function render(){
   $("results").style.display="block";
   if(results.ess < 250){
     $("bestBid").textContent="\u2014";
     $("runMeta").textContent=results.iterations.toLocaleString()+" deals";
-    $("tbody").innerHTML='<tr><td colspan="5" style="padding:14px 0;color:var(--red)">'
+    $("viewMeta").textContent="";
+    $("tbody").innerHTML='<tr><td colspan="6" style="padding:14px 0;color:var(--red)">'
       +"This auction is very hard to reconcile with the model \u2014 only "
       +Math.round(results.ess)+" of "+results.iterations.toLocaleString()
       +" deals carry meaningful weight. Any numbers here would be noise, so they are withheld. "
@@ -1000,45 +1230,77 @@ function render(){
     $("bars").innerHTML=""; $("diag").textContent="";
     return;
   }
-  $("bestBid").textContent=results.best;
+
+  const V = results.views[view];
+
+  /* A subset can be empty outright - bid high enough and the table can never
+     come in undersold. Say so plainly instead of printing zeros. */
+  if(V.empty){
+    $("bestBid").textContent="\u2014";
+    $("viewMeta").textContent="";
+    $("tbody").innerHTML='<tr><td colspan="6" style="padding:14px 0;color:var(--dim)">'
+      +"No simulated deal ends with "+VIEW_NOTE[view]+", for any bid you could make here. "
+      +"Nothing to report in this view."+"</td></tr>";
+    $("bidPick").innerHTML=""; $("pickMeta").textContent="";
+    $("bars").innerHTML=""; $("diag").textContent="";
+    return;
+  }
+
+  $("bestBid").textContent=V.best;
   $("runMeta").textContent = results.iterations.toLocaleString()+" deals"
     + (results.ess < results.iterations*0.999
         ? "  \u00b7  " + Math.round(results.ess).toLocaleString() + " effective after conditioning on the auction" : "")
     + (results.banned>=0 && results.banned<=results.n ? "  \u00b7  "+results.banned+" is blocked by the hook" : "");
+  $("viewMeta").textContent = view==="all" ? ""
+    : "\u00b7 " + V.coverage.toFixed(0) + "% of the run, so the error bars widen";
 
   const tb=$("tbody"); tb.innerHTML="";
-  for(const r of results.rows){
+  for(const r of V.rows){
     const tr=document.createElement("tr");
-    if(r.bid===results.best) tr.className="best";
+    if(r.empty){
+      tr.className="dead";
+      tr.innerHTML = "<td>"+r.bid+"</td>"
+        +'<td class="empty" colspan="5">never lands in this view</td>';
+      tb.appendChild(tr); continue;
+    }
+    if(r.bid===V.best) tr.className="best";
     const dead = r.makePct < 0.05;
     if(dead) tr.className = (tr.className?tr.className+" ":"")+"dead";
     tr.innerHTML =
-      "<td>"+r.bid+(dead?' <span class="deadtag" title="A legal bid. This hand just never takes that many tricks, so it always busts.">always busts</span>':"")+"</td>"+
+      "<td>"+r.bid+(dead?' <span class="deadtag" title="A legal bid. This hand just never takes that many tricks in this view, so it always busts.">always busts</span>':"")+"</td>"+
       '<td class="'+(dead?"":(r.delta>=0?"pos":"neg"))+'">'
         +(r.delta>=0?"+":"\u2212")+Math.abs(r.delta).toFixed(2)
         +' <span class="se">\u00b1'+(1.96*r.se).toFixed(2)+"</span></td>"+
       "<td>"+r.points.toFixed(2)+"</td>"+
       "<td>"+r.makePct.toFixed(1)+"%</td>"+
-      "<td>"+r.avgTricks.toFixed(2)+"</td>";
+      "<td>"+r.avgTricks.toFixed(2)+"</td>"+
+      '<td class="'+(view==="all"?"empty":"")+'" title="'+(view==="all"
+          ? "The whole run by definition."
+          : "Of every deal simulated for this bid, the share that ends with "+VIEW_NOTE[view]+".")
+        +'">'+r.share.toFixed(0)+"%</td>";
     tb.appendChild(tr);
   }
   renderChart();
 }
 
 /* Trick distribution for whichever bid is selected, plus the calibration line.
-   Both track the selected bid, not the recommended one. */
+   Both track the selected bid and the selected view. */
 function renderChart(){
-  const shown = chartBid===null ? results.best : chartBid;
-  const row = results.rows.find(r=>r.bid===shown);
+  const V = results.views[view];
+  const live = V.rows.filter(r=>!r.empty);
+  let shown = chartBid===null ? V.best : chartBid;
+  if(!live.some(r=>r.bid===shown)) shown = V.best;     // selection may not exist here
+  const row = live.find(r=>r.bid===shown);
 
   const pick=$("bidPick"); pick.innerHTML="";
-  for(const r of results.rows){
+  for(const r of live){
     const b=document.createElement("button");
     b.textContent=r.bid; if(r.bid===shown) b.className="on";
     b.onclick=()=>{ chartBid=r.bid; renderChart(); };
     pick.appendChild(b);
   }
-  $("pickMeta").textContent = "\u00b7 lands on "+shown+" in "+row.makePct.toFixed(1)+"% of deals";
+  $("pickMeta").textContent = "\u00b7 lands on "+shown+" in "+row.makePct.toFixed(1)+"% of "
+    + (view==="all" ? "deals" : VIEW_LABEL[view]);
 
   const peak=Math.max(...row.hist);
   const bars=$("bars"); bars.innerHTML="";
@@ -1052,13 +1314,20 @@ function renderChart(){
   });
 
   const nBehind = (+$("players").value) - 1 - (+$("seat").value);
-  $("diag").textContent = "Model check, if you bid "+shown+": the other seats make their bids "
+  $("diag").textContent = "Model check, if you bid "+shown
+    + (view==="all" ? "" : " and the auction closes "+(view==="over"?"oversold":"undersold"))
+    + ": the other seats make their bids "
     + row.oppMakePct.toFixed(1) + "% of the time and the table bids "
     + row.avgBidTotal.toFixed(2) + " tricks against " + results.n + " available."
     + (nBehind>0 ? " The "+nBehind+" seat"+(nBehind===1?"":"s")+" behind you bid "
         + row.behind.toFixed(2) + " between them." : "")
     + " If those look off compared to your group, adjust the player profiles above.";
 }
+
+(function wireViewToggle(){
+  for(const b of $("viewpick").querySelectorAll("button"))
+    b.onclick=()=>setView(b.dataset.view);
+})();
 
 (function applyDefaults(){
   $("seat").value = String(DEFAULT_SEAT);
@@ -1069,5 +1338,22 @@ function renderChart(){
 
 refresh();
 </script>
+<style>
+/* Force the dark theme past any embedding host's stylesheet. */
+:root { color-scheme: dark; }
+html, body {
+  background: #040d14 !important;
+  color: #c8e0f0 !important;
+  min-height: 100vh !important;
+}
+/* Fallback backdrop in case a wrapper element paints over html/body. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: #040d14;
+  z-index: -1;
+}
+</style>
 </body>
 </html>
