@@ -311,6 +311,10 @@ footer {
         <span class="lbl">Trump</span>
         <div style="display:flex;gap:5px;flex-wrap:wrap" id="trumpRow"></div>
       </label>
+      <label class="field" id="turnField">
+        <span class="lbl">Turned card <span class="hint">The card flipped to set trump is out of the deal, so nobody holds it.</span></span>
+        <div style="display:flex;gap:5px;flex-wrap:wrap" id="turnRow"></div>
+      </label>
       <label class="field">
         <span class="lbl">Players</span>
         <select id="players"></select>
@@ -563,8 +567,14 @@ function pAtMostOne(h,U,D){                 // P(card wins on the second round o
   if(U-h>=D-1 && D>=1) p+=h*Math.exp(lc(U-h,D-1)-lc(U,D));
   return Math.min(1,p);
 }
+/* Cards everyone can see and nobody holds - in practice the card turned over to
+   set trump. They shrink the unseen pool and, if they outrank one of yours,
+   promote it: with the trump ace face up on the table, your trump king is the
+   highest trump anyone can actually hold. */
+let KNOWN=[];
 function features(hand,trump,n,P,leadPos){
-  const U=52-n, D=(P-1)*n, mine=new Set(hand);
+  const U=52-n-KNOWN.length, D=(P-1)*n, mine=new Set(hand);
+  const isKnown=c=>KNOWN.indexOf(c)>=0;
   const bySuit=[[],[],[],[]];
   for(const c of hand) bySuit[suitOf(c)].push(c);
   let topTrump=0, topSide=0, trumpLen=0, voids=0, singles=0, sideCards=0, runNext=0, longest=0;
@@ -577,14 +587,17 @@ function features(hand,trump,n,P,leadPos){
     if(cards.length>longest) longest=cards.length;
     for(const c of cards){
       let h=0;
-      for(let r=rankOf(c)+1;r<=14;r++) if(!mine.has(s*13+(r-2))) h++;
+      for(let r=rankOf(c)+1;r<=14;r++){ const d=s*13+(r-2); if(!mine.has(d) && !isKnown(d)) h++; }
       const top=pNoneDealt(h,U,D);
       if(s===trump) topTrump+=top; else topSide+=top;
       runNext += pAtMostOne(h,U,D);
     }
   }
   const ruff = trump>=0 ? Math.min(trumpLen,3)*(voids+0.4*singles) : 0;
-  const noTrumpOut = trump>=0 ? pNoneDealt(13-trumpLen,U,D) : 1;
+  // trumps that could still be in an opponent's hand: not mine, not face up
+  let knownTrumps=0;
+  if(trump>=0) for(const k of KNOWN) if(suitOf(k)===trump) knownTrumps++;
+  const noTrumpOut = trump>=0 ? pNoneDealt(Math.max(0,13-trumpLen-knownTrumps),U,D) : 1;
   const onLead = leadPos===0 ? 1 : 0;
   return [1,topTrump,trumpLen,topSide,topSide*noTrumpOut,ruff,sideCards,n/P,onLead,onLead/n,
           runNext,longest,Math.max(0,longest-3)];
@@ -888,7 +901,10 @@ function push(b,w,score,d,tricks,behind,oppMakes,bidTot,made){
 function initSim(cfg){
   const n=cfg.hand.length, P=cfg.players;
   const inHand=new Set(cfg.hand), pool=[];
-  for(let c=0;c<52;c++) if(!inHand.has(c)) pool.push(c);
+  /* The turned card is face up and out of the deal, so it never gets dealt to
+     an opponent and it is public information while reading the auction. */
+  KNOWN = (cfg.trumpCard>=0 && !inHand.has(cfg.trumpCard)) ? [cfg.trumpCard] : [];
+  for(let c=0;c<52;c++) if(!inHand.has(c) && KNOWN.indexOf(c)<0) pool.push(c);
   const isDealer = cfg.seat===P-1;
   const priorSum = cfg.priorBids.reduce((a,b)=>a+b,0);
   const banned = isDealer ? n-priorSum : -1;
@@ -1018,7 +1034,7 @@ const DEFAULT_HAND  = [2*13+12, 2*13+11, 2*13+9, 2*13+2];   // A K J 4 of diamon
 const DEFAULT_TRUMP = 2;                                     // diamonds
 const DEFAULT_SEAT  = 3;                                     // seat 4 of 5
 const DEFAULT_PRIOR = [0, 1, 2];
-let hand = DEFAULT_HAND.slice(), trump = DEFAULT_TRUMP, results = null, chartBid = null, running = false;
+let hand = DEFAULT_HAND.slice(), trump = DEFAULT_TRUMP, trumpCard = -1, results = null, chartBid = null, running = false;
 let profileVals = {};        // seat index -> {bias, noise}; empty means everyone optimal
 
 // deck
@@ -1036,10 +1052,11 @@ let profileVals = {};        // seat index -> {bias, noise}; empty means everyon
       b.textContent=RANKL[ri]; b.dataset.card=c;
       b.setAttribute("aria-label", RANKL[ri]+" of "+["spades","hearts","diamonds","clubs"][s]);
       b.onclick=()=>{
+        if(b.disabled) return;
         const i=hand.indexOf(c);
         if(i>=0) hand.splice(i,1); else hand.push(c);
         results=null; $("results").style.display="none";
-        b.classList.toggle("on"); refresh();
+        b.classList.toggle("on"); refresh(); syncTrump();
       };
       row.appendChild(b);
     }
@@ -1054,19 +1071,69 @@ let profileVals = {};        // seat index -> {bias, noise}; empty means everyon
     const b=document.createElement("button");
     b.className="suitbtn"+(isRed(s)?" red":"")+(s===trump?" on":"");
     b.textContent=GLYPH[s]; b.title=["Spades","Hearts","Diamonds","Clubs"][s];
-    b.onclick=()=>{ trump=s; results=null; $("results").style.display="none"; syncTrump(); };
+    b.onclick=()=>{
+      if(trump!==s) trumpCard=-1;      // the old turned card was a different suit
+      trump=s; results=null; $("results").style.display="none"; syncTrump();
+    };
     r.appendChild(b);
   }
   const nb=document.createElement("button");
   nb.className="suitbtn"; nb.textContent="None"; nb.dataset.none="1";
-  nb.onclick=()=>{ trump=-1; results=null; $("results").style.display="none"; syncTrump(); };
+  nb.onclick=()=>{ trump=-1; trumpCard=-1; results=null; $("results").style.display="none"; syncTrump(); };
   r.appendChild(nb);
 })();
+
+/* Rank picker for the turned card. Only the trump suit can be turned, so the
+   suit comes from the row above and this row only chooses the rank. Leaving it
+   unspecified reproduces the old behaviour exactly: trump suit known, turned
+   card unknown and therefore still treated as possibly in someone's hand. */
+(function buildTurn(){
+  const r=$("turnRow");
+  for(const ri of SHOW){
+    const b=document.createElement("button");
+    b.className="ct"; b.textContent=RANKL[ri]; b.dataset.ri=ri;
+    b.onclick=()=>{
+      if(b.disabled) return;
+      const c=trump*13+ri;
+      trumpCard = (trumpCard===c) ? -1 : c;   // click again to clear
+      results=null; $("results").style.display="none"; syncTrump();
+    };
+    r.appendChild(b);
+  }
+  const ub=document.createElement("button");
+  ub.className="ct"; ub.textContent="Unknown"; ub.dataset.unknown="1";
+  ub.onclick=()=>{ trumpCard=-1; results=null; $("results").style.display="none"; syncTrump(); };
+  r.appendChild(ub);
+})();
+
 function syncTrump(){
   [...$("trumpRow").children].forEach((b,i)=>{
     const on = b.dataset.none ? trump===-1 : i===trump;
     b.classList.toggle("on", on);
   });
+  // no trump suit means no card was turned, so hide the rank row entirely
+  $("turnField").style.display = (trump<0) ? "none" : "";
+  for(const b of $("turnRow").children){
+    if(b.dataset.unknown){ b.classList.toggle("on", trumpCard<0); continue; }
+    const c = trump*13 + (+b.dataset.ri);
+    b.classList.toggle("red", isRed(trump));
+    b.classList.toggle("on", trumpCard===c);
+    // a card in your own hand cannot also be the one turned over
+    b.disabled = hand.includes(c);
+    b.style.opacity = b.disabled ? .3 : "";
+  }
+  syncDeck();
+}
+
+/* Grey the turned card out of the hand picker - you cannot hold it. */
+function syncDeck(){
+  for(const b of $("deck").querySelectorAll("button.ct")){
+    const c=+b.dataset.card;
+    const blocked = (c===trumpCard);
+    b.disabled = blocked;
+    b.style.opacity = blocked ? .3 : "";
+    b.title = blocked ? "Turned over for trump, so it is out of the deal" : "";
+  }
 }
 
 // players / seat
@@ -1173,7 +1240,7 @@ $("run").onclick = () => {
   const prior=[...$("priorRow").querySelectorAll("input")].map(i=>Math.max(0,(+i.value)|0));
   const iterations=+$("iters").value;
   const S=initSim({
-    hand: hand.slice().sort((a,b)=>a-b), players:P, seat, trump,
+    hand: hand.slice().sort((a,b)=>a-b), players:P, seat, trump, trumpCard,
     priorBids:prior, profiles:readProfiles(), iterations,
     seed:(+$("seed").value)|0
   });
@@ -1334,6 +1401,7 @@ function renderChart(){
   buildPrior(); buildProfiles();
   const inp = [...$("priorRow").querySelectorAll("input")];
   DEFAULT_PRIOR.forEach((v,i)=>{ if(inp[i]) inp[i].value = String(v); });
+  syncTrump();
 })();
 
 refresh();
