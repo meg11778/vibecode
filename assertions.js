@@ -9,6 +9,10 @@
  * them are rare. This file is where those shapes live. Add a case whenever a
  * hand looks wrong - the test is cheap, the bug it prevents is not.
  *
+ * The sections up to "View arithmetic" pin the simulation to the rules engine,
+ * so they keep guarding it now that the network plays by default. The sections
+ * after that run the neural network.
+ *
  * Exit code is the number of failures.
  */
 
@@ -21,8 +25,8 @@ const lines = html.split('\n');
 const start = lines.findIndex(l => l.includes('===== cards:'));
 const end   = lines.findIndex(l => l.includes('===== UI ====='));
 const src = lines.slice(start, end).join('\n') +
-  '\nmodule.exports={initSim,runChunk,finalize,chooseCard,playHand,mulberry32,suitOf,rankOf,setKnown:(a)=>{KNOWN=a;}};';
-const tmp = '/tmp/_engine_under_test.js';
+  '\nmodule.exports={initSim,runChunk,finalize,chooseCard,playHand,playHandNet,netCovers,muFor,bidAt,auctionFactor,vienna,mulberry32,suitOf,rankOf,setKnown:(a)=>{KNOWN=a;}};';
+const tmp = require('path').join(require('os').tmpdir(), '_ohhell_engine_under_test.js');
 fs.writeFileSync(tmp, src);
 const E = require(tmp);
 
@@ -32,7 +36,7 @@ const S = 0, H = 1, D = 2, CL = 3;
 function sim(hand, trump, n, opts = {}) {
   const cfg = { hand, trump, trumpCard: opts.trumpCard ?? -1, players: opts.players ?? 4,
     seat: opts.seat ?? 0, priorBids: opts.priorBids ?? [], iterations: opts.iters ?? 12000,
-    seed: opts.seed ?? 7, profiles: {} };
+    seed: opts.seed ?? 7, profiles: {}, play: opts.play ?? 'rules' };
   const st = E.initSim(cfg); E.runChunk(st, cfg.iterations); return E.finalize(st);
 }
 const row = (R, view, bid) => R.views[view].rows.find(r => r.bid === bid);
@@ -139,6 +143,77 @@ console.log('\nView arithmetic');
       if (Math.abs(s - 1) > 1e-6) check('histogram sums to 1 (' + v + ', bid ' + r.bid + ')', false, s.toFixed(4));
     }
   check('histograms normalise within each view', true);
+}
+
+/* ------------------------------------------------------------------ */
+console.log('\nNetwork: where it plays and where it does not');
+{
+  const seven = [C(S,14), C(S,9), C(S,4), C(H,13), C(H,6), C(D,12), C(CL,3)];
+  check('plays four seats, trump, 7 cards', sim(seven, S, 7, { play: 'net', iters: 200 }).net === true);
+  check('steps aside when the rules are asked for', sim(seven, S, 7, { play: 'rules', iters: 200 }).net === false);
+  check('steps aside at five seats', sim(seven, S, 7, { play: 'net', players: 5, iters: 200 }).net === false);
+  check('steps aside with no trump', sim(seven, -1, 7, { play: 'net', iters: 200 }).net === false);
+  check('steps aside at one card', sim([C(S,14)], S, 1, { play: 'net', iters: 200 }).net === false);
+}
+
+/* ------------------------------------------------------------------ */
+console.log('\nNetwork: the known shapes');
+{
+  // The same hands that exposed the rules engine's mistakes.
+  let R = sim([C(D,2), C(D,14)], D, 2, { play: 'net' });
+  check('A-2 of trumps: bid 1 makes >= 75%', row(R,'all',1).makePct >= 75, row(R,'all',1).makePct.toFixed(1) + '%');
+  check('A-2 of trumps: bid 1 still possible when the table undersells', row(R,'under',1).makePct > 5, row(R,'under',1).makePct.toFixed(1) + '%');
+  R = sim([C(D,14), C(D,2), C(S,14)], D, 3, { play: 'net' });
+  check('A-2 of trumps + side ace: bid 2 makes >= 65%', row(R,'all',2).makePct >= 65, row(R,'all',2).makePct.toFixed(1) + '%');
+  // Losing two tricks with three winners-on-paper takes deliberate ducking;
+  // the rules manage it about a quarter of the time.
+  check('A-2 of trumps + side ace: bid 1 makes >= 40%', row(R,'all',1).makePct >= 40, row(R,'all',1).makePct.toFixed(1) + '%');
+  R = sim([C(D,13), C(D,4), C(S,14), C(H,7), C(CL,3)], D, 5, { play: 'net', iters: 4000, trumpCard: C(D,14) });
+  check('trump ace turned, holding the king: bid 0 impossible', row(R,'all',0).makePct < 0.5, row(R,'all',0).makePct.toFixed(1) + '%');
+}
+
+/* ------------------------------------------------------------------ */
+console.log('\nNetwork: weights intact');
+{
+  // If the embedded weights are damaged the network still returns legal cards,
+  // just bad ones. Whole tables of each engine on the same deals and bids: the
+  // network table should make clearly more contracts (about 67% against 54%).
+  const rng = E.mulberry32(2026), P = 4, n = 7, deals = 1500;
+  let mkN = 0, mkR = 0, sumOK = true;
+  for (let i = 0; i < deals; i++) {
+    const d = [...Array(52).keys()];
+    for (let k = 51; k > 0; k--) { const j = (rng() * (k + 1)) | 0; [d[k], d[j]] = [d[j], d[k]]; }
+    const hands = []; for (let p = 0; p < P; p++) hands.push(d.slice(p * n, (p + 1) * n));
+    const turned = d[P * n], trump = E.suitOf(turned);
+    E.setKnown([turned]);
+    const bids = []; let B = 0;
+    for (let p = 0; p < P; p++) {
+      const mu = E.muFor(hands[p], trump, n, P, p) * E.auctionFactor(n, P, B, P - p);
+      const b = E.bidAt(Math.max(0, Math.min(n, mu)), n, p === P - 1 ? n - B : -1);
+      bids.push(b); B += b;
+    }
+    const wn = E.playHandNet(hands, bids, trump, P, n, turned), wr = E.playHand(hands, bids, trump, P, n);
+    if (wn.reduce((a, b) => a + b, 0) !== n) sumOK = false;
+    for (let p = 0; p < P; p++) { if (wn[p] === bids[p]) mkN++; if (wr[p] === bids[p]) mkR++; }
+  }
+  E.setKnown([]);
+  const a = 100 * mkN / deals / P, b = 100 * mkR / deals / P;
+  check('every trick is awarded to someone', sumOK);
+  check('network table makes clearly more contracts than a rules table', a > b + 5, 'rules ' + b.toFixed(1) + '% -> network ' + a.toFixed(1) + '%');
+}
+
+/* ------------------------------------------------------------------ */
+console.log('\nNetwork: view arithmetic');
+{
+  const R = sim([C(S,14), C(S,9), C(S,4), C(H,13), C(H,6), C(D,12), C(CL,3)], S, 7,
+                { seat: 2, priorBids: [2,1], iters: 6000, play: 'net' });
+  let worst = 0;
+  for (const r of R.views.all.rows) {
+    const o = row(R,'over',r.bid), u = row(R,'under',r.bid);
+    const blend = (o.empty ? 0 : o.share * o.delta) + (u.empty ? 0 : u.share * u.delta);
+    worst = Math.max(worst, Math.abs(blend / 100 - r.delta));
+  }
+  check('subset margins recombine to the overall margin', worst < 0.01, 'max gap ' + worst.toFixed(4));
 }
 
 /* ------------------------------------------------------------------ */
