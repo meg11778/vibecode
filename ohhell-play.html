@@ -1986,24 +1986,37 @@ function botPlay(H, seat){
   if(netCovers(P,H.n,H.trump)){ const r=netChoose(o); return { card:r.card, by:"network", alts:r.alts }; }
   return { card:rulesChoose(o), by:"rules" };
 }
-/* A bot's bid. `pos` is its place in the bidding order (0 bids first),
-   `claimed` the tricks bid so far. The bid model's formula gives a bid at once;
-   in simulation mode that only sets which bids are worth trying, and the bot
-   bids whichever of them scores best when played out (simulateBid). */
-function botBid(H, seat, pos, claimed){
+/* What the formula, and optionally the simulation, would bid on a hand.
+   `cards` is the hand as dealt, `pos` its place in the bidding order (0 bids
+   first), `prior` the bids made ahead of it. The formula gives a bid at once;
+   the simulation tries the bids near it and takes whichever scores best when
+   played out (simulateBid). Used for the bots' bids, and after a hand to show
+   what each method would have bid on your cards. */
+function bidAdvice(H, cards, pos, prior, seed, wantSim){
   KNOWN = H.turned>=0 ? [H.turned] : [];
-  const est=muFor(H.hands[seat].slice().sort((a,b)=>a-b),H.trump,H.n,P,pos);
+  const hand=cards.slice().sort((a,b)=>a-b), claimed=prior.reduce((a,b)=>a+b,0);
+  const est=muFor(hand,H.trump,H.n,P,pos);
   const adj=Math.max(0,Math.min(H.n,est*auctionFactor(H.n,P,claimed,P-pos)));
-  const banned=(pos===P-1)?H.n-claimed:-1;
-  const formula={ bid:bidAt(adj,H.n,banned), est:+est.toFixed(2), adj:+adj.toFixed(2) };
-  if(H.bidMode!=="sim") return { bid:formula.bid, info:{ by:"formula", est:formula.est, adj:formula.adj } };
-  // a different, repeatable seed for every bid of every hand
-  const seed=(G.seed ^ Math.imul(G.idx*4+seat+1, 0x9e3779b1))>>>0;
-  const r=simulateBid(H.hands[seat].slice().sort((a,b)=>a-b), H.trump, H.turned, H.n, P, pos, H.bidLog.map(b=>b.bid), formula, seed);
-  const info={ by:r.by, est:formula.est, adj:formula.adj, formula:formula.bid };
-  if(r.table){ info.sim=r.table; info.samples=r.samples; }
-  if(r.why) info.why=r.why;
-  return { bid:r.bid, info };
+  const formula={ bid:bidAt(adj,H.n,(pos===P-1)?H.n-claimed:-1), est:+est.toFixed(2), adj:+adj.toFixed(2) };
+  const out={ est:formula.est, adj:formula.adj, formula:formula.bid };
+  if(!wantSim) return out;
+  const r=simulateBid(hand, H.trump, H.turned, H.n, P, pos, prior, formula, seed);
+  if(r.table){ out.sim=r.table; out.samples=r.samples; out.simBid=r.bid; }
+  if(r.why) out.why=r.why;
+  return out;
+}
+/* A different, repeatable seed for every bid of every hand. */
+const bidSeed = seat => (G.seed ^ Math.imul(G.idx*4+seat+1, 0x9e3779b1))>>>0;
+
+/* A bot's bid: the simulation's choice, or the formula's when the game is set
+   to formula bidding or the simulation had nothing to go on. */
+function botBid(H, seat, pos){
+  const sim=H.bidMode==="sim";
+  const a=bidAdvice(H, H.hands[seat], pos, H.bidLog.map(b=>b.bid), bidSeed(seat), sim);
+  if(!sim) return { bid:a.formula, info:{ by:"formula", est:a.est, adj:a.adj } };
+  const info=Object.assign({ by: a.simBid!=null ? "simulation" : "formula" }, a);
+  delete info.simBid;
+  return { bid: a.simBid!=null ? a.simBid : a.formula, info };
 }
 
 /* ----- game state ----- */
@@ -2058,7 +2071,7 @@ function step(){
     const seat=H.order[H.bidCount], claimed=H.bidLog.reduce((a,b)=>a+b.bid,0);
     if(seat===0) return showBidButtons(claimed);
     say(NAMES[seat]+" is bidding…");
-    return later(()=>{ const b=botBid(H,seat,H.bidCount,claimed); placeBid(seat,b.bid,b.info); step(); }, delay());
+    return later(()=>{ const b=botBid(H,seat,H.bidCount); placeBid(seat,b.bid,b.info); step(); }, delay());
   }
   if(H.phase==="play"){
     if(H.cur.plays.length===P) return;                       // waiting on the end-of-trick pause
@@ -2150,6 +2163,8 @@ function showBidButtons(claimed){
 
 /* ----- end of a hand: score it, save it, show it ----- */
 function endHand(){
+  { const mi=H.bidLog.findIndex(b=>b.seat===0);
+    Object.assign(H.bidLog[mi], { by:"you" }, bidAdvice(H, H.hands0[0], mi, H.bidLog.slice(0,mi).map(b=>b.bid), bidSeed(0), true)); }
   const pts=[0,1,2,3].map(s=>vienna(H.bids[s],H.won[s],H.n));
   for(let s=0;s<P;s++) G.scores[s]+=pts[s];
   const rec={
@@ -2209,13 +2224,21 @@ function diagramHand(r){
 /* One line on how a bot arrived at its bid. */
 function bidWhy(b){
   const sg=v=>(v>=0?"+":"\u2212")+Math.abs(v).toFixed(2);
+  const simText=()=>"Simulation over "+b.samples+" deals: "+b.sim.map(x=>"bid "+x.bid+" "+sg(x.edge)+" (makes "+x.makes+"%)").join(", ")+".";
   let t="the formula expected "+b.est+" tricks"+(b.adj!==b.est?" ("+b.adj+" after the bids ahead)":"");
-  if(b.by==="simulation") t+=" and would bid "+b.formula+". Simulation over "+b.samples+" deals: "
-    +b.sim.map(x=>"bid "+x.bid+" "+sg(x.edge)+" (makes "+x.makes+"%)").join(", ")+". Bid "+b.bid+".";
+  if(b.by==="you"){
+    t="you bid "+b.bid+". T"+t.slice(1)+" and would have bid "+b.formula+". ";
+    t+= b.sim ? simText()+" It would have bid "+b.simBid+"." : "No simulation: "+(b.why||"not run")+".";
+    return t;
+  }
+  if(b.by==="simulation") t+=" and would bid "+b.formula+". "+simText()+" Bid "+b.bid+".";
   else if(b.formula!=null) t+="; bid "+b.bid+" from the formula because "+(b.why||"no simulation was run")+".";
   else t+="; bid "+b.bid+".";
   return t;
 }
+/* Does this bid entry carry an explanation? Hands saved before the advice on
+   your own bid was added have none for your seat. */
+const hasWhy = b => b.est!=null;
 
 /* A hand as plain text, for pasting somewhere. */
 function handText(r){
@@ -2225,7 +2248,7 @@ function handText(r){
   L.push("Hands:");
   r.hands.forEach((h,s)=>L.push("  "+nm[s].padEnd(6)+h.map(t).join(" ")));
   L.push("Bids, in order: "+r.bids.map(b=>nm[b.seat]+" "+b.bid).join(", "));
-  for(const b of r.bids) if(b.seat!==0) L.push("  "+nm[b.seat]+": "+bidWhy(b).replace(/\u2212/g,"-"));
+  for(const b of r.bids) if(hasWhy(b)) L.push("  "+nm[b.seat]+": "+bidWhy(b).replace(/\u2212/g,"-"));
   r.tricks.forEach((k,i)=>L.push("Trick "+String(i+1).padStart(2)+": "+k.plays.map((p,j)=>nm[p.seat]+(j===0?(p.seat===0?" lead ":" leads "):" ")+t(p.card)).join(", ")+"  -> "+nm[k.winner]));
   L.push("Result: "+nm.map((x,s)=>x+" bid "+r.bids.find(b=>b.seat===s).bid+" took "+r.won[s]+" = "+r.points[s]).join("; "));
   L.push("Totals after: "+nm.map((x,s)=>x+" "+r.totalsAfter[s]).join(", "));
@@ -2246,16 +2269,16 @@ function showReview(r, opts){
     +(opts.final?'<button class="btn" id="rvNew">New game</button>':"")
     +(opts.close?'<button class="btn quiet" id="rvClose">Close</button>':"")+"</div></div>";
   h+='<p class="hint" style="margin:0 0 8px">Dealer '+nm[r.dealer]+". Bots bid by: "+r.botBidding+". Bots played by: "+r.botPlay+".</p>";
-  h+='<div class="scroll"><table><thead><tr><th>Seat</th><th>Hand as dealt</th><th class="num">Bid</th><th class="num">Formula bid</th><th class="num">Took</th><th class="num">Points</th><th class="num">Total</th></tr></thead><tbody>';
+  h+='<div class="scroll"><table><thead><tr><th>Seat</th><th>Hand as dealt</th><th class="num">Bid</th><th class="num" title="What the bid formula would bid on this hand">Formula</th><th class="num" title="What the simulation would bid on this hand">Simulation</th><th class="num">Took</th><th class="num">Points</th><th class="num">Total</th></tr></thead><tbody>';
   for(let s=0;s<4;s++){
     const b=bidOf(s), made=b.bid===r.won[s];
     h+="<tr><td>"+nm[s]+(s===r.dealer?" (D)":"")+'</td><td><div class="handrow">'+r.hands[s].map(c=>showCard(c,"small")).join("")+"</div></td>"
-      +'<td class="num">'+b.bid+'</td><td class="num">'+(s===0?"":(b.formula!=null?b.formula:b.bid))+'</td><td class="num '+(made?"pos":"neg")+'">'+r.won[s]+'</td><td class="num">'+r.points[s]+'</td><td class="num">'+r.totalsAfter[s]+"</td></tr>";
+      +'<td class="num">'+b.bid+'</td><td class="num">'+(b.formula!=null?b.formula:(s===0?"":b.bid))+'</td><td class="num">'+(b.by==="you"?(b.simBid!=null?b.simBid:""):(b.by==="simulation"?b.bid:""))+'</td><td class="num '+(made?"pos":"neg")+'">'+r.won[s]+'</td><td class="num">'+r.points[s]+'</td><td class="num">'+r.totalsAfter[s]+"</td></tr>";
   }
   h+="</tbody></table></div>";
   h+="<h3>Bidding</h3>"+'<p class="hint" style="margin:0 0 4px">In order: '+r.bids.map(b=>nm[b.seat]+" "+b.bid).join(", ")+".</p>";
-  h+='<div style="font-size:1rem;color:var(--dim)">'+r.bids.filter(b=>b.seat!==0).map(b=>'<div><b style="color:var(--text)">'+nm[b.seat]+"</b>: "+bidWhy(b)+"</div>").join("")+"</div>";
-  if(r.botBidding==="simulation") h+='<p class="hint" style="margin:6px 0 0">Each simulated figure is that bid\u2019s points against the table\u2019s average on the deals the bot imagined, with how often it made the bid. The bot saw only its own hand, the turned card and the bids ahead of it.</p>';
+  h+='<div style="font-size:1rem;color:var(--dim)">'+r.bids.filter(hasWhy).map(b=>'<div'+(b.seat===0?' style="margin-bottom:4px"':"")+'><b style="color:var(--text)">'+nm[b.seat]+"</b>: "+bidWhy(b)+"</div>").join("")+"</div>";
+  if(r.bids.some(b=>b.sim)) h+='<p class="hint" style="margin:6px 0 0">Each simulated figure is that bid\u2019s points against the table\u2019s average on the deals the bot imagined, with how often it made the bid. Each bot saw only its own hand, the turned card and the bids ahead of it. The figures for your hand were worked out the same way, from what you could see when you bid, after the hand was over.</p>';
   h+="<h3>Play</h3>"+'<div class="scroll"><table><thead><tr><th>Trick</th>'+nm.map(x=>"<th>"+x+"</th>").join("")+"<th>Won by</th></tr></thead><tbody>";
   r.tricks.forEach((k,i)=>{
     h+="<tr><td>"+(i+1)+"</td>";
