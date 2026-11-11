@@ -55,6 +55,12 @@
       at five players and 0.1 to 1.1 at six. Four players with trump stays with
       the first network, which plays that game better. Three players and
       one-card rounds are still played by the rules.
+    - Two corrections after Matt Glassman found the second network playing a
+      twelve-card spade suit at no trump as if spades were trumps. At no trump
+      a player holding six or more spades now has the suits relabelled before
+      the network sees them (see ntMap). And every bid is now priced twice, with
+      your hand played by the network and by the rules, the better being
+      reported (see two-way pricing).
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -527,8 +533,13 @@ footer {
    - The networks learned at tables where every seat's bid came from this
      program's bid model, and have only been measured against this program's own
      engines. How it compares with strong human play is not known.
-   - Network play costs roughly ten times the computing per deal, so the
-     default number of simulated deals is lower when it is in use.
+   - Network play costs roughly ten times the computing per deal, and every bid
+     is played out twice (see two-way pricing in the simulation), so the default
+     number of simulated deals is lower when it is in use.
+   - The networks have little practice with hands far from anything dealt at
+     random (a ten-card suit, say) or with bids far from a hand's worth. Two-way
+     pricing covers your own seat; the simulated opponents are still network
+     players and can misplay such hands.
    - Side-suit aces are undervalued in small rounds (0.27 against a true 0.40 at
      n=1); a linear model on these features cannot close that gap.
    - Profiles default to optimal, so unusual auctions can exhaust the sample and
@@ -980,10 +991,38 @@ const netCovers=(P,n,trump)=> netFor(P,n,trump)>0;
 function netAdd(dst,W,row){ const o=row*NET_H; for(let j=0;j<NET_H;j++) dst[j]+=W[o+j]; }
 function netAddV(dst,W,row,v){ const o=row*NET_H; for(let j=0;j<NET_H;j++) dst[j]+=v*W[o+j]; }
 
+/* Suit relabelling for one decision at no trump, or null to leave the suits as
+   they are. Every suit is equal at no trump, but the network's first suit slot
+   is not: it is where trump sits in every trump deal, and training shuffled
+   only the other three. Left alone, a hand with a very long spade suit (spades
+   being the suit that lands in that slot) was played as if spades were trumps -
+   found by Matt Glassman with twelve spades and a side deuce at 13 cards. So a
+   player holding six or more spades sees the suits relabelled with its shortest
+   suit in the first slot instead. Any relabelling is a legal view of a no-trump
+   hand; this one keeps a long suit out of the odd slot. On ordinary deals it
+   changes nothing measurable. Retraining with all four suits shuffled at no
+   trump would remove the need for it. */
+const NT_LONG=6;
+function ntMap(hand){
+  const cnt=[0,0,0,0];
+  for(let q=0;q<hand.length;q++) cnt[(hand[q]/13)|0]++;
+  if(cnt[0]<NT_LONG) return null;
+  let z=0;
+  for(let s=1;s<4;s++) if(cnt[s]<cnt[z]) z=s;
+  if(z===0) return null;
+  const m=[0,0,0,0]; let k=1;
+  for(let s=0;s<4;s++) m[s]=(s===z)?0:k++;
+  return m;
+}
+const netRe=(c,pm)=> pm ? pm[(c/13)|0]*13+(c%13) : c;
+
 /* Play one deal with the network in every seat. Same contract as playHand:
    seat 0 leads the first trick, returns tricks won per seat. `turned` is the
-   card turned for trump, or -1 if there is none or it was not entered. */
-function playHandNet(hands,bids,trump,P,n,turned){
+   card turned for trump, or -1 if there is none or it was not entered.
+   `rulesSeat`, if given, is one seat to be played by the rules engine instead:
+   the calculator uses it to price a bid both ways for the player it advises. */
+function playHandNet(hands,bids,trump,P,n,turned,rulesSeat){
+  if(rulesSeat==null) rulesSeat=-1;
   const R=netLoad(netFor(P,n,trump)), L=R.L, H=NET_H, W1=R.W1, W2=R.W2, W3=R.W3, acc=R.acc, h1=R.h1, h2=R.h2, b3=R.b3;
   const hasTrump=trump>=0, m=[0,1,2,3];
   if(hasTrump){ let k=1; for(let s=0;s<4;s++) m[s]=(s===trump)?0:k++; }
@@ -998,7 +1037,9 @@ function playHandNet(hands,bids,trump,P,n,turned){
   netAddV(acc,W1,L.n,n);
   if(L.seats>=0) netAdd(acc,W1,L.seats+P-3);
   if(L.nt>=0 && !hasTrump) netAdd(acc,W1,L.nt);
-  const trick=[0,0,0,0,0,0];
+  const trick=[0,0,0,0,0,0], played=[], tr=hasTrump?0:-1;
+  const seenC = rulesSeat>=0 ? new Uint8Array(52) : null;
+  const tc = turned>=0 ? cc(turned) : -1;
   let leader=0;
   for(let t=0;t<n;t++){
     let led=-1, win=-1, winner=leader;
@@ -1011,12 +1052,25 @@ function playHandNet(hands,bids,trump,P,n,turned){
         if(f.length) legal=f;
       }
       let card=legal[0];
-      if(legal.length>1){
-        h1.set(acc);
-        for(let q=0;q<hand.length;q++) netAdd(h1,W1,hand[q]);
-        for(let q=0;q<i;q++) netAdd(h1,W1,104+trick[q]);
-        if(win>=0) netAdd(h1,W1,156+win);
-        if(led>=0) netAdd(h1,W1,208+led);
+      if(legal.length>1 && p===rulesSeat){
+        const mine=new Set(hand), nv=[false,false,false,false];
+        for(let q=0;q<P;q++){ if(q===p || bids[q]-won[q]<=0) continue; for(let u=0;u<4;u++) if(voids[q][u]) nv[u]=true; }
+        card=chooseCard(hand,led,win,tr,bids[p]-won[p],{seen:seenC,mine,trump:tr,needyVoidIn:nv});
+      } else if(legal.length>1){
+        const pm = hasTrump ? null : ntMap(hand);
+        if(pm){
+          // relabelled view: nothing in the running sum applies, so build it afresh
+          h1.set(R.b1);
+          netAddV(h1,W1,L.n,n);
+          if(L.seats>=0) netAdd(h1,W1,L.seats+P-3);
+          if(L.nt>=0) netAdd(h1,W1,L.nt);
+          if(tc>=0) netAdd(h1,W1,52+netRe(tc,pm));
+          for(let q=0;q<played.length;q++) netAdd(h1,W1,52+netRe(played[q],pm));
+        } else h1.set(acc);
+        for(let q=0;q<hand.length;q++) netAdd(h1,W1,netRe(hand[q],pm));
+        for(let q=0;q<i;q++) netAdd(h1,W1,104+netRe(trick[q],pm));
+        if(win>=0) netAdd(h1,W1,156+netRe(win,pm));
+        if(led>=0) netAdd(h1,W1,208+(pm?pm[led]:led));
         for(let r=0;r<P;r++){
           const s=(p+r)%P, o=212+r*10, need=bids[s]-won[s], v=voids[s];
           if(bids[s]) netAddV(h1,W1,o,bids[s]);
@@ -1024,7 +1078,7 @@ function playHandNet(hands,bids,trump,P,n,turned){
           if(need>0) netAddV(h1,W1,o+2,need); else if(need<0) netAddV(h1,W1,o+3,-need);
           if(h[s].length) netAddV(h1,W1,o+4,h[s].length);
           if(r>0 && r>=P-i) netAdd(h1,W1,o+5);
-          for(let u=0;u<4;u++) if(v[u]) netAdd(h1,W1,o+6+u);
+          for(let u=0;u<4;u++) if(v[u]) netAdd(h1,W1,o+6+(pm?pm[u]:u));
         }
         netAddV(h1,W1,L.n+1,hand.length);
         netAdd(h1,W1,L.pos+i);
@@ -1036,13 +1090,14 @@ function playHandNet(hands,bids,trump,P,n,turned){
         }
         let bv=-Infinity;
         for(let q=0;q<legal.length;q++){
-          const c=legal[q], o=c*H; let z=b3[c];
+          const c=legal[q], cx=netRe(c,pm), o=cx*H; let z=b3[cx];
           for(let j=0;j<H;j++){ const v=h2[j]; if(v>0) z+=v*W3[o+j]; }
           if(z>bv){ bv=z; card=c; }
         }
       }
       hand.splice(hand.indexOf(card),1);
-      netAdd(acc,W1,52+card);
+      netAdd(acc,W1,52+card); played.push(card);
+      if(seenC) seenC[card]=1;
       trick[i]=card;
       const cs=(card/13)|0, ws=(win/13)|0;
       if(i===0) led=cs; else if(cs!==led) voids[p][led]=1;
@@ -1090,8 +1145,19 @@ function initSim(cfg){
   /* Who plays the cards in the simulated deals: the neural network where it
      applies, otherwise the rules. cfg.play === "rules" forces the rules. */
   const net = cfg.play!=="rules" && netCovers(P,n,cfg.trump);
-  return { cfg,n,P,pool,cands,banned,net, rng:mulberry32(cfg.seed>>>0), done:0, wSum:0, wSum2:0,
-    acc: cands.map(()=>({ all:bucket(n,P), over:bucket(n,P), under:bucket(n,P) })),
+  /* Two-way pricing. The networks learned at tables where every seat bid what
+     the bid model would bid on its hand, so they have little practice playing a
+     hand to a bid far from its worth, or playing a freak hand at all - and a
+     calculator has to price exactly those. So when a network is playing, each
+     candidate bid is played out twice on every deal: once with a network in
+     your seat and once with the rules in your seat, a network in the others
+     both times. The row reported for a bid is whichever way of playing your
+     hand scored better against the table over the whole run. cfg.safety ===
+     false turns this off. */
+  const twoWay = net && cfg.safety!==false;
+  const trio = ()=>({ all:bucket(n,P), over:bucket(n,P), under:bucket(n,P) });
+  return { cfg,n,P,pool,cands,banned,net,twoWay, rng:mulberry32(cfg.seed>>>0), done:0, wSum:0, wSum2:0,
+    acc: cands.map(trio), alt: twoWay ? cands.map(trio) : null,
   };
 }
 
@@ -1143,25 +1209,24 @@ function runChunk(S,count){
         const b=bidAt(e,n,banned);
         bids[s]=b; B+=b; behind+=b;
       }
-      const won = S.net ? playHandNet(hands,bids,cfg.trump,P,n,cfg.trumpCard)
-                        : playHand(hands,bids,cfg.trump,P,n);
-      const sc=new Array(P); let tot=0;
-      for(let s=0;s<P;s++){ sc[s]=vienna(bids[s],won[s],n); tot+=sc[s]; }
-      const d = sc[cfg.seat] - tot/P;
-      const a=S.acc[ci];
-      let oppMade=0, bidTot=0;
-      for(let s=0;s<P;s++){
-        bidTot+=bids[s];
-        if(s!==cfg.seat && won[s]===bids[s]) oppMade++;
-      }
-      const made = won[cfg.seat]===cands[ci];
-      const args=[w, sc[cfg.seat], d, won[cfg.seat], behind, oppMade, bidTot, made];
-      push(a.all, ...args);
-      /* B is the full table total once every seat has bid, mine included. A
-         round that sold exactly n has no tension either way; the hook normally
-         makes it impossible, and where it is not, it belongs in neither subset. */
-      if(B>n)      push(a.over,  ...args);
-      else if(B<n) push(a.under, ...args);
+      // score one way of playing this deal into one set of accumulators
+      const tally=(a,won)=>{
+        const sc=new Array(P); let tot=0, oppMade=0, bidTot=0;
+        for(let s=0;s<P;s++){
+          sc[s]=vienna(bids[s],won[s],n); tot+=sc[s]; bidTot+=bids[s];
+          if(s!==cfg.seat && won[s]===bids[s]) oppMade++;
+        }
+        const args=[w, sc[cfg.seat], sc[cfg.seat]-tot/P, won[cfg.seat], behind, oppMade, bidTot, won[cfg.seat]===cands[ci]];
+        push(a.all, ...args);
+        /* B is the full table total once every seat has bid, mine included. A
+           round that sold exactly n has no tension either way; the hook normally
+           makes it impossible, and where it is not, it belongs in neither subset. */
+        if(B>n)      push(a.over,  ...args);
+        else if(B<n) push(a.under, ...args);
+      };
+      tally(S.acc[ci], S.net ? playHandNet(hands,bids,cfg.trump,P,n,cfg.trumpCard)
+                             : playHand(hands,bids,cfg.trump,P,n));
+      if(S.twoWay) tally(S.alt[ci], playHandNet(hands,bids,cfg.trump,P,n,cfg.trumpCard,cfg.seat));
     }
   }
 }
@@ -1171,22 +1236,24 @@ function runChunk(S,count){
    oversold deals, not 40% of the run. Error bars use that view's effective
    sample size, which is why a subset's bars are wider than the full run's. */
 function finalizeView(S,key){
-  const W=S.acc.map(a=>a[key].w);
+  // S.use[i] is the set of accumulators chosen for bid i (see finalize)
+  const W=S.use.map(a=>a[key].w);
   const tot=W.reduce((x,y)=>x+y,0)/Math.max(S.cands.length,1);  // typical bucket weight
   const rows=S.cands.map((bid,i)=>{
-    const b=S.acc[i][key];
+    const b=S.use[i][key];
     const N=b.w;
     if(N<=1e-12){
       // This bid cannot produce a table total of that sign, so the view is empty
       // for this row. Reported as absent rather than as zero.
       return { bid, empty:true, share:0, points:null, delta:null, se:null,
                makePct:null, avgTricks:null, hist:new Array(S.n+1).fill(0),
-               behind:null, oppMakePct:null, avgBidTotal:null };
+               behind:null, oppMakePct:null, avgBidTotal:null, you:S.you[i] };
     }
     const m=b.d/N, v=b.d2/N-m*m;
     const ess=b.w2>0 ? (b.w*b.w)/b.w2 : 0;
     return { bid, empty:false,
-      share: 100*b.w/Math.max(S.acc[i].all.w,1e-12),   // how much of this bid's deals land here
+      share: 100*b.w/Math.max(S.use[i].all.w,1e-12),   // how much of this bid's deals land here
+      you: S.you[i],                                    // who played your hand for this row
       points:b.pts/N, delta:m,
       se: Math.sqrt(Math.max(v,0)/Math.max(ess,1)),
       makePct:100*b.makes/N, avgTricks:b.tricks/N,
@@ -1202,9 +1269,14 @@ function finalizeView(S,key){
 
 function finalize(S){
   const ess=S.wSum2>0 ? (S.wSum*S.wSum)/S.wSum2 : 0;   // effective sample size
+  /* With two-way pricing, each bid takes the better of its two runs, judged on
+     points against the table over all simulated deals. */
+  const mean=a=> a.all.w>1e-12 ? a.all.d/a.all.w : -Infinity;
+  S.use=S.acc.map((a,i)=> (S.twoWay && mean(S.alt[i])>mean(a)) ? S.alt[i] : a);
+  S.you=S.use.map((u,i)=> !S.net ? "rules" : (u===S.acc[i] ? "network" : "rules"));
   return {
     views: { all:finalizeView(S,"all"), over:finalizeView(S,"over"), under:finalizeView(S,"under") },
-    n:S.n, banned:S.banned, iterations:S.done, ess, net:S.net,
+    n:S.n, banned:S.banned, iterations:S.done, ess, net:S.net, twoWay:S.twoWay,
   };
 }
 
@@ -3395,11 +3467,12 @@ function refresh(){
 
 /* How many deals to simulate. A fixed choice runs exactly that many. "Auto"
    with the rules runs 20,000, as it always has. "Auto" with the network runs
-   until 4,000 deals' worth of evidence is in hand, capped at 20,000 deals: a
-   network deal costs about ten times as much to play, but when bids ahead of
+   until 2,500 deals' worth of evidence is in hand, capped at 20,000 deals: a
+   network deal costs about ten times as much to play and is played twice (see
+   two-way pricing), but when bids ahead of
    you rule most deals out those deals are never played, so the cap is cheap in
    exactly the case that needs it. */
-const AUTO_ESS=4000, AUTO_CAP=20000;
+const AUTO_ESS=2500, AUTO_CAP=20000;
 function autoDeals(P,n,play){
   const v=$("iters").value;
   if(v!=="auto") return { cap:+v, target:0 };
@@ -3412,7 +3485,7 @@ function syncPlayHint(){
   $("playHint").textContent =
     play==="rules" ? "Every simulated card is played by the original rules."
     : covered ? "Simulated cards are played by a neural network trained by self-play."
-        + ($("iters").value==="auto" ? " Slower per deal, so Auto stops once 4,000 deals carry weight." : "")
+        + ($("iters").value==="auto" ? " Slower per deal, so Auto stops once 2,500 deals carry weight." : "")
     : "The network covers 4, 5 and 6 players, with or without trump, from 2 cards up. This game is outside that, so the rules play the cards.";
 }
 
@@ -3515,7 +3588,8 @@ function render(){
     + (results.ess < results.iterations*0.999
         ? "  \u00b7  " + Math.round(results.ess).toLocaleString() + " effective after conditioning on the auction" : "")
     + (results.banned>=0 && results.banned<=results.n ? "  \u00b7  "+results.banned+" is blocked by the hook" : "")
-    + "  \u00b7  cards played by the " + (results.net ? "neural network" : "rules");
+    + "  \u00b7  cards played by the " + (results.net ? "neural network" : "rules")
+    + (results.twoWay ? ", your hand by the better of network and rules for each bid" : "");
   $("viewMeta").textContent = view==="all" ? ""
     : "\u00b7 " + V.coverage.toFixed(0) + "% of the run, so the error bars widen";
 
@@ -3532,7 +3606,8 @@ function render(){
     const dead = r.makePct < 0.05;
     if(dead) tr.className = (tr.className?tr.className+" ":"")+"dead";
     tr.innerHTML =
-      "<td>"+r.bid+(dead?' <span class="deadtag" title="A legal bid. This hand just never takes that many tricks in this view, so it always busts.">always busts</span>':"")+"</td>"+
+      "<td>"+r.bid+(dead?' <span class="deadtag" title="A legal bid. This hand just never takes that many tricks in this view, so it always busts.">always busts</span>':"")
+        +(results.twoWay && r.you==="rules" && !dead?' <span class="deadtag" title="For this bid your hand scored better played by the rules engine than by the network, against network opponents, so this row shows the rules\u2019 play of your hand.">your hand by rules</span>':"")+"</td>"+
       '<td class="'+(dead?"":(r.delta>=0?"pos":"neg"))+'">'
         +(r.delta>=0?"+":"\u2212")+Math.abs(r.delta).toFixed(2)
         +' <span class="se">\u00b1'+(1.96*r.se).toFixed(2)+"</span></td>"+

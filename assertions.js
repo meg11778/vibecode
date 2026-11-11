@@ -36,7 +36,7 @@ const S = 0, H = 1, D = 2, CL = 3;
 function sim(hand, trump, n, opts = {}) {
   const cfg = { hand, trump, trumpCard: opts.trumpCard ?? -1, players: opts.players ?? 4,
     seat: opts.seat ?? 0, priorBids: opts.priorBids ?? [], iterations: opts.iters ?? 12000,
-    seed: opts.seed ?? 7, profiles: {}, play: opts.play ?? 'rules' };
+    seed: opts.seed ?? 7, profiles: {}, play: opts.play ?? 'rules', safety: opts.safety };
   const st = E.initSim(cfg); E.runChunk(st, cfg.iterations); return E.finalize(st);
 }
 const row = (R, view, bid) => R.views[view].rows.find(r => r.bid === bid);
@@ -242,6 +242,28 @@ console.log('\nNetwork: the long running suit at no trump');
   check('bid 10 makes >= 90%', row(R,'all',10).makePct >= 90, row(R,'all',10).makePct.toFixed(1) + '%');
   check('bid 0 makes >= 90%', row(R,'all',0).makePct >= 90, row(R,'all',0).makePct.toFixed(1) + '%');
   check('bid 12 is impossible', row(R,'all',12).makePct < 1, row(R,'all',12).makePct.toFixed(1) + '%');
+}
+
+/* ------------------------------------------------------------------ */
+console.log('\nNetwork: twelve spades at no trump  (found by Matt Glassman)');
+{
+  // Every spade but the 3, and a side deuce; 13 cards, no trump, leading first.
+  // Cash as many spades as you bid, then exit with the deuce: bids 2 to 10 are
+  // there every time. The second network once played this as if spades were
+  // trumps and made bid 3 one time in a hundred. `safety: false` tests the
+  // network alone; the default also tries the rules in your seat.
+  const hand = [C(D,2)]; for (let r = 2; r <= 14; r++) if (r !== 3) hand.push(C(S,r));
+  const alone = sim(hand, -1, 13, { iters: 400, play: 'net', safety: false });
+  for (const b of [3, 5, 8]) check('network alone: bid ' + b + ' makes >= 95%', row(alone,'all',b).makePct >= 95, row(alone,'all',b).makePct.toFixed(1) + '%');
+  const both = sim(hand, -1, 13, { iters: 400, play: 'net' });
+  check('two-way pricing is on by default with a network', both.twoWay === true && alone.twoWay === false);
+  for (const b of [2, 6, 10]) check('two-way: bid ' + b + ' makes >= 95%', row(both,'all',b).makePct >= 95, row(both,'all',b).makePct.toFixed(1) + '%');
+  check('two-way never scores a bid below the network alone', both.views.all.rows.every((r, i) => r.delta >= alone.views.all.rows[i].delta - 0.3),
+        both.views.all.rows.map((r, i) => (r.delta - alone.views.all.rows[i].delta).toFixed(2)).join(' '));
+  // the same hand with the long suit in hearts: suits must not matter at no trump
+  const hearts = [C(D,2)]; for (let r = 2; r <= 14; r++) if (r !== 3) hearts.push(C(H,r));
+  const hh = sim(hearts, -1, 13, { iters: 400, play: 'net', safety: false });
+  for (const b of [3, 8]) check('long hearts, network alone: bid ' + b + ' makes >= 95%', row(hh,'all',b).makePct >= 95, row(hh,'all',b).makePct.toFixed(1) + '%');
 }
 
 /* ------------------------------------------------------------------ */
