@@ -3602,18 +3602,24 @@ function assessmentHtml(r){
       : '<b class="'+b.verdict+'">'+word[b.verdict]+"</b>, about "+b.cost.toFixed(1)+" given up against bidding "+b.best) + ". "; }
   let h='<h3>Your play, assessed</h3><p class="verdict">'+bidLine+"Play: "+playLine+".</p>";
   const rows=a.plays.filter(p=>!p.same);
-  if(rows.length){
+  if(r.tricks.length){
     h+='<div class="scroll"><table><thead><tr><th>Trick</th><th>You played</th><th class="num">Worth</th><th>Best</th><th class="num">Worth</th><th class="num">Cost</th><th>Verdict</th><th>Every choice</th></tr></thead><tbody>';
-    for(const p of rows){
+    r.tricks.forEach((k,ti)=>{
+      const p=a.plays.find(x=>x.trick===ti);
+      if(!p || p.same){                       // no real choice on this trick
+        const c=k.plays.find(x=>x.seat===0).card;
+        h+='<tr style="opacity:.55"><td>'+(ti+1)+"</td><td>"+showCard(c,"small")+'</td><td class="num">\u2013</td><td>\u2013</td><td class="num">\u2013</td><td class="num">\u2013</td><td>'+(p?"all equivalent":"only card")+"</td><td></td></tr>";
+        return;
+      }
       const mine=p.options.find(o=>o.cards.includes(p.played)), best=p.options[0];
       h+="<tr><td>"+(p.trick+1)+"</td><td>"+showCard(p.played,"small")+'</td><td class="num">'+mine.worth.toFixed(2)+"</td><td>"+(p.cost>0?showCard(p.best,"small"):"same")+'</td><td class="num">'+best.worth.toFixed(2)
         +'</td><td class="num">'+(p.cost>0?p.cost.toFixed(2):"0")+'</td><td>'+(p.verdict==="minor"||p.verdict==="major"?'<b class="mk '+p.verdict+'" style="margin:0">'+word[p.verdict]+"</b>":word[p.verdict])
         +'</td><td style="color:var(--dim)">'+p.options.map(o=>o.cards.map(t).join("=")+" "+o.worth.toFixed(2)).join(", ")+"</td></tr>";
-    }
+    });
     h+="</tbody></table></div>";
   }
   h+='<p class="hint" style="margin:6px 0 0">Worth is your average points for the hand if that card is played and every seat then plays as the '+a.by+" does, over "+a.samples
-    +" layouts of the hidden cards that fit the bids, the cards already played and the suits players had shown out of. Cards joined by = are equivalent. A cost under "+ASSESS.minor+" is fine, up to "+ASSESS.major
+    +" layouts of the hidden cards that fit the bids, the cards already played and the suits players had shown out of. Cards joined by = are equivalent. Greyed rows are tricks where you had no real choice: one legal card, or cards that were all equivalent. A cost under "+ASSESS.minor+" is fine, up to "+ASSESS.major
     +" point minor, more than that major; “too close to call” means the gap is within the sampling noise. It judges each play on what you could know at the time, and it is the bots’ opinion: it assumes everyone plays on as they would, and reads nothing into which cards the others chose."
     +(a.bid && a.bid.cost!=null ? " The bid is judged from the simulation above (points against the table’s average)." : "")
     +(rows.some(p=>p.fit===false) ? " On this hand the bids did not fit the bid model, so some layouts ignore the bidding." : "")+"</p>";
