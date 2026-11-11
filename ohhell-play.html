@@ -3096,7 +3096,28 @@ function netChoose(o){
   const alts=legal.map(c=>{ const q=cc(c)*Hn; let z=R.b3[cc(c)];
     for(let j=0;j<Hn;j++){ const v=h2[j]; if(v>0) z+=v*W3[q+j]; } return {card:c, score:z}; });
   alts.sort((a,b)=>b.score-a.score);
-  return { card:alts[0].card, alts };
+  const card=alts[0].card;
+  /* Equivalent cards get one figure. Two of my cards in a suit are equivalent
+     when every rank between them is in my hand or already gone (played in an
+     earlier trick, or the turned card); a card in the current trick is not
+     gone. The network scores each card separately and its figures for such
+     cards differ slightly, so each group shows its best figure. The card
+     played is unchanged: averaging the group instead was tried and measured
+     no better (-0.08 +/-0.05 points a round at 12 cards, about zero elsewhere). */
+  const inTrick=new Set(o.trick), gone=c=>(o.seen[c] && !inTrick.has(c)) || c===o.turned;
+  const byCard=alts.slice().sort((a,b)=>a.card-b.card);
+  for(let i=0;i<byCard.length;){
+    let j=i;
+    while(j+1<byCard.length && suitOf(byCard[j+1].card)===suitOf(byCard[j].card)){
+      let ok=true; for(let c=byCard[j].card+1;c<byCard[j+1].card;c++) if(!gone(c)){ ok=false; break; }
+      if(!ok) break; j++;
+    }
+    let mx=-Infinity; for(let k=i;k<=j;k++) mx=Math.max(mx,byCard[k].score);
+    for(let k=i;k<=j;k++) byCard[k].score=mx;
+    i=j+1;
+  }
+  alts.sort((a,b)=>b.score-a.score || (b.card===card)-(a.card===card));
+  return { card, alts };
 }
 function rulesChoose(o){
   const mine=new Set(o.hand), nv=[false,false,false,false];
@@ -3436,7 +3457,7 @@ function showReview(r, opts){
       const p=k.plays.find(x=>x.seat===s);
       const rank = p.considered ? p.considered.map(a=>cardText(parseCard(a.card))+" "+a.score.toFixed(2)).join(", ") : "";
       // your own card: would the network have played something else?
-      const other = p.by==="you" && p.considered && p.considered[0].card!==p.card ? p.considered[0].card : null;
+      const other = p.by==="you" && p.considered && p.considered[0].card!==p.card && ((p.considered.find(a=>a.card===p.card)||{}).score!==p.considered[0].score) ? p.considered[0].card : null;
       let tip = p.by==="network"&&p.considered ? "Network ranking: "+rank
               : p.by==="you"&&p.considered ? "Your play. The network ranked your legal cards: "+rank+". "+(other?"It would have played "+cardText(parseCard(other))+".":"It would have played the same card.")
               : p.by==="rules" ? "Chosen by the rules engine" : p.by==="forced" ? "Only legal card" : "";
@@ -3446,7 +3467,7 @@ function showReview(r, opts){
     h+="<td>"+nm[k.winner]+"</td></tr>";
   });
   h+="</tbody></table></div>";
-  h+='<p class="hint" style="margin:6px 0 0">The arrow marks the lead; the outlined card won. Hover over any card to see how the network ranked the legal cards at that point (higher is preferred; the numbers are not points). On your own cards, \u2260 marks a play where the network would have chosen differently.</p>';
+  h+='<p class="hint" style="margin:6px 0 0">The arrow marks the lead; the outlined card won. Hover over any card to see how the network ranked the legal cards at that point (higher is preferred; only the gaps matter, and a gap of 4 is roughly one point for the hand). Equivalent cards, such as a king and queen held together, share one figure. On your own cards, \u2260 marks a play where the network would have chosen differently.</p>';
   el.innerHTML=h;
   $("rvSave").onclick=()=>download("ohhell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(r,null,1));
   $("rvDiag").onclick=()=>download("oh-hell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(diagramHand(r),null,2));
