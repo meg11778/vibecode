@@ -151,8 +151,10 @@ console.log('\nNetwork: where it plays and where it does not');
   const seven = [C(S,14), C(S,9), C(S,4), C(H,13), C(H,6), C(D,12), C(CL,3)];
   check('plays four seats, trump, 7 cards', sim(seven, S, 7, { play: 'net', iters: 200 }).net === true);
   check('steps aside when the rules are asked for', sim(seven, S, 7, { play: 'rules', iters: 200 }).net === false);
-  check('steps aside at five seats', sim(seven, S, 7, { play: 'net', players: 5, iters: 200 }).net === false);
-  check('steps aside with no trump', sim(seven, -1, 7, { play: 'net', iters: 200 }).net === false);
+  check('plays five seats', sim(seven, S, 7, { play: 'net', players: 5, iters: 200 }).net === true);
+  check('plays six seats', sim(seven, S, 7, { play: 'net', players: 6, iters: 200 }).net === true);
+  check('plays no trump', sim(seven, -1, 7, { play: 'net', iters: 200 }).net === true);
+  check('steps aside at three seats', sim(seven, S, 7, { play: 'net', players: 3, iters: 200 }).net === false);
   check('steps aside at one card', sim([C(S,14)], S, 1, { play: 'net', iters: 200 }).net === false);
 }
 
@@ -200,6 +202,46 @@ console.log('\nNetwork: weights intact');
   const a = 100 * mkN / deals / P, b = 100 * mkR / deals / P;
   check('every trick is awarded to someone', sumOK);
   check('network table makes clearly more contracts than a rules table', a > b + 5, 'rules ' + b.toFixed(1) + '% -> network ' + a.toFixed(1) + '%');
+}
+{
+  // The same guard for the second network, on the games it plays.
+  for (const [P, n, noTrump, margin, label] of [[4, 13, true, 5, 'four seats, 13 cards, no trump'], [5, 8, false, 4, 'five seats, 8 cards'], [6, 7, false, 3, 'six seats, 7 cards']]) {
+    const rng = E.mulberry32(2027 + P), deals = 1000;
+    let mkN = 0, mkR = 0, sumOK = true;
+    for (let i = 0; i < deals; i++) {
+      const d = [...Array(52).keys()];
+      for (let k = 51; k > 0; k--) { const j = (rng() * (k + 1)) | 0; [d[k], d[j]] = [d[j], d[k]]; }
+      const hands = []; for (let p = 0; p < P; p++) hands.push(d.slice(p * n, (p + 1) * n));
+      const turned = noTrump ? -1 : d[P * n], trump = turned < 0 ? -1 : E.suitOf(turned);
+      E.setKnown(turned < 0 ? [] : [turned]);
+      const bids = []; let B = 0;
+      for (let p = 0; p < P; p++) {
+        const mu = E.muFor(hands[p], trump, n, P, p) * E.auctionFactor(n, P, B, P - p);
+        const b = E.bidAt(Math.max(0, Math.min(n, mu)), n, p === P - 1 ? n - B : -1);
+        bids.push(b); B += b;
+      }
+      const wn = E.playHandNet(hands, bids, trump, P, n, turned), wr = E.playHand(hands, bids, trump, P, n);
+      if (wn.reduce((x, y) => x + y, 0) !== n) sumOK = false;
+      for (let p = 0; p < P; p++) { if (wn[p] === bids[p]) mkN++; if (wr[p] === bids[p]) mkR++; }
+    }
+    E.setKnown([]);
+    const a = 100 * mkN / deals / P, b = 100 * mkR / deals / P;
+    check(label + ': tricks all awarded, and more contracts than a rules table', sumOK && a > b + margin, 'rules ' + b.toFixed(1) + '% -> network ' + a.toFixed(1) + '%');
+  }
+}
+
+/* ------------------------------------------------------------------ */
+console.log('\nNetwork: the long running suit at no trump');
+{
+  // The hand that started it: AKQJT65432 of diamonds and three side deuces,
+  // 13 cards, no trump, bidding first. Ten tricks are there for the taking.
+  const hand = [C(S,2), C(H,2), C(CL,2), C(D,14), C(D,13), C(D,12), C(D,11), C(D,10),
+                C(D,6), C(D,5), C(D,4), C(D,3), C(D,2)];
+  const R = sim(hand, -1, 13, { iters: 1500, play: 'net' });
+  check('the network plays it', R.net === true);
+  check('bid 10 makes >= 90%', row(R,'all',10).makePct >= 90, row(R,'all',10).makePct.toFixed(1) + '%');
+  check('bid 0 makes >= 90%', row(R,'all',0).makePct >= 90, row(R,'all',0).makePct.toFixed(1) + '%');
+  check('bid 12 is impossible', row(R,'all',12).makePct < 1, row(R,'all',12).makePct.toFixed(1) + '%');
 }
 
 /* ------------------------------------------------------------------ */
