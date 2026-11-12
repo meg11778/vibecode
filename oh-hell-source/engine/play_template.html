@@ -106,6 +106,24 @@ details.sec > .secbody { padding: 0 0 12px; }
 .markbox { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-size: 1rem; cursor: pointer; white-space: nowrap; }
 .markbox input { width: 18px; height: 18px; accent-color: #ffc24d; }
 .star { color: #ffc24d; }
+.dsTargets { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.dsT { font: inherit; font-weight: 700; padding: 6px 10px; border-radius: 6px; cursor: pointer; background: rgba(255,255,255,.06); color: #dfe9f1; border: 2px solid transparent; }
+.dsT.on { border-color: #fff; background: rgba(255,255,255,.14); }
+.dsT small { font-weight: 400; opacity: .85; margin-left: 5px; }
+.dsCard { flex: 1 1 0; min-width: 0; max-width: 46px; padding: 3px 0 2px; font: inherit; font-weight: 700; font-size: .95rem; border-radius: 5px; cursor: pointer; line-height: 1.1;
+  background: rgba(255,255,255,.07); color: #dfe9f1; border: 1px solid rgba(255,255,255,.18); display: flex; flex-direction: column; align-items: center; }
+.dsCard.red { color: #ff9a9a; }
+.dsCard i { font-style: normal; font-size: .62rem; font-weight: 700; height: .9rem; letter-spacing: .02em; }
+.dsCard.own { background: #fff; color: #111; } .dsCard.own.red { color: #c8102e; }
+.dsCard.gone { opacity: .45; }
+.ds0 { --sc: #2ee6a6; } .ds1 { --sc: #5aa9ff; } .ds2 { --sc: #ffc24d; } .ds3 { --sc: #ff8a65; } .ds4 { --sc: #c792ea; } .ds5 { --sc: #f48fb1; } .ds9 { --sc: #9aa7b1; }
+.dsT[class*="ds"] { box-shadow: inset 0 -4px 0 var(--sc); }
+.dsCard.own { box-shadow: inset 0 -5px 0 var(--sc); } .dsCard.own i { color: #111; }
+#dsPlays { font-size: 1rem; color: var(--text); margin: 6px 0; }
+#dsPlays div { margin: 2px 0; }
+#deal summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; padding: 4px 0; }
+#dsBids { display: flex; gap: 8px; flex-wrap: wrap; }
+#dsBids label { display: flex; flex-direction: column; font-size: .85rem; color: var(--dim); gap: 3px; }
 .tally { display: inline-block; font-weight: 700; font-size: 1.05rem; color: #fff; padding: 3px 12px; border-radius: 999px; background: rgba(255,255,255,.12); white-space: nowrap; }
 .tally small { font-weight: 400; font-size: .85em; opacity: .85; margin-left: 6px; }
 .tally.over { background: #a23b3b; } .tally.under { background: #1f6aa8; }
@@ -240,6 +258,37 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
         <span class="hint" id="cuMsg"></span>
       </div>
       <p class="hint" style="margin:8px 0 0">The other hands are dealt at random. A seat whose bid you set is given a hand on which the bid formula would make exactly that bid after the bids ahead of it. If you set the opening lead, the leader holds that card and the bots&rsquo; play engine would choose to lead it (or a card equivalent to it).</p>
+    </details>
+    <details id="deal" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px">
+      <summary>Set up an entire deal to study</summary>
+      <p class="hint" style="margin:6px 0 8px">Give every player their cards, then bid and play it. Each bot still sees only its own hand. You can also set some or all of the bids and play some cards in advance, and start from that point. Players, bot bidding and speed come from the settings above.</p>
+      <div class="row">
+        <label class="field">Start from a saved hand <select id="dsLoad"></select></label>
+        <label class="field">Cards each <input type="number" id="dsN" min="1" max="13" value="7" style="width:80px"></label>
+        <label class="field">Your place in the bidding <select id="dsPos"></select></label>
+        <label class="field" style="flex-direction:row;align-items:center;gap:6px;padding-bottom:8px"><input type="checkbox" id="dsNT"> No trump</label>
+      </div>
+      <div class="eyebrow" style="margin:10px 0 0">Choose who you are giving cards to, then click the cards</div>
+      <div class="dsTargets" id="dsTargets"></div>
+      <div id="dsGrid"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn quiet" id="dsRandom" title="Deals the unassigned cards at random to every seat that is short, and turns a card if none is chosen">Deal the rest at random</button>
+        <button class="btn quiet" id="dsClear">Clear everything</button>
+      </div>
+      <div class="eyebrow" style="margin:12px 0 6px">Bids, in bidding order (leave any at &ndash; to be bid at the table)</div>
+      <div id="dsBids"></div>
+      <div class="eyebrow" style="margin:12px 0 4px">Cards already played (optional)</div>
+      <p class="hint" style="margin:0 0 4px">Choose &ldquo;Played cards&rdquo; above and click the cards in the order they were played. Every hand must be complete, every bid set and trump settled first.</p>
+      <div id="dsPlays"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn quiet" id="dsUndo">Undo last card</button>
+        <button class="btn quiet" id="dsUnplay">Clear played cards</button>
+        <label class="field" id="dsUptoBox" style="display:none">Replay the saved hand&rsquo;s play through <select id="dsUpto"></select></label>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="dsStart">Start from here</button>
+        <span class="hint" id="dsMsg"></span>
+      </div>
     </details>
   </section>
 
@@ -493,6 +542,26 @@ function startHand(){
   $("setup").hidden=true; $("table").hidden=false; $("review").hidden=true;
   document.body.classList.add("playing");
   $("markLive").checked=false;
+  if(pre && pre.instant){
+    // bids set for the seats at the front of the queue go down at once, and so do any cards set as already played
+    while(H.bidCount<P && H.fixed && H.fixed[H.order[H.bidCount]]!=null){
+      const seat=H.order[H.bidCount], set=H.fixed[seat];
+      if(seat===0) placeBid(0,set,{ set:true });
+      else { const a=bidAdvice(H,H.hands[seat],H.bidCount,H.bidLog.map(b=>b.bid),bidSeed(seat),false); placeBid(seat,set,{ by:"set", est:a.est, adj:a.adj, formula:a.formula }); }
+    }
+    if(H.bidCount===P){
+      H.phase="play"; H.turn=H.order[0];
+      for(const c of (pre.pre||[])){
+        const seat=H.turn, cur=H.cur;
+        H.hands[seat].splice(H.hands[seat].indexOf(c),1); H.seen[c]=1;
+        if(cur.plays.length===0) cur.led=suitOf(c); else if(suitOf(c)!==cur.led) H.voids[seat][cur.led]=true;
+        if(beatsCard(c,cur.winCard,H.trump)){ cur.winCard=c; cur.winner=seat; }
+        cur.plays.push({ seat, card:c, by:"set" });
+        if(cur.plays.length<P) H.turn=(seat+1)%P;
+        else { H.won[cur.winner]++; H.tricks.push({ leader:cur.leader, plays:cur.plays, winner:cur.winner }); const w=cur.winner; H.cur={ leader:w, plays:[], led:-1, winCard:-1, winner:w }; H.turn=w; }
+      }
+    }
+  }
   buildFelt();
   $("table").scrollIntoView({block:"start"});
   step();
@@ -517,6 +586,7 @@ function step(){
       placeBid(seat,b.bid,b.info); step(); }, delay());
   }
   if(H.phase==="play"){
+    if(H.tricks.length===H.n) return endHand();              // every card was set as already played
     if(H.cur.plays.length===P) return;                       // waiting on the end-of-trick pause
     const seat=H.turn;
     if(seat===0){
@@ -668,7 +738,8 @@ function endHand(){
         if(p.alts) o.considered=p.alts.map(a=>({card:cardStr(a.card),score:a.score})); return o; }) })),
     won:H.won.slice(), points:pts, totalsBefore:H.startScores, totalsAfter:G.scores.slice()
   };
-  if(G.preset) rec.setup={ bids:H.fixed ? H.fixed.slice() : null, lead:H.lead>=0 ? cardStr(H.lead) : null, replay:!!G.preset.replay };
+  if(G.preset) rec.setup={ bids:H.fixed ? H.fixed.slice() : null, lead:H.lead>=0 ? cardStr(H.lead) : null, replay:!!G.preset.replay,
+    deal:!!G.preset.instant, played:(G.preset.pre||[]).map(cardStr) };
   H.live=false;
   if($("markLive").checked) rec.marked=true;
   lastRecord=rec; storeHand(rec);
@@ -701,7 +772,7 @@ function assessSetup(r){
     let led=-1, winCard=-1, winner=k.leader; const trick=[];
     k.plays.forEach((p,i)=>{
       const c=parseCard(p.card);
-      if(p.seat===0 && legalCards(hands[0],led).length>1)
+      if(p.seat===0 && p.by!=="set" && legalCards(hands[0],led).length>1)
         decisions.push({ trick:ti, card:c, st:{ hand:hands[0].slice(), seen:seen.slice(), voids:voids.map(v=>v.slice()), lens:hands.map(h=>h.length),
           won:won.slice(), led, winCard, winner, playedInTrick:i, trick:trick.slice(), playedBy:playedBy.map(x=>x.slice()) } });
       hands[p.seat].splice(hands[p.seat].indexOf(c),1); seen[c]=1; trick.push(c); playedBy[p.seat].push(c);
@@ -853,7 +924,7 @@ function assessmentHtml(r){
       const p=a.plays.find(x=>x.trick===ti);
       if(!p || p.same){                       // no real choice on this trick
         const c=k.plays.find(x=>x.seat===0).card;
-        h+='<tr style="opacity:.55"><td>'+(ti+1)+"</td><td>"+showCard(c,"small")+'</td><td class="num">\u2013</td><td>\u2013</td><td class="num">\u2013</td><td class="num">\u2013</td><td>'+(p?"all equivalent":"only card")+"</td><td></td></tr>";
+        h+='<tr style="opacity:.55"><td>'+(ti+1)+"</td><td>"+showCard(c,"small")+'</td><td class="num">\u2013</td><td>\u2013</td><td class="num">\u2013</td><td class="num">\u2013</td><td>'+(p?"all equivalent":k.plays.find(x=>x.seat===0).by==="set"?"as set up":"only card")+"</td><td></td></tr>";
         return;
       }
       const mine=p.options.find(o=>o.cards.includes(p.played)), best=p.options[0];
@@ -1041,7 +1112,7 @@ function watchHand(r, v, startAt, quiet){
       if(e.t==="bid"){ msg=who+" bid "+e.b.bid+"."; if(e.seat===v && hasWhy(e.b)) sub=bidWhy(e.b).replace(/<[^>]+>/g,""); }
       else { msg=who+" "+(e.i===0?verb("lead","leads"):verb("play","plays"))+" "+cardText(parseCard(e.p.card))+"."+(e.last?" "+nm[e.winner]+(e.winner===0?" win":" wins")+" trick "+(e.trick+1)+".":"");
         if(e.seat===v) sub = e.p.considered ? (e.p.by==="you"?"The network ranked the choices: ":"Network ranking: ")+e.p.considered.map(a=>cardText(parseCard(a.card))+" "+a.score.toFixed(2)).join(", ")
-          : e.p.by==="forced" ? "Only legal card." : e.p.by==="set" ? "Opening lead, as set up." : e.p.by==="rules" ? "Chosen by the rules engine." : ""; }
+          : e.p.by==="forced" ? "Only legal card." : e.p.by==="set" ? "As set up." : e.p.by==="rules" ? "Chosen by the rules engine." : ""; }
     }
     const nxt = at<ev.length ? nm[ev[at].seat]+(ev[at].t==="bid" ? " to bid" : " to play")+(ev[at].seat===v ? " — what would you do?" : "") : "End of the hand.";
     box.innerHTML='<div class="topline"><div><span class="eyebrow">Watching as '+nm[v]+" · "+(at<Pn ? "bidding" : "trick "+(at>Pn ? ev[at-1].trick+1 : 1)+" of "+n)+"</span></div>"
@@ -1074,6 +1145,7 @@ function showReview(r, opts){
     +'<button class="btn quiet" id="rvCopy">Copy as text</button>'
     +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvAgain" title="The same cards in every hand; bids set in the setup stay set">Play this deal again</button>':"")
     +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvRedeal" title="Your cards, your seat, the trump card and any set bids and lead stay; the other hands are dealt afresh">Same hand, new opponents</button>':"")
+    +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvEdit" title="Opens this hand in \u201cSet up an entire deal\u201d, where you can change cards, bids or the starting point">Edit this deal</button>':"")
     +(opts.close?'<button class="btn quiet" id="rvClose">Close</button>':"")
     +'<label class="markbox" style="margin-left:4px"><input type="checkbox" id="rvMark"'+(r.marked?" checked":"")+"> Mark for review</label></div>";
   h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px"><span class="hint">For</span><select id="rvWatchSeat">'
@@ -1103,7 +1175,7 @@ function showReview(r, opts){
       const other = p.by==="you" && p.considered && p.considered[0].card!==p.card && ((p.considered.find(a=>a.card===p.card)||{}).score!==p.considered[0].score) ? p.considered[0].card : null;
       let tip = p.by==="network"&&p.considered ? "Network ranking: "+rank
               : p.by==="you"&&p.considered ? "Your play. The network ranked your legal cards: "+rank+". "+(other?"It would have played "+cardText(parseCard(other))+".":"It would have played the same card.")
-              : p.by==="set" ? "Opening lead, as set up" : p.by==="rules" ? "Chosen by the rules engine" : p.by==="forced" ? "Only legal card" : "";
+              : p.by==="set" ? "Played as set up" : p.by==="rules" ? "Chosen by the rules engine" : p.by==="forced" ? "Only legal card" : "";
       const av = s===0 && r.assessment ? r.assessment.plays.find(x=>x.trick===i && !x.same) : null;
       if(av) tip+=" Played out: "+av.options.map(o=>o.cards.map(c=>cardText(parseCard(c))).join("=")+" "+o.worth.toFixed(2)).join(", ")+" points.";
       const mk = av && (av.verdict==="minor"||av.verdict==="major") ? '<span class="mk '+av.verdict+'" aria-label="'+av.verdict+' mistake">'+(av.verdict==="major"?"??":"?")+"</span>" : "";
@@ -1121,6 +1193,7 @@ function showReview(r, opts){
   $("rvDiag").onclick=()=>download("oh-hell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(diagramHand(r),null,2));
   $("rvCopy").onclick=()=>{ const t=handText(r); const done=()=>{ $("rvCopy").textContent="Copied"; setTimeout(()=>{ if($("rvCopy")) $("rvCopy").textContent="Copy as text"; },1500); };
     if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); };
+  if(!opts.next&&!opts.back) $("rvEdit").onclick=()=>{ el.hidden=true; $("table").hidden=true; $("setup").hidden=false; dsLoad(r); $("deal").open=true; $("deal").scrollIntoView({block:"start"}); };
   if(!opts.next&&!opts.back){ $("rvAgain").onclick=()=>replayRecord(r,false); $("rvRedeal").onclick=()=>replayRecord(r,true); }
   if(opts.back) $("rvBack").onclick=()=>backToGame(opts.back);
   $("rvMark").onchange=()=>{ if($("rvMark").checked) r.marked=true; else delete r.marked; updateHand(r); renderHistory(); };
@@ -1175,6 +1248,7 @@ function renderHistory(){
   };
   $("histHint").textContent = a.length ? a.length+" hand"+(a.length===1?"":"s")+" kept in this browser on this computer"+(nMarked?", "+nMarked+" marked for review":"")+". Download them to keep a copy elsewhere."
     : "No hands yet. Each hand is added here when it ends.";
+  if($("dsGrid") && $("dsGrid").children.length) dsSync();     // the deal editor lists the saved hands too
   $("dlAll").disabled = $("clearAll").disabled = !a.length;
   $("histCount").textContent = a.length ? a.length+" hand"+(a.length===1?"":"s")+(nMarked?", "+nMarked+" marked":"") : "none yet";
 }
@@ -1245,7 +1319,7 @@ function startSetup(spec, deal, replay){
   P=spec.P; NAMES=SEAT_NAMES[P]; $("nPlayers").value=String(P);
   const first=(P-spec.pos)%P;
   G={ P, rounds:[spec.n], idx:0, scores:new Array(P).fill(0), dealer:(first-1+P)%P, seed, rng:mulberry32(seed), id:"g"+seed.toString(36), bidMode:$("bidMode").value,
-      preset:{ hands:deal.hands, turned:deal.turned, trump:deal.trump, fixed:spec.fixed, lead:spec.lead, spec, replay:!!replay } };
+      preset:{ hands:deal.hands, turned:deal.turned, trump:deal.trump, fixed:spec.fixed, lead:spec.lead, spec, replay:!!replay, instant:!!spec.instant, pre:deal.pre||[] } };
   $("review").hidden=true;
   startHand();
 }
@@ -1257,9 +1331,170 @@ function replayRecord(r, redeal){
   const pos=r.bids.findIndex(b=>b.seat===0);
   const spec={ P:Pn, n:r.cards, hand:hands[0], pos, turned, suit: r.trump ? "SHDC".indexOf(r.trump) : -2,
                fixed: r.setup && r.setup.bids ? r.setup.bids.slice() : new Array(Pn).fill(null), lead: r.setup && r.setup.lead ? parseCard(r.setup.lead) : -1 };
-  let deal={ hands, turned, trump: turned>=0 ? suitOf(turned) : -1 };
+  let deal={ hands, turned, trump: turned>=0 ? suitOf(turned) : -1, pre: r.setup && r.setup.played ? r.setup.played.map(parseCard) : [] };
+  if(r.setup && r.setup.deal) spec.instant=true;
   if(redeal){ deal=buildDeal(spec); if(deal.error){ $("histHint").textContent=deal.error; return; } }
   startSetup(spec, deal, true);
+}
+/* ----- setting up an entire deal -----
+   DS.owner[c] is the seat holding card c, 9 for the turned card, -1 for
+   nobody. DS.plays is the cards already played, in order. */
+const DS={ owner:new Int8Array(52).fill(-1), target:0, plays:[], source:null };
+const dsP = () => +$("nPlayers").value;
+const dsCount = s => { let k=0; for(let c=0;c<52;c++) if(DS.owner[c]===s) k++; return k; };
+const dsTurned = () => DS.owner.indexOf(9);
+const dsOrder = () => { const Pn=dsP(), pos=Math.min(Pn-1,+$("dsPos").value||0), first=(Pn-pos)%Pn; return [...Array(Pn).keys()].map(i=>(first+i)%Pn); };
+const dsTag = (s,Pn) => s===9 ? "turn" : SEAT_NAMES[Pn][s];
+/* Walk the played cards: who is to play next, what each seat still holds, the
+   tricks so far. */
+function dsWalk(){
+  const Pn=dsP(), order=dsOrder(), hands=[...Array(Pn)].map((_,s)=>{ const h=[]; for(let c=0;c<52;c++) if(DS.owner[c]===s) h.push(c); return h; });
+  const t=dsTurned(), trump = $("dsNT").checked || Pn*(+$("dsN").value)===52 ? -1 : t>=0 ? suitOf(t) : -2;
+  let turn=order[0], led=-1, winCard=-1, winner=turn; const tricks=[]; let cur=[];
+  for(const c of DS.plays){
+    hands[turn].splice(hands[turn].indexOf(c),1);
+    if(cur.length===0){ led=suitOf(c); winCard=-1; }
+    if(beatsCard(c,winCard,trump)){ winCard=c; winner=turn; }
+    cur.push({ seat:turn, card:c });
+    if(cur.length===Pn){ tricks.push({ plays:cur, winner }); cur=[]; turn=winner; led=-1; winCard=-1; } else turn=(turn+1)%Pn;
+  }
+  return { Pn, hands, trump, turn, led, tricks, cur };
+}
+function dsReady(){            // can cards be marked as played yet?
+  const Pn=dsP(), n=+$("dsN").value;
+  for(let s=0;s<Pn;s++) if(dsCount(s)!==n) return "Give every player "+n+" card"+(n===1?"":"s")+" first.";
+  if(Pn*n<52 && !$("dsNT").checked && dsTurned()<0) return "Choose the turned card, or tick No trump, first.";
+  if([...$("dsBids").querySelectorAll("select")].some(x=>x.value==="")) return "Set every bid first: cards are played only after the bidding.";
+  return "";
+}
+function dsClick(c){
+  const Pn=dsP(), n=+$("dsN").value, t=DS.target, msg=m=>{ $("dsMsg").textContent=m; };
+  if(t==="play"){
+    const why=dsReady(); if(why) return msg(why);
+    if(DS.plays.includes(c)) return msg(cardText(c)+" has already been played.");
+    const w=dsWalk(), o=DS.owner[c];
+    if(o<0 || o===9) return msg(cardText(c)+" is not in anyone’s hand.");
+    if(o!==w.turn) return msg("It is "+(w.turn===0?"your":SEAT_NAMES[Pn][w.turn]+"’s")+" turn; "+cardText(c)+" is in "+(o===0?"your":SEAT_NAMES[Pn][o]+"’s")+" hand.");
+    if(w.led>=0 && suitOf(c)!==w.led && w.hands[o].some(x=>suitOf(x)===w.led)) return msg(SEAT_NAMES[Pn][o]+" must follow suit: "+(o===0?"you hold":"that hand holds")+" a "+["spade","heart","diamond","club"][w.led]+".");
+    DS.plays.push(c); msg(""); return dsSync();
+  }
+  if(DS.plays.length) return msg("Clear the played cards before changing who holds what.");
+  if(DS.owner[c]===t){ DS.owner[c]=-1; msg(""); return dsSync(); }
+  if(t===9){ const old=dsTurned(); if(old>=0) DS.owner[old]=-1; DS.owner[c]=9; msg(""); return dsSync(); }
+  if(dsCount(t)>=n) return msg(SEAT_NAMES[Pn][t]+" already "+(t===0?"have ":"has ")+n+" card"+(n===1?"":"s")+". Raise “Cards each” or take one away.");
+  DS.owner[c]=t; msg(""); dsSync();
+}
+function dsBuild(){
+  let h="";
+  for(const s of SUIT_ORDER){
+    h+='<div class="cuRow"><span class="cuSuit'+(isRed(s)?" red":"")+'">'+GLYPH[s]+"</span>";
+    for(let r=12;r>=0;r--) h+='<button type="button" class="dsCard'+(isRed(s)?" red":"")+'" data-c="'+(s*13+r)+'" aria-label="'+RANKL[r]+GLYPH[s]+'">'+RANKL[r]+"<i></i></button>";
+    h+="</div>";
+  }
+  $("dsGrid").innerHTML=h;
+  for(const b of $("dsGrid").querySelectorAll("button")) b.onclick=()=>dsClick(+b.dataset.c);
+  const reset=()=>{ DS.plays=[]; dsSync(); };
+  $("dsN").oninput=reset; $("dsPos").oninput=reset; $("dsNT").oninput=reset;
+  $("dsUndo").onclick=()=>{ DS.plays.pop(); $("dsMsg").textContent=""; dsSync(); };
+  $("dsUnplay").onclick=()=>{ DS.plays=[]; $("dsMsg").textContent=""; dsSync(); };
+  $("dsClear").onclick=()=>{ DS.owner.fill(-1); DS.plays=[]; DS.source=null; for(const x of $("dsBids").querySelectorAll("select")) x.value=""; $("dsMsg").textContent=""; dsSync(); };
+  $("dsRandom").onclick=()=>{
+    if(DS.plays.length) return void ($("dsMsg").textContent="Clear the played cards first.");
+    const Pn=dsP(), n=+$("dsN").value, free=[]; for(let c=0;c<52;c++) if(DS.owner[c]<0) free.push(c);
+    for(let i=free.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const t=free[i]; free[i]=free[j]; free[j]=t; }
+    for(let s=0;s<Pn;s++) while(dsCount(s)<n && free.length) DS.owner[free.pop()]=s;
+    if(Pn*n<52 && !$("dsNT").checked && dsTurned()<0 && free.length) DS.owner[free.pop()]=9;
+    $("dsMsg").textContent=""; dsSync();
+  };
+  $("dsLoad").onchange=()=>{ const i=$("dsLoad").value; if(i!=="") dsLoad(loadHands()[+i]); $("dsLoad").value=""; };
+  $("dsUpto").onchange=()=>{
+    const r=DS.source, k=+$("dsUpto").value; if(!r) return;
+    const why=dsReady(); if(why){ $("dsUpto").value="0"; return void ($("dsMsg").textContent=why); }
+    DS.plays=[]; const seq=[]; r.tricks.slice(0,k).forEach(t=>t.plays.forEach(p=>seq.push(parseCard(p.card))));
+    const keepT=DS.target; DS.target="play"; $("dsMsg").textContent="";
+    for(const c of seq){ const before=DS.plays.length; dsClick(c); if(DS.plays.length===before) break; }   // stops where the changed deal no longer allows the saved play
+    DS.target=keepT; dsSync();
+  };
+  $("dsStart").onclick=()=>{
+    const sp=dsSpec(); if(sp.error) return void ($("dsMsg").textContent=sp.error);
+    $("dsMsg").textContent=""; startSetup(sp.spec, sp.deal, false);
+  };
+  dsSync();
+}
+/* Redraw the editor from DS and the controls. */
+function dsSync(){
+  const Pn=dsP(), nm=SEAT_NAMES[Pn], top=MAX_CARDS[Pn];
+  $("dsN").max=top; if(+$("dsN").value>top) $("dsN").value=top; if(+$("dsN").value<1) $("dsN").value=1;
+  const n=+$("dsN").value, whole=Pn*n===52;
+  for(let c=0;c<52;c++) if(DS.owner[c]>=Pn && DS.owner[c]!==9) DS.owner[c]=-1;          // fewer players than before
+  if(typeof DS.target==="number" && DS.target!==9 && DS.target>=Pn) DS.target=0;
+  $("dsNT").disabled=whole; if(whole){ $("dsNT").checked=true; const t=dsTurned(); if(t>=0) DS.owner[t]=-1; if(DS.target===9) DS.target=0; }
+  const noTurn = $("dsNT").checked; if(noTurn){ const t=dsTurned(); if(t>=0) DS.owner[t]=-1; if(DS.target===9) DS.target=0; }
+  // position and bids
+  const pos=Math.min(Pn-1, Math.max(0, +$("dsPos").value||0)), ord=["1st: you bid first and lead","2nd","3rd","4th","5th","6th"];
+  let h=""; for(let i=0;i<Pn;i++) h+='<option value="'+i+'">'+(i===Pn-1 ? ord[i].slice(0,3)+": you deal and bid last" : ord[i])+"</option>";
+  $("dsPos").innerHTML=h; $("dsPos").value=String(pos);
+  const oldB={}; for(const x of $("dsBids").querySelectorAll("select")) oldB[x.dataset.seat]=x.value;
+  h=""; for(const s of dsOrder()){ h+="<label>"+nm[s]+'<select data-seat="'+s+'"><option value="">&ndash;</option>'; for(let b=0;b<=n;b++) h+='<option value="'+b+'">'+b+"</option>"; h+="</select></label>"; }
+  $("dsBids").innerHTML=h;
+  for(const x of $("dsBids").querySelectorAll("select")){ const v=oldB[x.dataset.seat]; if(v!=null && v!=="" && +v<=n) x.value=v; x.onchange=()=>{ if(x.value==="" && DS.plays.length){ DS.plays=[]; } dsSync(); }; }
+  // who the next click gives a card to
+  h=""; for(let s=0;s<Pn;s++) h+='<button type="button" class="dsT ds'+s+(DS.target===s?" on":"")+'" data-t="'+s+'">'+nm[s]+"<small>"+dsCount(s)+"/"+n+"</small></button>";
+  if(!noTurn) h+='<button type="button" class="dsT ds9'+(DS.target===9?" on":"")+'" data-t="9">Turned card<small>'+(dsTurned()>=0?cardText(dsTurned()):"random")+"</small></button>";
+  h+='<button type="button" class="dsT'+(DS.target==="play"?" on":"")+'" data-t="play">Played cards<small>'+DS.plays.length+"</small></button>";
+  $("dsTargets").innerHTML=h;
+  for(const b of $("dsTargets").querySelectorAll("button")) b.onclick=()=>{ DS.target = b.dataset.t==="play" ? "play" : +b.dataset.t; $("dsMsg").textContent=""; dsSync(); };
+  // the cards
+  for(const b of $("dsGrid").querySelectorAll("button")){
+    const c=+b.dataset.c, o=DS.owner[c], at=DS.plays.indexOf(c);
+    b.className="dsCard"+(isRed(suitOf(c))?" red":"")+(o>=0?" own ds"+o:"")+(at>=0?" gone":"");
+    b.querySelector("i").textContent = o<0 ? "" : (o===9 ? "turn" : nm[o])+(at>=0 ? " ✓" : "");
+  }
+  // played so far
+  const w=dsWalk(); h="";
+  w.tricks.forEach((t,i)=>{ h+="<div>Trick "+(i+1)+": "+t.plays.map(p=>nm[p.seat]+" "+cardText(p.card)).join(", ")+" → "+nm[t.winner]+"</div>"; });
+  if(w.cur.length) h+="<div>Trick "+(w.tricks.length+1)+": "+w.cur.map(p=>nm[p.seat]+" "+cardText(p.card)).join(", ")+" …</div>";
+  if(DS.plays.length || DS.target==="play") h+='<div class="hint">'+(DS.plays.length===Pn*n ? "Every card is played." : "Next to play: "+nm[w.turn]+".")+"</div>";
+  $("dsPlays").innerHTML=h;
+  // saved hands to start from
+  const a=loadHands(); h='<option value="">Choose…</option>';
+  a.slice().reverse().forEach((r,i)=>{ h+='<option value="'+(a.length-1-i)+'">'+(r.marked?"★ ":"")+new Date(r.savedAt).toLocaleString()+" · "+r.cards+" cards"+(r.players.length!==4?", "+r.players.length+" players":"")+" · "+(r.trump?"trump "+trumpText(r):"no trump")+"</option>"; });
+  $("dsLoad").innerHTML=h;
+  $("dsUptoBox").style.display = DS.source ? "" : "none";
+  if(DS.source){ h='<option value="0">nothing</option>'; DS.source.tricks.forEach((t,i)=>{ h+='<option value="'+(i+1)+'">trick '+(i+1)+"</option>"; }); const keep=$("dsUpto").value; $("dsUpto").innerHTML=h;
+    $("dsUpto").value = DS.plays.length%Pn===0 && DS.plays.length/Pn<=DS.source.tricks.length ? String(DS.plays.length/Pn) : "0"; }
+}
+/* Fill the editor from a saved hand: cards, turned card, seat and the bids as
+   they were made. Nothing is marked as played until asked. */
+function dsLoad(r){
+  if(!r) return;
+  $("nPlayers").value=String(r.players.length); syncSetupHint(); cuSync();
+  $("dsN").value=String(r.cards);
+  DS.owner.fill(-1); DS.plays=[]; DS.source=r; DS.target=0;
+  r.hands.forEach((h,s)=>h.forEach(c=>{ DS.owner[parseCard(c)]=s; }));
+  $("dsNT").checked=!r.turned; if(r.turned) DS.owner[parseCard(r.turned)]=9;
+  $("dsPos").innerHTML='<option value="'+r.bids.findIndex(b=>b.seat===0)+'"></option>'; $("dsPos").value=String(r.bids.findIndex(b=>b.seat===0));
+  dsSync();
+  for(const x of $("dsBids").querySelectorAll("select")){ const b=r.bids.find(y=>y.seat===+x.dataset.seat); x.value=String(b.bid); }
+  $("dsMsg").textContent="Loaded the hand of "+new Date(r.savedAt).toLocaleString()+". Change anything, then Start from here.";
+  dsSync();
+}
+function dsSpec(){
+  const Pn=dsP(), n=+$("dsN").value, nm=SEAT_NAMES[Pn], pos=+$("dsPos").value;
+  if(!(n>=1 && n<=MAX_CARDS[Pn])) return { error:"With "+Pn+" players a round deals 1 to "+MAX_CARDS[Pn]+" cards each." };
+  const hands=[...Array(Pn)].map((_,s)=>{ const h=[]; for(let c=0;c<52;c++) if(DS.owner[c]===s) h.push(c); return h; });
+  for(let s=0;s<Pn;s++) if(hands[s].length!==n) return { error:nm[s]+(s===0?" have ":" has ")+hands[s].length+" card"+(hands[s].length===1?"":"s")+"; each player needs "+n+". “Deal the rest at random” fills the gaps." };
+  let turned=-1;
+  if(Pn*n<52 && !$("dsNT").checked){
+    turned=dsTurned();
+    if(turned<0){ const free=[]; for(let c=0;c<52;c++) if(DS.owner[c]<0) free.push(c); turned=free[(Math.random()*free.length)|0]; }
+  }
+  const fixed=new Array(Pn).fill(null); for(const x of $("dsBids").querySelectorAll("select")) if(x.value!=="") fixed[+x.dataset.seat]=+x.value;
+  if(fixed.every(b=>b!=null) && fixed.reduce((a,b)=>a+b,0)===n) return { error:"Those bids add up to "+n+", which the dealer ("+nm[dsOrder()[Pn-1]]+") may not allow. Change one." };
+  if(DS.plays.length && fixed.some(b=>b==null)) return { error:"Cards have been played, so every bid must be set." };
+  if(DS.plays.length===Pn*n) return { error:"Every card has been played; undo at least one to leave something to play." };
+  return { spec:{ P:Pn, n, hand:hands[0], pos, turned, suit: turned>=0 ? suitOf(turned) : -2, fixed, lead:-1, instant:true },
+           deal:{ hands, turned, trump: turned>=0 ? suitOf(turned) : -1, pre:DS.plays.slice() } };
 }
 const CU={ hand:new Set() };
 function cuBuild(){
@@ -1324,7 +1559,7 @@ function cuSpec(){
 /* ----- wiring ----- */
 $("start").onclick=newGame;
 $("quit").onclick=()=>{ token++; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; $("setup").hidden=false; document.body.classList.remove("playing"); };
-for(const id of ["fromN","toN","shape","nPlayers"]) $(id).oninput=()=>{ syncSetupHint(); cuSync(); };
+for(const id of ["fromN","toN","shape","nPlayers"]) $(id).oninput=()=>{ syncSetupHint(); cuSync(); if(id==="nPlayers"){ DS.plays=[]; dsSync(); } };
 $("dlAll").onclick=()=>{ const a=loadHands(); if(a.length) download("ohhell-hands-"+stamp(new Date().toISOString())+".json", JSON.stringify(a,null,1)); };
 $("clearAll").onclick=()=>{ if($("clearAll").dataset.sure){ try{ localStorage.removeItem(KEY); }catch(e){} delete $("clearAll").dataset.sure; $("clearAll").textContent="Clear"; renderHistory(); }
   else { $("clearAll").dataset.sure="1"; $("clearAll").textContent="Click again to erase all"; setTimeout(()=>{ delete $("clearAll").dataset.sure; $("clearAll").textContent="Clear"; },4000); } };
@@ -1348,10 +1583,10 @@ document.addEventListener("keydown",e=>{
 });
 $("onlyMarked").onchange=renderHistory;
 { const hd=document.querySelector('#history details.sec'); hd.open=secState().history; wireSections($("history")); }
-cuBuild(); syncSetupHint(); renderHistory();
+cuBuild(); dsBuild(); syncSetupHint(); renderHistory();
 
 /* hooks for automated checks */
-window.__ohhell={ calcLink, buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
+window.__ohhell={ DS, dsSpec, dsLoad, calcLink, buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
 })();
 </script>
 </body>
