@@ -116,6 +116,7 @@ details.sec > .secbody { padding: 0 0 12px; }
 .dsCard i { font-style: normal; font-size: .62rem; font-weight: 700; height: .9rem; letter-spacing: .02em; }
 .dsCard.own { background: #fff; color: #111; } .dsCard.own.red { color: #c8102e; }
 .dsCard.gone { opacity: .45; }
+.dsCard.off { opacity: .2; } .dsCard.can { outline: 2px solid #ffffff; outline-offset: 1px; }
 .ds0 { --sc: #2ee6a6; } .ds1 { --sc: #5aa9ff; } .ds2 { --sc: #ffc24d; } .ds3 { --sc: #ff8a65; } .ds4 { --sc: #c792ea; } .ds5 { --sc: #f48fb1; } .ds9 { --sc: #9aa7b1; }
 .dsT[class*="ds"] { box-shadow: inset 0 -4px 0 var(--sc); }
 .dsCard.own { box-shadow: inset 0 -5px 0 var(--sc); } .dsCard.own i { color: #111; }
@@ -1444,10 +1445,16 @@ function dsSync(){
   h+='<button type="button" class="dsT'+(DS.target==="play"?" on":"")+'" data-t="play">Played cards<small>'+DS.plays.length+"</small></button>";
   $("dsTargets").innerHTML=h;
   for(const b of $("dsTargets").querySelectorAll("button")) b.onclick=()=>{ DS.target = b.dataset.t==="play" ? "play" : +b.dataset.t; $("dsMsg").textContent=""; dsSync(); };
-  // the cards
+  // the cards. While cards are being marked as played, only the cards the
+  // player to act may legally play stay lit; everything else is greyed.
+  let can=null;
+  if(DS.target==="play" && !dsReady() && DS.plays.length<Pn*n){
+    const w0=dsWalk(), hand=w0.hands[w0.turn], follow=w0.led>=0 ? hand.filter(x=>suitOf(x)===w0.led) : [];
+    can=new Set(follow.length ? follow : hand);
+  }
   for(const b of $("dsGrid").querySelectorAll("button")){
     const c=+b.dataset.c, o=DS.owner[c], at=DS.plays.indexOf(c);
-    b.className="dsCard"+(isRed(suitOf(c))?" red":"")+(o>=0?" own ds"+o:"")+(at>=0?" gone":"");
+    b.className="dsCard"+(isRed(suitOf(c))?" red":"")+(o>=0?" own ds"+o:"")+(at>=0?" gone":"")+(can ? (can.has(c)?" can":" off") : "");
     b.querySelector("i").textContent = o<0 ? "" : (o===9 ? "turn" : nm[o])+(at>=0 ? " ✓" : "");
   }
   // played so far
