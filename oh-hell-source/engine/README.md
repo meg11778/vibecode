@@ -188,6 +188,22 @@ About three changed bids in four are to a lower bid. The bots in
 - Any reviewed hand can be played again, with the same cards or with the same
   seat and hand against new opponents.
 
+### 150 or 500 sampled deals for a bot's bid
+
+`node simbid2.js <n> <deals> <seed> 150 500`: same deals, the test seat bids
+once from 150 sampled deals and once from 500; scored in money (points less
+the table's average). 12 November 2026:
+
+| cards | deals | 500 over 150, dollars a hand | bids differ | seconds per bid, 150 / 500 |
+|---|---|---|---|---|
+| 6 | 4,800 | +0.049 +/-0.061 | 12% | 0.17 / 0.56 |
+| 10 | 2,100 | +0.017 +/-0.117 | 19% | 0.38 / 1.24 |
+
+No measurable gain, three times the wait: the bots stay at 150. (In money the
+formula scored -0.03 and +0.09 a hand on these deals and the 150-deal
+simulation +0.23 and +0.67.) The figures shown for the player's own bid use
+600, since they are worked out once after the hand.
+
 ## In the calculator
 
 `node embed.js net_best.json > netdata.js` and
