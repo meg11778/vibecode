@@ -99,6 +99,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .scroll { overflow-x: auto; }
 .ld { display: inline-block; width: 16px; color: var(--green); font-size: .85rem; }
 .diff { color: #ffc24d; font-weight: 700; margin-left: 4px; cursor: help; }
+details.sec { border-top: 1px solid var(--border); }
+details.sec > summary { cursor: pointer; font-weight: 700; font-size: 1.15rem; color: #fff; padding: 10px 0; }
+details.sec > summary small { font-weight: 400; color: var(--dim); font-size: .85em; margin-left: 8px; }
+details.sec > .secbody { padding: 0 0 12px; }
 .markbox { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-size: 1rem; cursor: pointer; white-space: nowrap; }
 .markbox input { width: 18px; height: 18px; accent-color: #ffc24d; }
 .star { color: #ffc24d; }
@@ -259,8 +263,9 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
   <section class="panel" id="review" hidden></section>
 
   <section class="panel" id="history">
+    <details class="sec" data-sec="history" style="border-top:0"><summary>Saved hands in this browser<small id="histCount"></small></summary><div class="secbody">
     <div class="rvhead">
-      <div class="eyebrow">Saved hands in this browser</div>
+      <div class="eyebrow"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <label class="markbox"><input type="checkbox" id="onlyMarked"> Marked only</label>
         <button class="btn quiet" id="dlAll">Download all</button>
@@ -272,6 +277,7 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
       <th title="Marked for review">&#9733;</th><th>When</th><th>Round</th><th>Trump</th><th class="num">Your bid</th><th class="num">Took</th><th class="num">Points</th><th></th>
     </tr></thead><tbody id="histBody"></tbody></table></div>
     <p class="hint" id="histHint" style="margin:8px 0 0"></p>
+    </div></details>
   </section>
 
   <footer>OH HELL &middot; PLAY THE BOTS &middot; &copy; 2026 MATT GLASSMAN &middot; ENGINE &copy; 2026 JIM AGNIEL, MODIFIED &middot; <a href="https://www.gnu.org/licenses/gpl-3.0.html" style="color:inherit">GNU GPL v3</a> &middot; <a href="https://github.com/meg11778/vibecode" style="color:inherit">SOURCE</a></footer>
@@ -3644,7 +3650,7 @@ function assessmentHtml(r){
     bidLine = "Bid: " + (b.verdict==="ok" ? '<b class="ok">fine</b>' : b.verdict==="close" ? "too close to call (simulation preferred "+b.best+")"
       : b.verdict==="unpriced" ? "the simulation preferred "+b.best
       : '<b class="'+b.verdict+'">'+word[b.verdict]+"</b>, about "+b.cost.toFixed(1)+" given up against bidding "+b.best) + ". "; }
-  let h='<h3>Your play, assessed</h3><p class="verdict">'+bidLine+"Play: "+playLine+".</p>";
+  let h='<p class="verdict">'+bidLine+"Play: "+playLine+".</p>";
   const rows=a.plays.filter(p=>!p.same);
   if(r.tricks.length){
     h+='<div class="scroll"><table><thead><tr><th>Trick</th><th>You played</th><th class="num">Worth</th><th>Best</th><th class="num">Worth</th><th class="num">Cost</th><th>Verdict</th><th>Every choice</th></tr></thead><tbody>';
@@ -3666,7 +3672,7 @@ function assessmentHtml(r){
   h+='<p class="hint" style="margin:6px 0 0">Worth is '+(money?"your average result for the hand in dollars at $1 a point (your points less the table\u2019s average, so it counts what the others score as well as what you score)":"your average points for the hand")+' if that card is played and every seat then plays as the '+a.by+" does, over "+a.samples
     +" layouts of the hidden cards that fit the bids, the cards already played and the suits players had shown out of. Cards joined by = are equivalent. Greyed rows are tricks where you had no real choice: one legal card, or cards that were all equivalent. A cost under "+(money?"$":"")+ASSESS.minor+" is fine, up to "+(money?"$1":ASSESS.major+" point")
     +" minor, more than that major; “too close to call” means the gap is within the sampling noise. It judges each play on what you could know at the time, and it is the bots’ opinion: it assumes everyone plays on as they would, and reads nothing into which cards the others chose."
-    +(a.bid && a.bid.cost!=null ? " The bid is judged from the simulation above (points against the table’s average)." : "")
+    +(a.bid && a.bid.cost!=null ? " The bid is judged from the simulation shown under Bidding (points against the table’s average)." : "")
     +(rows.some(p=>p.fit===false) ? " On this hand the bids did not fit the bid model, so some layouts ignore the bidding." : "")+"</p>";
   return h;
 }
@@ -3675,10 +3681,10 @@ function mountAssessment(r, opts){
   const el=$("rvAssess"); if(!el) return;
   const key=r.id+r.savedAt; el.dataset.rec=key;
   if(r.assessment){ el.innerHTML=assessmentHtml(r); return; }
-  if(!r.tricks.some(k=>k.plays.some(p=>p.seat===0 && p.by==="you"))){ el.innerHTML=""; return; }
+  if(!r.tricks.some(k=>k.plays.some(p=>p.seat===0 && p.by==="you"))){ el.innerHTML='<p class="hint" style="margin:0">Nothing to assess: you had no choice of card in this hand.</p>'; return; }
   const run=()=>{
     if(assessCancel) assessCancel();
-    el.innerHTML='<h3>Your play, assessed</h3><p class="hint" style="margin:0">Playing out your choices… <span id="rvAssessPct"></span></p><div class="bar"><i id="rvAssessBar"></i></div>';
+    el.innerHTML='<p class="hint" style="margin:0">Playing out your choices… <span id="rvAssessPct"></span></p><div class="bar"><i id="rvAssessBar"></i></div>';
     assessCancel=assessHand(r, (done,total)=>{
         const b=$("rvAssessBar"); if(b && $("rvAssess").dataset.rec===key){ b.style.width=(100*done/total).toFixed(0)+"%"; $("rvAssessPct").textContent="decision "+Math.min(total,Math.floor(done)+1)+" of "+total; }
       }, a=>{
@@ -3687,7 +3693,7 @@ function mountAssessment(r, opts){
       });
   };
   if(opts.assess) run();
-  else { el.innerHTML='<h3>Your play, assessed</h3><button class="btn quiet" id="rvAssessGo">Assess my play</button>'; $("rvAssessGo").onclick=run; }
+  else { el.innerHTML='<button class="btn quiet" id="rvAssessGo">Assess my play</button>'; $("rvAssessGo").onclick=run; }
 }
 
 /* ----- saved hands ----- */
@@ -3765,6 +3771,14 @@ function handText(r){
 /* Money: $1 a point, each player paid the difference between their points and
    the table's average. */
 const dollars = v => (v<0 ? "\u2212$" : "+$")+(Math.abs(v)%1 ? Math.abs(v).toFixed(2) : Math.abs(v).toFixed(0));
+/* Collapsible sections of the review. Which ones are open is remembered in
+   this browser, so a section you open stays open for the next hand. */
+const SEC_KEY="ohhell-play-sections-v1", SEC_DEFAULT={ assess:true, hands:false, play:false, bid:false, history:false };
+function secState(){ try{ return Object.assign({}, SEC_DEFAULT, JSON.parse(localStorage.getItem(SEC_KEY)||"{}")); }catch(e){ return Object.assign({}, SEC_DEFAULT); } }
+const sec = (key, title, body) => '<details class="sec" data-sec="'+key+'"'+(secState()[key]?" open":"")+"><summary>"+title+'</summary><div class="secbody">'+body+"</div></details>";
+function wireSections(root){
+  for(const d of root.querySelectorAll("details.sec")) d.ontoggle=()=>{ const st=secState(); st[d.dataset.sec]=d.open; try{ localStorage.setItem(SEC_KEY,JSON.stringify(st)); }catch(e){} };
+}
 /* The standings, large, at the top of a hand's review. */
 function scoreboardHtml(r, opts){
   const nm=r.players, top=Math.max(...r.totalsAfter), single=r.game.of===1;
@@ -3860,6 +3874,7 @@ function showReview(r, opts){
     +'<label class="markbox" style="margin-left:4px"><input type="checkbox" id="rvMark"'+(r.marked?" checked":"")+"> Mark for review</label></div>";
   h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px"><span class="hint">Watch this hand as</span><select id="rvWatchSeat">'
     +nm.map((x,i)=>'<option value="'+i+'">'+x+"</option>").join("")+'</select><button class="btn quiet" id="rvWatchGo">Watch</button></div><div id="rvWatch" hidden></div>';
+  const top=h; h="";
   h+='<p class="hint" style="margin:0 0 8px">Dealer '+nm[r.dealer]+". Bots bid by: "+r.botBidding+". Bots played by: "+r.botPlay+".</p>";
   h+='<div class="scroll"><table><thead><tr><th>Seat</th><th>Hand as dealt</th><th class="num">Bid</th><th class="num" title="What the bid formula would bid on this hand">Formula</th><th class="num" title="What the simulation would bid on this hand">Simulation</th><th class="num">Took</th><th class="num">Points</th><th class="num">Total</th></tr></thead><tbody>';
   for(let s=0;s<nm.length;s++){
@@ -3868,10 +3883,12 @@ function showReview(r, opts){
       +'<td class="num">'+b.bid+'</td><td class="num">'+(b.formula!=null?b.formula:(s===0?"":b.bid))+'</td><td class="num">'+(b.by==="you"?(b.simBid!=null?b.simBid:""):(b.by==="simulation"?b.bid:""))+'</td><td class="num '+(made?"pos":"neg")+'">'+r.won[s]+'</td><td class="num">'+r.points[s]+'</td><td class="num">'+r.totalsAfter[s]+"</td></tr>";
   }
   h+="</tbody></table></div>";
-  h+="<h3>Bidding</h3>"+'<p class="hint" style="margin:0 0 4px">In order: '+r.bids.map(b=>nm[b.seat]+" "+b.bid).join(", ")+".</p>";
+  const secHands=h; h="";
+  h+='<p class="hint" style="margin:0 0 4px">In order: '+r.bids.map(b=>nm[b.seat]+" "+b.bid).join(", ")+".</p>";
   h+='<div style="font-size:1rem;color:var(--dim)">'+r.bids.filter(hasWhy).map(b=>'<div'+(b.seat===0?' style="margin-bottom:4px"':"")+'><b style="color:var(--text)">'+nm[b.seat]+"</b>: "+bidWhy(b)+"</div>").join("")+"</div>";
   if(r.bids.some(b=>b.sim)) h+='<p class="hint" style="margin:6px 0 0">Each simulated figure is that bid\u2019s points against the table\u2019s average on the deals the bot imagined, with how often it made the bid. Each bot saw only its own hand, the turned card and the bids ahead of it. The figures for your hand were worked out the same way, from what you could see when you bid, after the hand was over.</p>';
-  h+="<h3>Play</h3>"+'<div class="scroll"><table><thead><tr><th>Trick</th>'+nm.map(x=>"<th>"+x+"</th>").join("")+"<th>Won by</th></tr></thead><tbody>";
+  const secBid=h; h="";
+  h+='<div class="scroll"><table><thead><tr><th>Trick</th>'+nm.map(x=>"<th>"+x+"</th>").join("")+"<th>Won by</th></tr></thead><tbody>";
   r.tricks.forEach((k,i)=>{
     h+="<tr><td>"+(i+1)+"</td>";
     for(let s=0;s<nm.length;s++){
@@ -3892,8 +3909,9 @@ function showReview(r, opts){
   });
   h+="</tbody></table></div>";
   h+='<p class="hint" style="margin:6px 0 0">The arrow marks the lead; the outlined card won. Hover over any card to see how the network ranked the legal cards at that point (higher is preferred; only the gaps matter, and a gap of 4 is roughly one point for the hand). Equivalent cards, such as a king and queen held together, share one figure. On your own cards, \u2260 marks a play where the network would have chosen differently, and ? or ?? a minor or major mistake by the assessment below.</p>';
-  h+='<div id="rvAssess"></div>';
-  el.innerHTML=h;
+  const secPlay=h;
+  h=top+sec("assess","Your play, assessed",'<div id="rvAssess"></div>')+sec("hands","Hands as dealt",secHands)+sec("play","Play",secPlay)+sec("bid","Bidding",secBid);
+  el.innerHTML=h; wireSections(el);
   $("rvSave").onclick=()=>download("ohhell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(r,null,1));
   $("rvDiag").onclick=()=>download("oh-hell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(diagramHand(r),null,2));
   $("rvCopy").onclick=()=>{ const t=handText(r); const done=()=>{ $("rvCopy").textContent="Copied"; setTimeout(()=>{ if($("rvCopy")) $("rvCopy").textContent="Copy as text"; },1500); };
@@ -3952,6 +3970,7 @@ function renderHistory(){
   $("histHint").textContent = a.length ? a.length+" hand"+(a.length===1?"":"s")+" kept in this browser on this computer"+(nMarked?", "+nMarked+" marked for review":"")+". Download them to keep a copy elsewhere."
     : "No hands yet. Each hand is added here when it ends.";
   $("dlAll").disabled = $("clearAll").disabled = !a.length;
+  $("histCount").textContent = a.length ? a.length+" hand"+(a.length===1?"":"s")+(nMarked?", "+nMarked+" marked":"") : "none yet";
 }
 
 /* ----- setting up a hand -----
@@ -4122,6 +4141,7 @@ document.addEventListener("keydown",e=>{
     if(e.key==="ArrowRight"){ e.preventDefault(); $("wNext").click(); } else if(e.key==="ArrowLeft"){ e.preventDefault(); $("wPrev").click(); } }
 });
 $("onlyMarked").onchange=renderHistory;
+{ const hd=document.querySelector('#history details.sec'); hd.open=secState().history; wireSections($("history")); }
 cuBuild(); syncSetupHint(); renderHistory();
 
 /* hooks for automated checks */
