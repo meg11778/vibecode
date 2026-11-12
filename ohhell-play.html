@@ -119,7 +119,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 #rvWatch .wmsg small { display: block; color: var(--dim); font-size: .9rem; }
 #rvWatch .whand { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 40px; }
 #rvWatch .wctl { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 10px; align-items: center; }
-@media (max-width: 640px) { .tally { font-size: .95rem; padding: 2px 9px; } .scoreboard .sct { font-size: 1.5rem; } .scoreboard .scd { font-size: 11px; } .scoreboard { gap: 4px; } }
+@media (max-width: 640px) { .tally { font-size: .95rem; padding: 2px 9px; } .scoreboard .sct { font-size: 1.35rem; } .scoreboard.many { grid-template-columns: repeat(3, minmax(0,1fr)) !important; } .scoreboard .scd { font-size: 11px; } .scoreboard { gap: 4px; } }
 .cuRow { display: flex; gap: 3px; align-items: center; margin-bottom: 3px; }
 .cuSuit { width: 1.3em; font-size: 1.25rem; text-align: center; color: #fff; } .cuSuit.red { color: var(--red); }
 .cuCard { flex: 1 1 0; min-width: 0; max-width: 44px; padding: 5px 0; font: inherit; font-weight: 700; font-size: .95rem; border-radius: 5px; cursor: pointer;
@@ -3574,7 +3574,8 @@ function playOut(A, st, hands, first, useNet){
     if(beatsCard(c,winCard,A.trump)){ winCard=c; winner=p; }
     if(++i===Pn){ won[winner]++; p=winner; i=0; led=-1; winCard=-1; trick=[]; } else p=(p+1)%Pn;
   }
-  return vienna(A.bids[0],won[0],A.n);
+  let tot=0; for(let s=0;s<Pn;s++) tot+=vienna(A.bids[s],won[s],A.n);
+  return vienna(A.bids[0],won[0],A.n) - tot/Pn;            // dollars at $1 a point: my points less the table's average
 }
 const verdictOf = (cost, se) => cost<ASSESS.minor ? "ok" : cost<=2*se ? "close" : cost<ASSESS.major ? "minor" : "major";
 /* How the bid did, from the simulation run on your hand when the hand ended. */
@@ -3598,7 +3599,7 @@ function assessHand(r, onProgress, onDone){
     KNOWN = A.turned>=0 ? [A.turned] : [];
     while(performance.now()-t0<30){
       if(di>=total){
-        const a={ version:1, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, bid:assessBid(r) };
+        const a={ version:2, unit:"money", samples:K, by: useNet ? "neural network" : "rules engine", plays:out, bid:assessBid(r) };
         return onDone(a);
       }
       const D=A.decisions[di];
@@ -3637,7 +3638,7 @@ function assessmentHtml(r){
   const lost=flagged.reduce((x,p)=>x+p.cost,0);
   const count=(k,w)=>k+" "+w+" mistake"+(k===1?"":"s");
   let playLine = !a.plays.length ? "nothing to choose" : !flagged.length ? '<b class="ok">no mistakes</b>'
-    : [nMaj?'<b class="major">'+count(nMaj,"major")+"</b>":"", nMin?'<b class="minor">'+count(nMin,"minor")+"</b>":""].filter(Boolean).join(", ")+", about "+lost.toFixed(1)+" point"+(lost.toFixed(1)==="1.0"?"":"s")+" given up";
+    : [nMaj?'<b class="major">'+count(nMaj,"major")+"</b>":"", nMin?'<b class="minor">'+count(nMin,"minor")+"</b>":""].filter(Boolean).join(", ")+", about "+(a.unit==="money" ? "$"+lost.toFixed(2) : lost.toFixed(1)+" point"+(lost.toFixed(1)==="1.0"?"":"s"))+" given up";
   let bidLine="";
   if(a.bid){ const b=a.bid;
     bidLine = "Bid: " + (b.verdict==="ok" ? '<b class="ok">fine</b>' : b.verdict==="close" ? "too close to call (simulation preferred "+b.best+")"
@@ -3661,9 +3662,10 @@ function assessmentHtml(r){
     });
     h+="</tbody></table></div>";
   }
-  h+='<p class="hint" style="margin:6px 0 0">Worth is your average points for the hand if that card is played and every seat then plays as the '+a.by+" does, over "+a.samples
-    +" layouts of the hidden cards that fit the bids, the cards already played and the suits players had shown out of. Cards joined by = are equivalent. Greyed rows are tricks where you had no real choice: one legal card, or cards that were all equivalent. A cost under "+ASSESS.minor+" is fine, up to "+ASSESS.major
-    +" point minor, more than that major; “too close to call” means the gap is within the sampling noise. It judges each play on what you could know at the time, and it is the bots’ opinion: it assumes everyone plays on as they would, and reads nothing into which cards the others chose."
+  const money=a.unit==="money";
+  h+='<p class="hint" style="margin:6px 0 0">Worth is '+(money?"your average result for the hand in dollars at $1 a point (your points less the table\u2019s average, so it counts what the others score as well as what you score)":"your average points for the hand")+' if that card is played and every seat then plays as the '+a.by+" does, over "+a.samples
+    +" layouts of the hidden cards that fit the bids, the cards already played and the suits players had shown out of. Cards joined by = are equivalent. Greyed rows are tricks where you had no real choice: one legal card, or cards that were all equivalent. A cost under "+(money?"$":"")+ASSESS.minor+" is fine, up to "+(money?"$1":ASSESS.major+" point")
+    +" minor, more than that major; “too close to call” means the gap is within the sampling noise. It judges each play on what you could know at the time, and it is the bots’ opinion: it assumes everyone plays on as they would, and reads nothing into which cards the others chose."
     +(a.bid && a.bid.cost!=null ? " The bid is judged from the simulation above (points against the table’s average)." : "")
     +(rows.some(p=>p.fit===false) ? " On this hand the bids did not fit the bid model, so some layouts ignore the bidding." : "")+"</p>";
   return h;
@@ -3760,6 +3762,9 @@ function handText(r){
   return L.join("\n");
 }
 
+/* Money: $1 a point, each player paid the difference between their points and
+   the table's average. */
+const dollars = v => (v<0 ? "\u2212$" : "+$")+(Math.abs(v)%1 ? Math.abs(v).toFixed(2) : Math.abs(v).toFixed(0));
 /* The standings, large, at the top of a hand's review. */
 function scoreboardHtml(r, opts){
   const nm=r.players, top=Math.max(...r.totalsAfter), single=r.game.of===1;
@@ -3767,11 +3772,12 @@ function scoreboardHtml(r, opts){
   const title = single ? "Scores for this hand"
     : opts.final || r.game.hand===r.game.of ? "Final scores · "+(leaders.length>1 ? leaders.join(" and ")+" tie" : leaders[0]+(leaders[0]==="You"?" win":" wins"))
     : "Scores after hand "+r.game.hand+" of "+r.game.of;
-  let h='<div class="sbTitle">'+title+'</div><div class="scoreboard" style="grid-template-columns:repeat('+nm.length+',minmax(0,1fr))">';
+  const avg=r.totalsAfter.reduce((a,b)=>a+b,0)/nm.length, havg=r.points.reduce((a,b)=>a+b,0)/nm.length;
+  let h='<div class="sbTitle">'+title+' <span style="font-weight:400;font-size:.8em;color:var(--dim)">\u00b7 $1 a point against the table\u2019s average</span></div><div class="scoreboard'+(nm.length>4?" many":"")+'" style="grid-template-columns:repeat('+nm.length+',minmax(0,1fr))">';
   for(let s=0;s<nm.length;s++){
     const b=r.bids.find(x=>x.seat===s), made=b.bid===r.won[s];
-    h+='<div class="sc'+(s===0?" me":"")+(r.totalsAfter[s]===top?" lead":"")+'"><div class="scn">'+nm[s]+'</div><div class="sct">'+r.totalsAfter[s]+'</div>'
-      +'<div class="scd"><b class="'+(made?"pos":"neg")+'">bid '+b.bid+", took "+r.won[s]+"</b><br>+"+r.points[s]+" this hand</div></div>";
+    h+='<div class="sc'+(s===0?" me":"")+(r.totalsAfter[s]===top?" lead":"")+'"><div class="scn">'+nm[s]+'</div><div class="sct '+(r.totalsAfter[s]>=avg?"pos":"neg")+'">'+dollars(r.totalsAfter[s]-avg)+'</div>'
+      +'<div class="scd">'+r.totalsAfter[s]+' points<br><b class="'+(made?"pos":"neg")+'">bid '+b.bid+", took "+r.won[s]+"</b><br>this hand "+dollars(r.points[s]-havg)+"</div></div>";
   }
   return h+"</div>";
 }
