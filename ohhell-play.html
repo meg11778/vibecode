@@ -3231,7 +3231,8 @@ function bidAdvice(H, cards, pos, prior, seed, wantSim, mine){
   const formula={ bid:bidAt(adj,H.n,(pos===P-1)?H.n-claimed:-1), est:+est.toFixed(2), adj:+adj.toFixed(2) };
   const out={ est:formula.est, adj:formula.adj, formula:formula.bid };
   if(!wantSim) return out;
-  const r=simulateBid(hand, H.trump, H.turned, H.n, P, pos, prior, formula, seed, mine==null ? null : { also:[mine], cmp:mine });
+  // your own hand is worked out once, after the hand, so it can afford four times the deals a bot uses
+  const r=simulateBid(hand, H.trump, H.turned, H.n, P, pos, prior, formula, seed, mine==null ? null : { also:[mine], cmp:mine, samples:600, maxDraws:20000 });
   if(r.table){ out.sim=r.table; out.samples=r.samples; out.simBid=r.bid; }
   if(r.cmp) out.cmp=r.cmp;
   if(r.why) out.why=r.why;
@@ -3799,6 +3800,15 @@ function scoreboardHtml(r, opts){
    Steps through a saved hand one bid or card at a time, showing only what the
    chosen seat could see: its own cards, the bids as they were made and the
    cards as they were played. */
+/* The bid calculator's address for one seat of a saved hand: its cards, the
+   table size, its place in the bidding, the bids ahead of it and the turned
+   card. The calculator reads these and runs at once. */
+function calcLink(r, seat){
+  const pos=r.bids.findIndex(b=>b.seat===seat), q=["h="+r.hands[seat].join("."), "p="+r.players.length, "s="+pos];
+  if(pos>0) q.push("b="+r.bids.slice(0,pos).map(b=>b.bid).join("."));
+  q.push(r.turned ? "tc="+r.turned : "t=N");
+  return "ohhell.html#"+q.join("&")+"&go=1";
+}
 let watchState=null;                            // { key, v, at }: survives a redraw of the review
 function watchHand(r, v, startAt, quiet){
   const nm=r.players, Pn=nm.length, n=r.cards, box=$("rvWatch");
@@ -3872,8 +3882,9 @@ function showReview(r, opts){
     +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvRedeal" title="Your cards, your seat, the trump card and any set bids and lead stay; the other hands are dealt afresh">Same hand, new opponents</button>':"")
     +(opts.close?'<button class="btn quiet" id="rvClose">Close</button>':"")
     +'<label class="markbox" style="margin-left:4px"><input type="checkbox" id="rvMark"'+(r.marked?" checked":"")+"> Mark for review</label></div>";
-  h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px"><span class="hint">Watch this hand as</span><select id="rvWatchSeat">'
-    +nm.map((x,i)=>'<option value="'+i+'">'+x+"</option>").join("")+'</select><button class="btn quiet" id="rvWatchGo">Watch</button></div><div id="rvWatch" hidden></div>';
+  h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px"><span class="hint">For</span><select id="rvWatchSeat">'
+    +nm.map((x,i)=>'<option value="'+i+'">'+x+"</option>").join("")+'</select><button class="btn quiet" id="rvWatchGo" title="Step through the hand seeing only what this seat could see">Watch the hand</button>'
+    +'<button class="btn quiet" id="rvCalc" title="Opens the bid calculator in a new tab on this seat\u2019s cards, the turned card and the bids ahead of it">Open in bid calculator</button></div><div id="rvWatch" hidden></div>';
   const top=h; h="";
   h+='<p class="hint" style="margin:0 0 8px">Dealer '+nm[r.dealer]+". Bots bid by: "+r.botBidding+". Bots played by: "+r.botPlay+".</p>";
   h+='<div class="scroll"><table><thead><tr><th>Seat</th><th>Hand as dealt</th><th class="num">Bid</th><th class="num" title="What the bid formula would bid on this hand">Formula</th><th class="num" title="What the simulation would bid on this hand">Simulation</th><th class="num">Took</th><th class="num">Points</th><th class="num">Total</th></tr></thead><tbody>';
@@ -3919,7 +3930,8 @@ function showReview(r, opts){
   if(!opts.next&&!opts.back){ $("rvAgain").onclick=()=>replayRecord(r,false); $("rvRedeal").onclick=()=>replayRecord(r,true); }
   if(opts.back) $("rvBack").onclick=()=>backToGame(opts.back);
   $("rvMark").onchange=()=>{ if($("rvMark").checked) r.marked=true; else delete r.marked; updateHand(r); renderHistory(); };
-  $("rvWatchSeat").value = nm.length>1 ? "1" : "0";
+  $("rvWatchSeat").value = "0";
+  $("rvCalc").onclick=()=>window.open(calcLink(r, +$("rvWatchSeat").value), "_blank");
   $("rvWatchGo").onclick=()=>watchHand(r, +$("rvWatchSeat").value);
   if(watchState && watchState.key===r.id+r.savedAt && opts.keepScroll){ $("rvWatchSeat").value=String(watchState.v); watchHand(r, watchState.v, watchState.at, true); }
   else watchState=null;
@@ -4145,7 +4157,7 @@ $("onlyMarked").onchange=renderHistory;
 cuBuild(); syncSetupHint(); renderHistory();
 
 /* hooks for automated checks */
-window.__ohhell={ buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
+window.__ohhell={ calcLink, buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
 })();
 </script>
 </body>

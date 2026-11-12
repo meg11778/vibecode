@@ -3498,6 +3498,7 @@ $("run").onclick = () => {
   const P=+$("players").value, seat=+$("seat").value;
   const prior=[...$("priorRow").querySelectorAll("input")].map(i=>Math.max(0,(+i.value)|0));
   const play=$("playMode").value;
+  try{ history.replaceState(null,"",setupLink()); }catch(e){}        // the address now reopens this setup
   const { cap:iterations, target } = autoDeals(P,hand.length,play);
   const S=initSim({
     hand: hand.slice().sort((a,b)=>a-b), players:P, seat, trump, trumpCard,
@@ -3679,6 +3680,44 @@ function renderChart(){
 })();
 
 refresh();
+
+/* A setup can arrive in the page address after a #, so another page (the game's
+   hand review) or a bookmark can open the calculator on a particular hand:
+     #h=AS.KS.7D.2C&p=4&s=2&b=1.2&tc=9D&go=1
+   h  your cards (rank then suit letter S H D C; 10 or T for a ten)
+   p  players        s  your place in the bidding, 0 = first
+   b  the bids ahead of you, in order
+   tc the turned card, or t = a suit letter for a trump suit with the card
+      unknown, or t=N for no trump
+   go 1 to start the calculation at once
+   Running a calculation writes the current setup back to the address. */
+const linkCard = t => { t=String(t).toUpperCase().replace(/^T/,"10"); const r=RANKL.indexOf(t.slice(0,-1)), su="SHDC".indexOf(t.slice(-1)); return (r<0||su<0) ? -1 : su*13+r; };
+const linkName = c => RANKL[c%13]+"SHDC"[suitOf(c)];
+function setupLink(){
+  const q=["h="+hand.slice().sort((a,b)=>a-b).map(linkName).join("."), "p="+$("players").value, "s="+$("seat").value];
+  const prior=[...$("priorRow").querySelectorAll("input")].map(i=>Math.max(0,(+i.value)|0));
+  if(prior.length) q.push("b="+prior.join("."));
+  q.push(trumpCard>=0 ? "tc="+linkName(trumpCard) : "t="+(trump<0 ? "N" : "SHDC"[trump]));
+  return "#"+q.join("&");
+}
+(function fromAddress(){
+  const q=new URLSearchParams(location.hash.replace(/^#/,""));
+  if(!q.has("h")) return;
+  const cards=q.get("h").split(".").filter(Boolean).map(linkCard);
+  if(!cards.length || cards.some(c=>c<0) || new Set(cards).size!==cards.length) return;
+  hand=cards;
+  for(const b of $("deck").querySelectorAll("button.ct")) b.classList.toggle("on", hand.includes(+b.dataset.card));
+  const P=+q.get("p"); if(P>=3 && P<=7){ $("players").value=String(P); buildSeats(); }
+  $("seat").value=String(Math.max(0, Math.min((+q.get("s"))|0, +$("players").value-1))); buildPrior(); buildProfiles();
+  const inp=[...$("priorRow").querySelectorAll("input")];
+  (q.get("b")||"").split(".").filter(x=>x!=="").forEach((v,i)=>{ if(inp[i]) inp[i].value=String(Math.max(0,(+v)|0)); });
+  const tc=q.has("tc") ? linkCard(q.get("tc")) : -1, t=(q.get("t")||"").toUpperCase();
+  if(tc>=0 && !hand.includes(tc)){ trump=suitOf(tc); trumpCard=tc; }
+  else if(t==="N"){ trump=-1; trumpCard=-1; }
+  else if(t && "SHDC".includes(t)){ trump="SHDC".indexOf(t); trumpCard=-1; }
+  results=null; syncTrump();
+  if(!refresh() && q.get("go")==="1") setTimeout(()=>$("run").click(), 60);
+})();
 </script>
 <style>
 /* Force the dark theme past any embedding host's stylesheet. */
