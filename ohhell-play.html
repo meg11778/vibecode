@@ -61,9 +61,9 @@ button { font: inherit; cursor: pointer; }
 .seat.turn { border-color: var(--green); box-shadow: 0 0 0 1px rgba(45,255,179,.5) inset; background: rgba(45,255,179,.08); }
 .seat .nm { font-weight: 700; color: #ffffff; font-size: 1.05rem; }
 .seat .nm .d { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--ink); background: var(--green); border-radius: 2px; padding: 0 4px; margin-left: 5px; vertical-align: 2px; }
-.seat .st { font-family: 'Share Tech Mono', monospace; font-size: 13px; color: var(--dim); }
-.seat .st span { margin: 0 5px; white-space: nowrap; }
-.seat .st b { color: #ffffff; font-weight: 400; }
+.seat .nm .pts { color: var(--green); margin-left: 8px; }
+.seat .st { font-size: 1.2rem; color: #dbe6ee; font-weight: 600; white-space: nowrap; line-height: 1.25; }
+.seat .st b { color: #ffffff; font-weight: 800; font-size: 1.3em; }
 .sN { grid-column: 2; grid-row: 1; } .sW { grid-column: 1; grid-row: 2; } .sE { grid-column: 3; grid-row: 2; } .sS { grid-column: 2; grid-row: 3; }
 .mid { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(3, 90px); gap: 4px; align-items: center; justify-items: center; }
 .mid .pN { grid-column: 2; grid-row: 1; } .mid .pW { grid-column: 1; grid-row: 2; } .mid .pE { grid-column: 3; grid-row: 2; } .mid .pS { grid-column: 2; grid-row: 3; }
@@ -73,7 +73,6 @@ button { font: inherit; cursor: pointer; }
 .arc { display: grid; gap: 8px; margin: 6px 0 2px; }
 .arc .col { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
 .arc .seat { width: 100%; min-width: 0; }
-.arc .seat .st span { display: block; margin: 0; }
 .slot { height: 88px; display: flex; align-items: center; justify-content: center; }
 .slot.me { margin: 0 0 6px; }
 .seat.me { display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 12px; }
@@ -100,6 +99,27 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .scroll { overflow-x: auto; }
 .ld { display: inline-block; width: 16px; color: var(--green); font-size: .85rem; }
 .diff { color: #ffc24d; font-weight: 700; margin-left: 4px; cursor: help; }
+.markbox { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-size: 1rem; cursor: pointer; white-space: nowrap; }
+.markbox input { width: 18px; height: 18px; accent-color: #ffc24d; }
+.star { color: #ffc24d; }
+.tally { display: inline-block; font-weight: 700; font-size: 1.05rem; color: #fff; padding: 3px 12px; border-radius: 999px; background: rgba(255,255,255,.12); white-space: nowrap; }
+.tally small { font-weight: 400; font-size: .85em; opacity: .85; margin-left: 6px; }
+.tally.over { background: #a23b3b; } .tally.under { background: #1f6aa8; }
+.scoreboard { display: grid; gap: 8px; margin: 4px 0 14px; }
+.scoreboard .sc { text-align: center; padding: 8px 6px; border: 1px solid var(--border); border-radius: 6px; background: rgba(255,255,255,.04); min-width: 0; }
+.scoreboard .sc.me { border-color: rgba(45,255,179,.6); }
+.scoreboard .sc.lead { background: rgba(45,255,179,.12); }
+.scoreboard .scn { font-weight: 700; color: #fff; font-size: 1rem; }
+.scoreboard .sct { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.15; }
+.scoreboard .scd { font-family: 'Share Tech Mono', monospace; font-size: 12.5px; color: var(--dim); }
+.scoreboard .scd b { font-weight: 400; }
+.sbTitle { font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0 0 6px; }
+#rvWatch { margin: 0 0 14px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: rgba(0,0,0,.18); }
+#rvWatch .wmsg { text-align: center; color: #fff; font-size: 1.05rem; min-height: 3em; margin: 6px 0; }
+#rvWatch .wmsg small { display: block; color: var(--dim); font-size: .9rem; }
+#rvWatch .whand { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 40px; }
+#rvWatch .wctl { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+@media (max-width: 640px) { .tally { font-size: .95rem; padding: 2px 9px; } .scoreboard .sct { font-size: 1.5rem; } .scoreboard .scd { font-size: 11px; } .scoreboard { gap: 4px; } }
 .cuRow { display: flex; gap: 3px; align-items: center; margin-bottom: 3px; }
 .cuSuit { width: 1.3em; font-size: 1.25rem; text-align: center; color: #fff; } .cuSuit.red { color: var(--red); }
 .cuCard { flex: 1 1 0; min-width: 0; max-width: 44px; padding: 5px 0; font: inherit; font-weight: 700; font-size: .95rem; border-radius: 5px; cursor: pointer;
@@ -138,9 +158,10 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
   .seat { min-width: 0; width: 100%; padding: 4px 6px; }
   .seat .nm { font-size: 1rem; }
   .sN, .sS { display: flex; justify-content: center; align-items: baseline; gap: 8px; }
-  .sW .st span, .sE .st span { display: block; margin: 0; }
   .arc { gap: 4px; margin: 0 0 2px; } .arc .col { gap: 3px; }
-  .arc .seat { padding: 3px 2px; } .arc .seat .nm { font-size: .95rem; } .arc .seat .st { font-size: 11.5px; }
+  .arc .seat { padding: 3px 2px; } .seat .st { font-size: 1.05rem; } .seat .nm .pts { margin-left: 5px; }
+  .arc .seat .nm { font-size: .9rem; white-space: nowrap; } .arc .seat .nm .pts { margin-left: 3px; } .arc .seat .nm .d { margin-left: 2px; padding: 0 3px; }
+  .arc .seat:not(.me) .st { font-size: 1rem; line-height: 1.1; } .arc .seat:not(.me) .st .w { display: block; font-size: .72em; font-weight: 400; color: var(--dim); }
   .slot { height: 64px; } .slot.me { margin: 0 0 4px; }
   .card { min-width: 44px; height: 62px; font-size: 1.35rem; padding: 0 3px; border-radius: 6px; }
   .mid .card { min-width: 46px; height: 60px; }
@@ -158,9 +179,9 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
   .topline { margin-bottom: 3px; }
   .mid { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(3, 50px); }
   .mid .card { min-width: 40px; height: 48px; font-size: 1.15rem; }
-  .slot { height: 54px; } .arc .seat .st { font-size: 11px; line-height: 1.25; }
+  .slot { height: 54px; } .arc .seat:not(.me) .st { font-size: .95rem; }
   .card { min-width: 40px; height: 52px; font-size: 1.2rem; }
-  .seat { padding: 2px 6px; } .seat .st { font-size: 12px; }
+  .seat { padding: 2px 6px; } .seat .st { font-size: 1rem; line-height: 1.15; }
   #msg { min-height: 22px; margin-bottom: 3px; font-size: 1rem; }
   #myhand { min-height: 52px; }
   #actions { margin-top: 5px; min-height: 30px; }
@@ -221,6 +242,7 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
   <section class="panel" id="table" hidden>
     <div class="topline">
       <div><span class="eyebrow" id="roundInfo"></span></div>
+      <div id="tally"></div>
       <div class="trumpbox" id="trumpInfo"></div>
     </div>
     <div id="felt"></div>
@@ -229,6 +251,7 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
     <div id="actions"></div>
     <div id="tablefoot" style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px">
       <span class="hint" id="engineNote"></span>
+      <label class="markbox" title="Marked hands are starred in the saved list, which can be narrowed to them"><input type="checkbox" id="markLive"> Mark this hand for review</label>
       <button class="btn quiet" id="quit">End this game</button>
     </div>
   </section>
@@ -239,13 +262,14 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
     <div class="rvhead">
       <div class="eyebrow">Saved hands in this browser</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <label class="markbox"><input type="checkbox" id="onlyMarked"> Marked only</label>
         <button class="btn quiet" id="dlAll">Download all</button>
         <label class="btn quiet" style="display:inline-block">Open a saved file<input type="file" id="loadFile" accept=".json,application/json" hidden></label>
         <button class="btn quiet" id="clearAll">Clear</button>
       </div>
     </div>
     <div class="scroll"><table><thead><tr>
-      <th>When</th><th>Round</th><th>Trump</th><th class="num">Your bid</th><th class="num">Took</th><th class="num">Points</th><th></th>
+      <th title="Marked for review">&#9733;</th><th>When</th><th>Round</th><th>Trump</th><th class="num">Your bid</th><th class="num">Took</th><th class="num">Points</th><th></th>
     </tr></thead><tbody id="histBody"></tbody></table></div>
     <p class="hint" id="histHint" style="margin:8px 0 0"></p>
   </section>
@@ -3223,8 +3247,9 @@ function botBid(H, seat, pos){
 
 /* ----- game state ----- */
 let G=null, H=null, token=0, lastRecord=null;
+let paused=false, held=null, current=null;      // current: the review of the hand just finished, to come back to
 const delay = () => +$("speed").value;
-const later = (fn, ms) => { const t=token; setTimeout(()=>{ if(t===token) fn(); }, ms); };
+const later = (fn, ms) => { const t=token; setTimeout(()=>{ if(t!==token) return; if(paused) held=fn; else fn(); }, ms); };
 
 function roundList(){
   const top=MAX_CARDS[+$("nPlayers").value];
@@ -3244,7 +3269,7 @@ function syncSetupHint(){
 }
 
 function newGame(){
-  token++;
+  token++; current=null;
   const seed=(Date.now() ^ (Math.random()*0x7fffffff))>>>0;
   P=+$("nPlayers").value; NAMES=SEAT_NAMES[P];
   G={ P, rounds:roundList(), idx:0, scores:new Array(P).fill(0), dealer:(seed%P), seed, rng:mulberry32(seed), id:"g"+seed.toString(36), bidMode:$("bidMode").value };
@@ -3252,7 +3277,7 @@ function newGame(){
   startHand();
 }
 function startHand(){
-  token++;
+  token++; paused=false; held=null; current=null;
   const n=G.rounds[G.idx], deck=[...Array(52).keys()], pre=G.preset||null;
   for(let i=51;i>0;i--){ const j=(G.rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
   let hands=[]; for(let s=0;s<P;s++) hands.push(deck.slice(s*n,(s+1)*n));
@@ -3263,9 +3288,10 @@ function startHand(){
       bids:new Array(P).fill(0), bidLog:[], bidCount:0, won:new Array(P).fill(0), seen:new Uint8Array(52),
       voids:seats().map(()=>[false,false,false,false]), tricks:[],
       cur:{ leader:first, plays:[], led:-1, winCard:-1, winner:first }, turn:first, phase:"bid", bidMode:G.bidMode,
-      startScores:G.scores.slice(), fixed: pre ? pre.fixed : null, lead: pre ? pre.lead : -1 };
+      live:true, startScores:G.scores.slice(), fixed: pre ? pre.fixed : null, lead: pre ? pre.lead : -1 };
   $("setup").hidden=true; $("table").hidden=false; $("review").hidden=true;
   document.body.classList.add("playing");
+  $("markLive").checked=false;
   buildFelt();
   $("table").scrollIntoView({block:"start"});
   step();
@@ -3355,19 +3381,32 @@ function buildFelt(){
   for(let s=1;s<P;s++) h+='<div class="col"><div class="seat" id="s'+s+'"></div><div class="slot" id="p'+s+'"></div></div>';
   f.innerHTML=h+'</div><div class="slot me" id="p0"></div><div class="seat me" id="s0"></div>';
 }
+/* The running total of the bids against the tricks on offer; once everyone has
+   bid, how far the hand is overbid or underbid. */
+function tallyHtml(sum, made, Pn, n){
+  if(made<Pn) return '<span class="tally">Bid so far: '+sum+" of "+n+"</span>";
+  const d=sum-n;
+  return '<span class="tally '+(d>0?"over":"under")+'">'+(d>0?"Overbid":"Underbid")+" by "+Math.abs(d)+"<small>"+sum+" bid, "+n+" trick"+(n===1?"":"s")+"</small></span>";
+}
+/* What a seat's box says. Name with the running score beside it; under that
+   the bid while the bidding is going on, then tricks taken out of tricks bid. */
+function seatInner(name, dealer, score, bid, won, bidding, extra){
+  return '<div class="nm">'+name+(dealer?'<span class="d" title="Dealer: bids last and is hooked">D</span>':"")+'<span class="pts" title="Score so far">'+score+"</span>"+extra+"</div>"
+    +'<div class="st">'+(bidding ? '<span class="w">Bid</span> <b>'+(bid==null?"–":bid)+"</b>" : '<span class="w">Took</span> <b>'+won+"</b>/"+bid)+"</div>";
+}
 function say(t){ $("msg").textContent=t; }
 function render(){
   const n=H.n;
   $("roundInfo").textContent="Hand "+(G.idx+1)+" of "+G.rounds.length+"  ·  "+n+" card"+(n===1?"":"s");
   $("trumpInfo").innerHTML = H.trump<0 ? "No trump"
     : 'Trump <span style="color:'+(isRed(H.trump)?"var(--red)":"#ffffff")+';font-size:1.5rem;vertical-align:-2px">'+GLYPH[H.trump]+"</span> &nbsp; turned "+cardEl(H.turned,"small");
+  $("tally").innerHTML=tallyHtml(H.bidLog.reduce((a,b)=>a+b.bid,0), H.bidLog.length, P, n);
   const bidding=H.phase==="bid";
   const active = bidding ? (H.bidCount<P ? H.order[H.bidCount] : -1) : (H.cur.plays.length===P ? -1 : H.turn);
   for(let s=0;s<P;s++){
     const el=$("s"+s), hasBid=H.bidLog.some(b=>b.seat===s);
     el.classList.toggle("turn", s===active);
-    el.innerHTML='<div class="nm">'+NAMES[s]+(s===H.dealer?'<span class="d" title="Dealer: bids last and is hooked">D</span>':"")+"</div>"
-      +'<div class="st"><span>bid <b>'+(hasBid?H.bids[s]:"–")+"</b></span><span>won <b>"+H.won[s]+"</b></span><span>total <b>"+G.scores[s]+"</b></span></div>";
+    el.innerHTML=seatInner(NAMES[s], s===H.dealer, G.scores[s], hasBid ? H.bids[s] : null, H.won[s], bidding, "");
     const p=H.cur.plays.find(x=>x.seat===s);
     $("p"+s).innerHTML = p ? cardEl(p.card, (H.cur.plays.length===P && H.cur.winner===s) ? "win" : "") : "";
   }
@@ -3429,10 +3468,13 @@ function endHand(){
     won:H.won.slice(), points:pts, totalsBefore:H.startScores, totalsAfter:G.scores.slice()
   };
   if(G.preset) rec.setup={ bids:H.fixed ? H.fixed.slice() : null, lead:H.lead>=0 ? cardStr(H.lead) : null, replay:!!G.preset.replay };
+  H.live=false;
+  if($("markLive").checked) rec.marked=true;
   lastRecord=rec; storeHand(rec);
   $("table").hidden=true; document.body.classList.remove("playing");
   const last = G.idx===G.rounds.length-1;
-  showReview(rec, { assess:true, next: last ? null : ()=>{ G.idx++; G.dealer=(G.dealer+1)%P; startHand(); }, final: last });
+  current={ rec, opts:{ assess:true, next: last ? null : ()=>{ G.idx++; G.dealer=(G.dealer+1)%P; startHand(); }, final: last } };
+  showReview(rec, current.opts);
   renderHistory();
 }
 
@@ -3718,21 +3760,100 @@ function handText(r){
   return L.join("\n");
 }
 
+/* The standings, large, at the top of a hand's review. */
+function scoreboardHtml(r, opts){
+  const nm=r.players, top=Math.max(...r.totalsAfter), single=r.game.of===1;
+  const leaders=nm.filter((x,i)=>r.totalsAfter[i]===top);
+  const title = single ? "Scores for this hand"
+    : opts.final || r.game.hand===r.game.of ? "Final scores · "+(leaders.length>1 ? leaders.join(" and ")+" tie" : leaders[0]+(leaders[0]==="You"?" win":" wins"))
+    : "Scores after hand "+r.game.hand+" of "+r.game.of;
+  let h='<div class="sbTitle">'+title+'</div><div class="scoreboard" style="grid-template-columns:repeat('+nm.length+',minmax(0,1fr))">';
+  for(let s=0;s<nm.length;s++){
+    const b=r.bids.find(x=>x.seat===s), made=b.bid===r.won[s];
+    h+='<div class="sc'+(s===0?" me":"")+(r.totalsAfter[s]===top?" lead":"")+'"><div class="scn">'+nm[s]+'</div><div class="sct">'+r.totalsAfter[s]+'</div>'
+      +'<div class="scd"><b class="'+(made?"pos":"neg")+'">bid '+b.bid+", took "+r.won[s]+"</b><br>+"+r.points[s]+" this hand</div></div>";
+  }
+  return h+"</div>";
+}
+/* ----- watching a hand from one seat -----
+   Steps through a saved hand one bid or card at a time, showing only what the
+   chosen seat could see: its own cards, the bids as they were made and the
+   cards as they were played. */
+let watchState=null;                            // { key, v, at }: survives a redraw of the review
+function watchHand(r, v, startAt, quiet){
+  const nm=r.players, Pn=nm.length, n=r.cards, box=$("rvWatch");
+  const trump=r.trump?"SHDC".indexOf(r.trump):-1;
+  const ev=[];                                                       // every bid, then every card, in order
+  r.bids.forEach(b=>ev.push({ t:"bid", seat:b.seat, b }));
+  r.tricks.forEach((k,ti)=>k.plays.forEach((p,i)=>ev.push({ t:"play", seat:p.seat, p, trick:ti, i, last:i===Pn-1, winner:k.winner })));
+  let at=startAt||0;
+  const seatBox=(s,cls,st)=>{
+    const active = at<ev.length && ev[at].seat===s;
+    return '<div class="seat '+cls+(active?" turn":"")+'">'+seatInner(nm[s], s===r.dealer, r.totalsBefore[s], st.bid[s], st.won[s], st.made<Pn,
+      s===v?' <span style="color:var(--green);font-size:.7em;font-weight:400">● watching</span>':"")+"</div>";
+  };
+  function draw(){
+    watchState={ key:r.id+r.savedAt, v, at };
+    const st={ bid:new Array(Pn).fill(null), won:new Array(Pn).fill(0), hand:r.hands[v].slice(), trick:new Array(Pn).fill(null), win:-1 };
+    let sum=0, made=0;
+    st.made=Math.min(at,Pn);
+    for(let k=0;k<at;k++){ const e=ev[k];
+      if(e.t==="bid"){ st.bid[e.seat]=e.b.bid; sum+=e.b.bid; made++; continue; }
+      if(e.i===0){ st.trick.fill(null); st.win=-1; }
+      st.trick[e.seat]=e.p.card; if(e.seat===v) st.hand.splice(st.hand.indexOf(e.p.card),1);
+      if(e.last){ st.won[e.winner]++; st.win=e.winner; }
+    }
+    const rel=j=>(v+j)%Pn, cardAt=s=>st.trick[s] ? showCard(st.trick[s], st.win===s ? "win" : "") : "";
+    let felt;
+    if(Pn===4) felt='<div class="felt">'+seatBox(rel(2),"sN",st)+seatBox(rel(1),"sW",st)
+      +'<div class="mid"><div class="pN">'+cardAt(rel(2))+'</div><div class="pW">'+cardAt(rel(1))+'</div><div class="pE">'+cardAt(rel(3))+'</div><div class="pS">'+cardAt(rel(0))+"</div></div>"
+      +seatBox(rel(3),"sE",st)+seatBox(rel(0),"sS",st)+"</div>";
+    else { felt='<div class="arc" style="grid-template-columns:repeat('+(Pn-1)+',minmax(0,1fr))">';
+      for(let j=1;j<Pn;j++) felt+='<div class="col">'+seatBox(rel(j),"",st)+'<div class="slot">'+cardAt(rel(j))+"</div></div>";
+      felt+='</div><div class="slot me">'+cardAt(v)+"</div>"+seatBox(v,"me",st); }
+    // what just happened, and who is next
+    let msg="The deal. "+nm[r.bids[0].seat]+(r.bids[0].seat===0?" bid":" bids")+" first.", sub="";
+    if(at>0){ const e=ev[at-1], who=nm[e.seat], verb=(a,b)=>e.seat===0?a:b;
+      if(e.t==="bid"){ msg=who+" bid "+e.b.bid+"."; if(e.seat===v && hasWhy(e.b)) sub=bidWhy(e.b).replace(/<[^>]+>/g,""); }
+      else { msg=who+" "+(e.i===0?verb("lead","leads"):verb("play","plays"))+" "+cardText(parseCard(e.p.card))+"."+(e.last?" "+nm[e.winner]+(e.winner===0?" win":" wins")+" trick "+(e.trick+1)+".":"");
+        if(e.seat===v) sub = e.p.considered ? (e.p.by==="you"?"The network ranked the choices: ":"Network ranking: ")+e.p.considered.map(a=>cardText(parseCard(a.card))+" "+a.score.toFixed(2)).join(", ")
+          : e.p.by==="forced" ? "Only legal card." : e.p.by==="set" ? "Opening lead, as set up." : e.p.by==="rules" ? "Chosen by the rules engine." : ""; }
+    }
+    const nxt = at<ev.length ? nm[ev[at].seat]+(ev[at].t==="bid" ? " to bid" : " to play")+(ev[at].seat===v ? " — what would you do?" : "") : "End of the hand.";
+    box.innerHTML='<div class="topline"><div><span class="eyebrow">Watching as '+nm[v]+" · "+(at<Pn ? "bidding" : "trick "+(at>Pn ? ev[at-1].trick+1 : 1)+" of "+n)+"</span></div>"
+      +"<div>"+tallyHtml(sum,made,Pn,n)+'</div><div class="trumpbox">'+(r.trump?"Trump "+trumpText(r)+" &nbsp; turned "+showCard(r.turned,"small"):"No trump")+"</div></div>"
+      +felt+'<div class="wmsg">'+msg+" <b>"+nxt+"</b><small>"+sub+"</small></div>"
+      +'<div class="whand">'+sortHand(st.hand.map(parseCard),trump).map(c=>cardEl(c,"")).join("")+"</div>"
+      +'<div class="wctl"><button class="btn quiet" id="wStart" title="Back to the deal">⏮</button><button class="btn quiet" id="wPrev">◀ Back</button>'
+      +'<button class="btn" id="wNext">Next ▶</button><button class="btn quiet" id="wTrick" title="Forward to the end of this trick">Trick ⏭</button><button class="btn quiet" id="wClose">Close</button></div>';
+    $("wStart").onclick=()=>{ at=0; draw(); }; $("wPrev").onclick=()=>{ if(at>0){ at--; draw(); } };
+    $("wNext").onclick=()=>{ if(at<ev.length){ at++; draw(); } };
+    $("wTrick").onclick=()=>{ if(at>=ev.length) return; do{ at++; }while(at<ev.length && !(ev[at-1].t==="play" && ev[at-1].last) && !(ev[at-1].t==="bid" && at===Pn)); draw(); };
+    $("wClose").onclick=()=>{ box.hidden=true; box.innerHTML=""; watchState=null; };
+    $("wPrev").disabled=$("wStart").disabled=at===0; $("wNext").disabled=$("wTrick").disabled=at>=ev.length;
+  }
+  box.hidden=false; draw(); if(!quiet) box.scrollIntoView({block:"start"});
+}
 function showReview(r, opts){
   opts=opts||{};
-  const nm=r.players, el=$("review"); el.hidden=false;
+  const nm=r.players, el=$("review"); el.hidden=false; el.dataset.rec=r.id+r.savedAt;
   const bidOf=s=>r.bids.find(b=>b.seat===s);
   let h='<div class="rvhead"><h2>Hand '+r.game.hand+" of "+r.game.of+" &middot; "+r.cards+" card"+(r.cards===1?"":"s")+" &middot; "
-    +(r.trump?"trump "+trumpText(r)+" (turned "+showCard(r.turned,"small")+")":"no trump")+"</h2>"
-    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +(r.trump?"trump "+trumpText(r)+" (turned "+showCard(r.turned,"small")+")":"no trump")+"</h2></div>"
+    +scoreboardHtml(r, opts)
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px">'
+    +(opts.next?'<button class="btn" id="rvNext">Next hand</button>':"")
+    +(opts.back?'<button class="btn" id="rvBack">Back to current game</button>':"")
+    +(opts.final?'<button class="btn" id="rvNew">New game</button>':"")
     +'<button class="btn quiet" id="rvSave" title="Everything about the hand, including how the network ranked each bot\u2019s cards">Save full record</button>'
     +'<button class="btn quiet" id="rvDiag" title="A file the Oh Hell hand diagram maker opens with Load Hand">Save for diagram maker</button>'
     +'<button class="btn quiet" id="rvCopy">Copy as text</button>'
-    +(opts.next?'<button class="btn" id="rvNext">Next hand</button>':"")
-    +(!opts.next?'<button class="btn quiet" id="rvAgain" title="The same cards in every hand; bids set in the setup stay set">Play this deal again</button>':"")
-    +(!opts.next?'<button class="btn quiet" id="rvRedeal" title="Your cards, your seat, the trump card and any set bids and lead stay; the other hands are dealt afresh">Same hand, new opponents</button>':"")
-    +(opts.final?'<button class="btn" id="rvNew">New game</button>':"")
-    +(opts.close?'<button class="btn quiet" id="rvClose">Close</button>':"")+"</div></div>";
+    +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvAgain" title="The same cards in every hand; bids set in the setup stay set">Play this deal again</button>':"")
+    +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvRedeal" title="Your cards, your seat, the trump card and any set bids and lead stay; the other hands are dealt afresh">Same hand, new opponents</button>':"")
+    +(opts.close?'<button class="btn quiet" id="rvClose">Close</button>':"")
+    +'<label class="markbox" style="margin-left:4px"><input type="checkbox" id="rvMark"'+(r.marked?" checked":"")+"> Mark for review</label></div>";
+  h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px"><span class="hint">Watch this hand as</span><select id="rvWatchSeat">'
+    +nm.map((x,i)=>'<option value="'+i+'">'+x+"</option>").join("")+'</select><button class="btn quiet" id="rvWatchGo">Watch</button></div><div id="rvWatch" hidden></div>';
   h+='<p class="hint" style="margin:0 0 8px">Dealer '+nm[r.dealer]+". Bots bid by: "+r.botBidding+". Bots played by: "+r.botPlay+".</p>";
   h+='<div class="scroll"><table><thead><tr><th>Seat</th><th>Hand as dealt</th><th class="num">Bid</th><th class="num" title="What the bid formula would bid on this hand">Formula</th><th class="num" title="What the simulation would bid on this hand">Simulation</th><th class="num">Took</th><th class="num">Points</th><th class="num">Total</th></tr></thead><tbody>';
   for(let s=0;s<nm.length;s++){
@@ -3771,12 +3892,33 @@ function showReview(r, opts){
   $("rvDiag").onclick=()=>download("oh-hell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(diagramHand(r),null,2));
   $("rvCopy").onclick=()=>{ const t=handText(r); const done=()=>{ $("rvCopy").textContent="Copied"; setTimeout(()=>{ if($("rvCopy")) $("rvCopy").textContent="Copy as text"; },1500); };
     if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); };
-  if(!opts.next){ $("rvAgain").onclick=()=>replayRecord(r,false); $("rvRedeal").onclick=()=>replayRecord(r,true); }
+  if(!opts.next&&!opts.back){ $("rvAgain").onclick=()=>replayRecord(r,false); $("rvRedeal").onclick=()=>replayRecord(r,true); }
+  if(opts.back) $("rvBack").onclick=()=>backToGame(opts.back);
+  $("rvMark").onchange=()=>{ if($("rvMark").checked) r.marked=true; else delete r.marked; updateHand(r); renderHistory(); };
+  $("rvWatchSeat").value = nm.length>1 ? "1" : "0";
+  $("rvWatchGo").onclick=()=>watchHand(r, +$("rvWatchSeat").value);
+  if(watchState && watchState.key===r.id+r.savedAt && opts.keepScroll){ $("rvWatchSeat").value=String(watchState.v); watchHand(r, watchState.v, watchState.at, true); }
+  else watchState=null;
   if(opts.next) $("rvNext").onclick=opts.next;
   if(opts.final) $("rvNew").onclick=()=>{ el.hidden=true; $("setup").hidden=false; };
   if(opts.close) $("rvClose").onclick=()=>{ el.hidden=true; };
   mountAssessment(r, opts);
   if(!opts.keepScroll) el.scrollIntoView({block:"start"});
+}
+/* Look at a saved hand. If a game is going on it waits: a hand in progress is
+   paused where it stands, and the review of the hand just finished is kept, so
+   "Back to current game" returns to exactly that. */
+function openSaved(rec){
+  const back = !G ? null : (H && H.live) ? "table" : current ? "review" : null;
+  if(back==="table"){ paused=true; $("table").hidden=true; document.body.classList.remove("playing"); }
+  showReview(rec, back ? { back } : { close:true });
+}
+function backToGame(how){
+  if(how==="table"){
+    $("review").hidden=true; $("table").hidden=false; document.body.classList.add("playing");
+    $("table").scrollIntoView({block:"start"});
+    paused=false; if(held){ const f=held; held=null; f(); }
+  } else if(current) showReview(current.rec, current.opts);
 }
 function fallbackCopy(t, done){
   const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select();
@@ -3784,17 +3926,24 @@ function fallbackCopy(t, done){
 }
 function renderHistory(){
   const a=loadHands(), tb=$("histBody"); tb.innerHTML="";
+  const only=$("onlyMarked").checked, nMarked=a.filter(r=>r.marked).length;
   a.slice().reverse().forEach((r,i)=>{
+    if(only && !r.marked) return;
     const idx=a.length-1-i, tr=document.createElement("tr"), b=r.bids.find(x=>x.seat===0);
-    tr.innerHTML="<td>"+new Date(r.savedAt).toLocaleString()+"</td><td>"+r.cards+" card"+(r.cards===1?"":"s")+(r.players.length!==4?", "+r.players.length+" players":"")+"</td><td>"+trumpText(r)+'</td><td class="num">'+b.bid
+    tr.innerHTML='<td><input type="checkbox" class="mkrow" data-i="'+idx+'" aria-label="Mark for review"'+(r.marked?" checked":"")+' style="width:18px;height:18px;accent-color:#ffc24d"></td><td>'+new Date(r.savedAt).toLocaleString()+"</td><td>"+r.cards+" card"+(r.cards===1?"":"s")+(r.players.length!==4?", "+r.players.length+" players":"")+"</td><td>"+trumpText(r)+'</td><td class="num">'+b.bid
       +'</td><td class="num '+(b.bid===r.won[0]?"pos":"neg")+'">'+r.won[0]+'</td><td class="num">'+r.points[0]+'</td><td style="text-align:right"><button class="btn quiet" data-i="'+idx+'">Review</button></td>';
     tb.appendChild(tr);
   });
-  for(const btn of tb.querySelectorAll("button")) btn.onclick=()=>{
-    if(G && H && !$("table").hidden) return;                    // do not pull the screen away mid-hand
-    showReview(loadHands()[+btn.dataset.i], { close:true });
+  for(const btn of tb.querySelectorAll("button")) btn.onclick=()=>openSaved(loadHands()[+btn.dataset.i]);
+  for(const cb of tb.querySelectorAll(".mkrow")) cb.onchange=()=>{
+    const all=loadHands(), r=all[+cb.dataset.i]; if(!r) return;
+    if(lastRecord && lastRecord.id===r.id && lastRecord.savedAt===r.savedAt){ if(cb.checked) lastRecord.marked=true; else delete lastRecord.marked; }
+    const m=$("rvMark");                     // the same hand is open in the review: let its own box do the saving
+    if(m && !$("review").hidden && $("review").dataset.rec===r.id+r.savedAt){ m.checked=cb.checked; return m.onchange(); }
+    if(cb.checked) r.marked=true; else delete r.marked; updateHand(r);
+    renderHistory();
   };
-  $("histHint").textContent = a.length ? a.length+" hand"+(a.length===1?"":"s")+" kept in this browser on this computer. Download them to keep a copy elsewhere."
+  $("histHint").textContent = a.length ? a.length+" hand"+(a.length===1?"":"s")+" kept in this browser on this computer"+(nMarked?", "+nMarked+" marked for review":"")+". Download them to keep a copy elsewhere."
     : "No hands yet. Each hand is added here when it ends.";
   $("dlAll").disabled = $("clearAll").disabled = !a.length;
 }
@@ -3872,7 +4021,7 @@ function startSetup(spec, deal, replay){
 /* Play a saved hand again: the same cards all round, or the same seat, hand,
    trump card and set bids against freshly dealt opponents. */
 function replayRecord(r, redeal){
-  if(G && H && !$("table").hidden) return;
+  if(G && H && H.live) return;
   const Pn=r.players.length, hands=r.hands.map(h=>h.map(parseCard)), turned=r.turned?parseCard(r.turned):-1;
   const pos=r.bids.findIndex(b=>b.seat===0);
   const spec={ P:Pn, n:r.cards, hand:hands[0], pos, turned, suit: r.trump ? "SHDC".indexOf(r.trump) : -2,
@@ -3943,7 +4092,7 @@ function cuSpec(){
 
 /* ----- wiring ----- */
 $("start").onclick=newGame;
-$("quit").onclick=()=>{ token++; G=null; H=null; $("table").hidden=true; $("setup").hidden=false; document.body.classList.remove("playing"); };
+$("quit").onclick=()=>{ token++; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; $("setup").hidden=false; document.body.classList.remove("playing"); };
 for(const id of ["fromN","toN","shape","nPlayers"]) $(id).oninput=()=>{ syncSetupHint(); cuSync(); };
 $("dlAll").onclick=()=>{ const a=loadHands(); if(a.length) download("ohhell-hands-"+stamp(new Date().toISOString())+".json", JSON.stringify(a,null,1)); };
 $("clearAll").onclick=()=>{ if($("clearAll").dataset.sure){ try{ localStorage.removeItem(KEY); }catch(e){} delete $("clearAll").dataset.sure; $("clearAll").textContent="Clear"; renderHistory(); }
@@ -3956,12 +4105,17 @@ $("loadFile").onchange=e=>{
       d=d.filter(x=>x&&x.format==="ohhell-hand"); if(!d.length) throw 0;
       const have=new Set(loadHands().map(x=>x.id+x.savedAt)); let added=0;
       for(const r of d) if(!have.has(r.id+r.savedAt)){ storeHand(r); added++; }
-      renderHistory(); showReview(d[d.length-1],{close:true});
+      renderHistory(); openSaved(d[d.length-1]);
       $("histHint").textContent="Opened "+d.length+" hand"+(d.length===1?"":"s")+" from the file; "+added+" new.";
     }catch(err){ $("histHint").textContent="That file does not contain saved Oh Hell hands."; } };
   rd.readAsText(f); e.target.value="";
 };
-document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ") && $("cont")){ e.preventDefault(); $("cont").click(); } });
+document.addEventListener("keydown",e=>{
+  if((e.key==="Enter"||e.key===" ") && $("cont") && !$("table").hidden){ e.preventDefault(); $("cont").click(); }
+  else if($("wNext") && !$("review").hidden && !/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)){
+    if(e.key==="ArrowRight"){ e.preventDefault(); $("wNext").click(); } else if(e.key==="ArrowLeft"){ e.preventDefault(); $("wPrev").click(); } }
+});
+$("onlyMarked").onchange=renderHistory;
 cuBuild(); syncSetupHint(); renderHistory();
 
 /* hooks for automated checks */
