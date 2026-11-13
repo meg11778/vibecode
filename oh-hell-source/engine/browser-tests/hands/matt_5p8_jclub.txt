@@ -1,0 +1,16 @@
+Oh Hell hand 6 of 8 | 5 players | 8 cards | trump ♣ (turned 6♣) | dealer East | bots played by: neural network with card reading
+Hands:
+  You   J♣ 3♣ 2♠ A♥ 7♥ 5♥ A♦ 6♦
+  West  5♠ 4♠ 9♥ 6♥ 3♥ 10♦ 7♦ 4♦
+  NW    4♣ 2♣ K♠ Q♠ J♠ 9♠ K♥ 3♦
+  NE    10♣ 8♣ 5♣ A♠ Q♥ Q♦ 8♦ 5♦
+  East  A♣ 7♣ 8♠ 6♠ 3♠ 8♥ 2♥ J♦
+Bids, in order: You 2, West 0, NW 1, NE 3, East 1
+Trick  1: You lead 2♠, West 5♠, NW 9♠, NE A♠, East 8♠  -> NE
+Trick  2: NE leads Q♦, East J♦, You A♦, West 7♦, NW 3♦  -> You
+Trick  3: You lead 6♦, West 4♦, NW K♥, NE 5♦, East A♣  -> East
+Trick  4: East leads 8♥, You 5♥, West 3♥, NW 4♣, NE Q♥  -> NW
+Trick  5: NW leads 2♣, NE 8♣, East 7♣, You J♣, West 10♦  -> You
+Trick  6: You lead 3♣, West 4♠, NW K♠, NE 5♣, East 3♠  -> NE
+Trick  7: NE leads 8♦, East 6♠, You A♥, West 9♥, NW Q♠  -> NE
+Trick  8: NE leads 10♣, East 2♥, You 7♥, West 6♥, NW J♠  -> NE

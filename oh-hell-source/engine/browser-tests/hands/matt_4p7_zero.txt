@@ -1,0 +1,14 @@
+Oh Hell hand 5 of 11 | 4 players | 7 cards | trump ♠ (turned 2♠) | dealer North | bots played by: neural network with card reading
+Hands:
+  You   A♥ 7♥ 4♥ A♦ K♦ 4♦ 3♦
+  West  8♠ J♥ 8♥ A♣ 6♣ Q♦ 8♦
+  North 5♥ 3♥ K♣ Q♣ 4♣ J♦ 5♦
+  East  K♠ 6♠ 4♠ 3♠ 10♥ 9♣ 10♦
+Bids, in order: East 3, You 0, West 1, North 0
+Trick  1: East leads 6♠, You A♥, West 8♠, North 3♥  -> West
+Trick  2: West leads 6♣, North 4♣, East 9♣, You 7♥  -> East
+Trick  3: East leads 3♠, You 4♥, West J♥, North K♣  -> East
+Trick  4: East leads 10♦, You 4♦, West 8♦, North 5♦  -> East
+Trick  5: East leads 10♥, You K♦, West 8♥, North 5♥  -> East
+Trick  6: East leads 4♠, You A♦, West Q♦, North J♦  -> East
+Trick  7: East leads K♠, You 3♦, West A♣, North Q♣  -> East

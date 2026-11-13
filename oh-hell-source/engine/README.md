@@ -379,3 +379,32 @@ no-trump round and other table sizes are not covered.
   seats and one-card rounds.
 - It plays cards. It does not bid; the calculator prices each bid by playing it
   out with the network in every seat.
+
+## 13 November 2026 (evening): card reading at other tables, bid fit, report margins
+
+All figures are dollars per deal for one card-reading seat against the network alone on the same deals, 95% error bars. Measured in the page (`readArena`, `readArena2`), never against people.
+
+**Other tables, opponents bidding by formula** (`readArena`, soft bid fit)
+
+| Table | Deals | Reading over network |
+|---|---|---|
+| 5 players, 6 cards | 9,900 | +0.05 ± 0.07 |
+| 6 players, 5 cards | 9,900 | +0.04 ± 0.05 |
+| 5 players, 9 cards | 2,700 | −0.05 ± 0.17 |
+| 4 players, 13 cards, no trump | 1,620 | +1.22 ± 0.25 |
+
+The no-trump gain is not yet split between reading the cards and simply playing each choice out (200 deals gave ±0.73, no answer).
+
+**Bid fit with every seat bidding by simulation** (`readArena2`, 6 cards)
+
+| Setting | 4 players (2,100 deals) | 5 players (1,120 deals) |
+|---|---|---|
+| current (soft) | +0.02 ± 0.15 | +0.06 ± 0.20 |
+| soft, only layouts that fit (`strict`) | +0.04 ± 0.16 | −0.03 ± 0.21 |
+| twice as tight (`sig:0.5`) | −0.04 ± 0.16 | −0.04 ± 0.22 |
+| exact formula bid | −0.15 ± 0.16 | −0.28 ± 0.23 |
+| bids only (`noPlay`) | −0.10 ± 0.15 | +0.06 ± 0.21 |
+
+Nothing beats the current setting; the exact fit is worse at 5 players (−0.35 ± 0.23 paired). Simulation bids differ from the formula on about a third of bids. The layout search runs out of tries on about 60% of decisions at 4 players and 80% at 5, then tops up with layouts that ignore the bids. The live game is unchanged. The gain from reading against simulation bidders is not resolved at this sample size.
+
+**Report.** "Worth" levels were being read from trick to trick, which they do not support: each trick draws its own layouts, and late in a hand the weight can sit on about ten of them (Matt's 5-player 8-card hand, tricks 5 and 6: the level swung between −0.4 and +1.9 from run to run while the ranking held). The report (assessment version 4) now shows a ± margin on each level using the effective number of layouts, marks a decision "rough" below 30, draws up to four times the candidates when that happens (capped at about 1.5 s a decision), and adds "as the cards lay": the result on the actual deal if every seat plays on as the bots do after each card played. Both of Matt's hands are in `browser-tests/` (`t19.js`).
