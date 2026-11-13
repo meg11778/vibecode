@@ -94,6 +94,61 @@ Twelve spades and a side deuce, network alone: bids 0 to 9 make 99-100%,
 10 97%, 11 79%, 12 57%, 13 39%. Bids 12 and 13 are a guess about whether the
 opponents throw all their hearts, so the two add to about 100%.
 
+## Card reading (12-13 November 2026)
+
+**The teacher.** `oh-hell-source/card-reading-test/reader.js` values each card
+by playouts, like the rollout teacher, after weighting its imagined layouts of
+the hidden cards by how likely the network would have been to make each
+opponent's actual plays. One seat against three copies of the network, four
+seats with trump, 30 playouts a card:
+
+| scored in | cards | deals | reader over network | plain teacher over network |
+|---|---|---|---|---|
+| points | 8 | 5,400 | +0.15 +/-0.13 | -0.09 +/-0.13 |
+| points | 11 | 2,160 | +0.30 +/-0.25 | -0.22 +/-0.25 |
+| money | 6 | 8,000 | +0.18 +/-0.08 | -0.01 +/-0.08 |
+| money | 10 | 1,800 | +0.27 +/-0.24 | +0.00 +/-0.22 |
+
+**Distilling it into the network did not work.** A ten-hour run
+(`train-network-1-reading`: 156 new inputs for who played what, this teacher,
+money scoring, 8 generations) gave a network that was not measurably better
+than the one it started from: new against old in one seat among old networks,
+in money, +0.02 +/-0.04 (4 cards), -0.03 +/-0.07 (6), +0.05 +/-0.10 (8),
++0.01 +/-0.13 (10), +0.02 +/-0.17 (12), and -0.11 +/-0.08 on hard 8-card
+deals. It did play more as a spoiler: a table of four of them makes 4 to 7
+points fewer contracts than a table of the old network. Not installed; the
+network is kept as `net_g8_reading_418.json`.
+
+**So the game's bots use the teacher directly** (`readChoose` in
+`play_template.html`; setting "Bot card play"). In the page, reading seat
+against the network, 6 cards, formula bidders: +0.182 +/-0.069 with layouts
+kept only when the formula makes exactly each bid (11,000 deals; test-only
+setting, it reproduces the reference), +0.101 +/-0.055 with layouts kept in
+proportion to each bid's likelihood (17,000 deals; what the game uses, since
+its bots bid by simulation and the player bids freely). At 10 cards the looser
+version scored +0.15 +/-0.26 (1,500 deals). A first version that weighed bids
+and plays together, without drawing layouts to fit the bids first, scored
+-0.08 +/-0.06: nearly all the weight fell on a handful of layouts. About 50 to
+260 ms a decision in Chromium.
+
+**A seat that has gone over its bid** (`bustStudy`; 3,000 deals, 8 cards,
+network in every seat, the reading choice asked in the same positions). Spare
+tricks = tricks left less the tricks needed by seats that can still make.
+
+| seat | choice | n | network | reading |
+|---|---|---|---|---|
+| over, spare tricks remain | leads a boss card when it holds a non-boss | 93 | 94% | 25% |
+| over, spare tricks remain | takes the lead in the trick when it could play under | 20 | 100% | 80% |
+| over, spare tricks remain | cannot win: throws its highest card | 147 | 20% | 26% |
+| over, no spare tricks | leads a boss card | 150 | 89% | 40% |
+| over, no spare tricks | takes when it could play under | 37 | 97% | 54% |
+| has exactly its bid | cannot win: throws its highest card | 803 | 75% | 42% |
+
+Reading stops most of the cashing of winners that the money scoring makes
+wrong. It does not make a busted seat discard like a seat protecting its bid,
+and with no spare tricks it looks too reluctant to take. Both follow from the
+playouts continuing with the network, which was trained on own points.
+
 ## Robustness run for the first network (12 November 2026)
 
 `net_best.json` is now generation 13 of a run in `../ohhell-engine-4`, started
