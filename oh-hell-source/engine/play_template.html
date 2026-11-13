@@ -778,7 +778,7 @@ function assessSetup(r){
   const Pn=r.players.length, n=r.cards, trump=r.trump?"SHDC".indexOf(r.trump):-1, turned=r.turned?parseCard(r.turned):-1;
   const hands=r.hands.map(h=>h.map(parseCard)), bids=new Array(Pn).fill(0), order=r.bids.map(b=>b.seat);
   for(const b of r.bids) bids[b.seat]=b.bid;
-  const seen=new Uint8Array(52), voids=hands.map(()=>[false,false,false,false]), won=new Array(Pn).fill(0), playedBy=hands.map(()=>[]);
+  const seen=new Uint8Array(52), voids=hands.map(()=>[false,false,false,false]), won=new Array(Pn).fill(0), playedBy=hands.map(()=>[]), hist=[];
   const decisions=[];
   r.tricks.forEach((k,ti)=>{
     let led=-1, winCard=-1, winner=k.leader; const trick=[];
@@ -786,8 +786,8 @@ function assessSetup(r){
       const c=parseCard(p.card);
       if(p.seat===0 && p.by!=="set" && legalCards(hands[0],led).length>1)
         decisions.push({ trick:ti, card:c, st:{ hand:hands[0].slice(), seen:seen.slice(), voids:voids.map(v=>v.slice()), lens:hands.map(h=>h.length),
-          won:won.slice(), led, winCard, winner, playedInTrick:i, trick:trick.slice(), playedBy:playedBy.map(x=>x.slice()) } });
-      hands[p.seat].splice(hands[p.seat].indexOf(c),1); seen[c]=1; trick.push(c); playedBy[p.seat].push(c);
+          won:won.slice(), led, winCard, winner, playedInTrick:i, trick:trick.slice(), playedBy:playedBy.map(x=>x.slice()), hist:hist.slice() } });
+      hands[p.seat].splice(hands[p.seat].indexOf(c),1); seen[c]=1; trick.push(c); playedBy[p.seat].push(c); hist.push({ seat:p.seat, card:c });
       if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[p.seat][led]=true;
       if(beatsCard(c,winCard,trump)){ winCard=c; winner=p.seat; }
     });
@@ -878,22 +878,17 @@ function playOut(A, st, hands, first, useNet, me){
    S: { Pn, n, trump, turned, bids, order, hand, seen, voids, lens, won, turn,
         led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
 const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"soft" };   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
-function readChoose(S, rand){
-  const Pn=S.Pn, me=S.turn, legal=legalCards(S.hand,S.led);
-  const A={ Pn, n:S.n, trump:S.trump, turned:S.turned, bids:S.bids };
-  const st={ won:S.won, seen:S.seen, voids:S.voids, trick:S.trick, led:S.led, winCard:S.winCard, winner:S.winner, playedInTrick:S.playedInTrick };
-  const groups=equivGroups(legal,S.seen,S.trick,S.turned);
-  const raw=netChoose({ hand:S.hand, seen:S.seen, voids:S.voids, lens:S.lens, bids:S.bids, won:S.won, turn:me, led:S.led, winCard:S.winCard, winner:S.winner,
-                        playedInTrick:S.playedInTrick, trick:S.trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
-  const netScore=new Map(raw.map(a=>[a.card,a.score]));
-  const repOf=g=>g.reduce((b,c)=>netScore.get(c)>netScore.get(b)?c:b, g[0]);     // within a group, the card the network likes best
-  if(groups.length===1) return { card:repOf(groups[0]), alts:legal.map(c=>({ card:c, score:0 })), same:true };
+/* Layouts of the hidden cards for the seat to act, read from the bids and the
+   play so far: M drawn to fit the bids, K of them kept in proportion to how
+   well each explains the cards the other seats have played. */
+function readLayouts(S, rand, M, K){
+  const Pn=S.Pn, me=S.turn;
   const mine=new Set(S.hand), unseen=[];
   for(let c=0;c<52;c++) if(!S.seen[c] && !mine.has(c) && c!==S.turned) unseen.push(c);
   const playedBy=[...Array(Pn)].map(()=>[]); for(const e of S.hist) playedBy[e.seat].push(e.card);
   const before=new Array(Pn).fill(0), posOf=new Array(Pn).fill(0); { let B=0; S.order.forEach((q,i)=>{ before[q]=B; posOf[q]=i; B+=S.bids[q]; }); }
   KNOWN = S.turned>=0 ? [S.turned] : [];
-  const M=READ.K*READ.MF, cands=[], lw=[];
+  const cands=[], lw=[];
   const others=S.hist.some(e=>e.seat!==me);
   // Layouts are first drawn to fit the bids: each is kept with probability
   // equal to the likelihood of every other seat's bid on the hand it gives
@@ -943,15 +938,28 @@ function readChoose(S, rand){
   }
   let mxw=-Infinity; for(const v of lw) if(v>mxw) mxw=v;
   const w=lw.map(v=>Math.exp(v-mxw)); let sum=0, sum2=0; for(const v of w){ sum+=v; sum2+=v*v; }
-  const K=READ.K, picks=[]; { const stepW=sum/K; let x0=rand()*stepW, acc=0, i=0;
+  const picks=[]; { const stepW=sum/K; let x0=rand()*stepW, acc=0, i=0;
     for(let k=0;k<K;k++){ const x=x0+k*stepW; while(i<M-1 && acc+w[i]<x){ acc+=w[i]; i++; } picks.push(cands[i]); } }
+  return { picks, cands, ess:sum*sum/sum2, fit:tries<budget };
+}
+function readChoose(S, rand){
+  const Pn=S.Pn, me=S.turn, legal=legalCards(S.hand,S.led);
+  const A={ Pn, n:S.n, trump:S.trump, turned:S.turned, bids:S.bids };
+  const st={ won:S.won, seen:S.seen, voids:S.voids, trick:S.trick, led:S.led, winCard:S.winCard, winner:S.winner, playedInTrick:S.playedInTrick };
+  const groups=equivGroups(legal,S.seen,S.trick,S.turned);
+  const raw=netChoose({ hand:S.hand, seen:S.seen, voids:S.voids, lens:S.lens, bids:S.bids, won:S.won, turn:me, led:S.led, winCard:S.winCard, winner:S.winner,
+                        playedInTrick:S.playedInTrick, trick:S.trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
+  const netScore=new Map(raw.map(a=>[a.card,a.score]));
+  const repOf=g=>g.reduce((b,c)=>netScore.get(c)>netScore.get(b)?c:b, g[0]);     // within a group, the card the network likes best
+  if(groups.length===1) return { card:repOf(groups[0]), alts:legal.map(c=>({ card:c, score:0 })), same:true };
+  const K=READ.K, M=READ.K*READ.MF, RL=readLayouts(S,rand,M,K), picks=RL.picks, cands=RL.cands;
   const val=groups.map(()=>0);
   for(const hands of picks) for(let g=0;g<groups.length;g++) val[g]+=playOut(A,st,hands,groups[g][0],true,me);
   let best=0; for(let g=1;g<groups.length;g++) if(val[g]>val[best]) best=g;
   const alts=[]; groups.forEach((g,x)=>{ for(const c of g) alts.push({ card:c, score:+(val[x]/K).toFixed(2) }); });
   const card=repOf(groups[best]);
   alts.sort((a,b)=>b.score-a.score || (b.card===card)-(a.card===card));
-  const out={ card, alts, ess:sum*sum/sum2 };
+  const out={ card, alts, ess:RL.ess };
   if(S.truth){                                   // test only: the share of hidden cards the layouts put in the right hand
     const score=set=>{ let ok=0, tot=0; for(const hs of set) for(let q=0;q<Pn;q++) if(q!==me) for(const c of hs[q]){ tot++; if(S.truth[q].includes(c)) ok++; } return tot ? ok/tot : 1; };
     out.hitRead=score(picks); out.hitPlain=score(cands);
@@ -1073,14 +1081,16 @@ function assessHand(r, onProgress, onDone){
     KNOWN = A.turned>=0 ? [A.turned] : [];
     while(performance.now()-t0<30){
       if(di>=total){
-        const a={ version:2, unit:"money", samples:K, by: useNet ? "neural network" : "rules engine", plays:out, bid:assessBid(r) };
+        const a={ version:3, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, bid:assessBid(r) };
         return onDone(a);
       }
       const D=A.decisions[di];
       if(!cur){
         const legal=legalCards(D.st.hand,D.st.led), groups=equivGroups(legal,D.st.seen,D.st.trick,A.turned);
         if(groups.length<2){ out.push({ trick:D.trick, played:cardStr(D.card), verdict:"ok", cost:0, same:true }); di++; continue; }
-        const L=assessLayouts(A,D.st,K);
+        // with the network playing, the layouts are read from the play so far as well as from the bids
+        const L = useNet ? readLayouts({ Pn:A.Pn, n:A.n, trump:A.trump, turned:A.turned, bids:A.bids, order:A.order, hand:D.st.hand, seen:D.st.seen, voids:D.st.voids, lens:D.st.lens, turn:0, hist:D.st.hist }, A.rng, K*4, K)
+                         : assessLayouts(A,D.st,K);
         cur={ groups, picks:L.picks, fit:L.fit, k:0, vals:groups.map(()=>new Float32Array(K)) };
       }
       const hands=cur.picks[cur.k].slice(); hands[0]=D.st.hand;
@@ -1138,8 +1148,8 @@ function assessmentHtml(r){
   }
   const money=a.unit==="money";
   h+='<p class="hint" style="margin:6px 0 0">Worth is '+(money?"your average result for the hand in dollars at $1 a point (your points less the table\u2019s average, so it counts what the others score as well as what you score)":"your average points for the hand")+' if that card is played and every seat then plays as the '+a.by+" does, over "+a.samples
-    +" layouts of the hidden cards that fit the bids, the cards already played and the suits players had shown out of. Cards joined by = are equivalent. Greyed rows are tricks where you had no real choice: one legal card, or cards that were all equivalent. A cost under "+(money?"$":"")+ASSESS.minor+" is fine, up to "+(money?"$1":ASSESS.major+" point")
-    +" minor, more than that major; “too close to call” means the gap is within the sampling noise. It judges each play on what you could know at the time, and it is the bots’ opinion: it assumes everyone plays on as they would, and reads nothing into which cards the others chose."
+    +" layouts of the hidden cards that fit the bids, the cards already played and the suits players had shown out of"+(a.reading?", favouring layouts that explain which cards the others chose to play":"")+". Cards joined by = are equivalent. Greyed rows are tricks where you had no real choice: one legal card, or cards that were all equivalent. A cost under "+(money?"$":"")+ASSESS.minor+" is fine, up to "+(money?"$1":ASSESS.major+" point")
+    +" minor, more than that major; “too close to call” means the gap is within the sampling noise. It judges each play on what you could know at the time, and it is the bots’ opinion: it assumes everyone plays on as the network would"+(a.reading?".":", and reads nothing into which cards the others chose.")
     +(a.bid && a.bid.cost!=null ? " The bid is judged from the simulation shown under Bidding (points against the table’s average)." : "")
     +(rows.some(p=>p.fit===false) ? " On this hand the bids did not fit the bid model, so some layouts ignore the bidding." : "")+"</p>";
   return h;
