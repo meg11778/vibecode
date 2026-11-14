@@ -236,6 +236,8 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
         <select id="bidMode"><option value="sim" selected>Simulation</option><option value="formula">Formula</option></select></label>
       <label class="field">Bot card play
         <select id="playMode" title="Card reading: before each card a bot imagines where the hidden cards are, judging by the bids and by what everyone has played, and plays each choice out. Stronger, and a little slower."><option value="read" selected>Network + card reading</option><option value="net">Network only</option></select></label>
+      <label class="field">Precision
+        <select id="precision" title="How many imagined layouts of the hidden cards the bots and the report play out. Normal: 30 or more for a bot's card (more when few cards are left), 160 for each of your plays in the report. High and Very high multiply those, for studying a hand; the bots and the report take that much longer."><option value="1" selected>Normal</option><option value="4">High (about 4× slower)</option><option value="10">Very high (about 10× slower)</option></select></label>
       <label class="field">Bot speed
         <select id="speed"><option value="250">Fast</option><option value="650" selected>Normal</option><option value="1300">Slow</option></select></label>
       <label class="field" style="flex-direction:row;align-items:center;gap:6px;padding-bottom:8px">
@@ -882,7 +884,7 @@ function playOut(A, st, hands, first, useNet, me){
 
    S: { Pn, n, trump, turned, bids, order, hand, seen, voids, lens, won, turn,
         led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
-const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"soft", sig:1, noPlay:false, strict:false, tries:30, tieNet:true };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
+const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"soft", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1 };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
 function readBidLik(mu,n,banned,obs){ const sig=sigLik(n,PROFILE_DEFAULT)*READ.sig; let p=0;
   for(const bd of bands(n,banned)){ if(bd.bid!==obs) continue; p += Phi(bd.hi>=n ? Infinity : (bd.hi-mu)/sig) - Phi(bd.lo<=0 ? -Infinity : (bd.lo-mu)/sig); }
   return Math.max(p,1e-12); }   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
@@ -961,7 +963,13 @@ function readChoose(S, rand){
   const netScore=new Map(raw.map(a=>[a.card,a.score]));
   const repOf=g=>g.reduce((b,c)=>netScore.get(c)>netScore.get(b)?c:b, g[0]);     // within a group, the card the network likes best
   if(groups.length===1) return { card:repOf(groups[0]), alts:legal.map(c=>({ card:c, score:0 })), same:true };
-  const K=READ.K, M=READ.K*READ.MF, RL=readLayouts(S,rand,M,K), picks=RL.picks, cands=RL.cands;
+  // How many layouts to play out. 30 when the playouts are long; more when they are short (few cards left, few choices),
+  // so that a rare holding still turns up: the work, layouts x choices x cards still to be played, is held near
+  // READ.budget. The candidates drawn and weighed stay at 360, so this costs no extra reading. READ.prec (the
+  // Precision setting) multiplies both.
+  const left=S.lens.reduce((a,b)=>a+b,0), M=Math.round(READ.K*READ.MF*READ.prec);
+  const K=Math.min(M, Math.round(READ.prec*(READ.budget>0 ? Math.max(READ.K, Math.min(READ.kMax, Math.floor(READ.budget/(groups.length*Math.max(1,left))))) : READ.K)));
+  const RL=readLayouts(S,rand,M,K), picks=RL.picks, cands=RL.cands;
   const val=groups.map(()=>0);
   for(const hands of picks) for(let g=0;g<groups.length;g++) val[g]+=playOut(A,st,hands,groups[g][0],true,me);
   // Equal results (often a position that looks lost on every layout drawn) go to the card the network prefers, not to
@@ -1126,7 +1134,7 @@ function assessBid(r){
 /* Run the assessment. onProgress(done, total); onDone(assessment). Returns a
    function that cancels it. */
 function assessHand(r, onProgress, onDone){
-  const A=assessSetup(r), K=ASSESS.samples, useNet=netCovers(A.Pn,A.n,A.trump), out=[];
+  const A=assessSetup(r), K=Math.round(ASSESS.samples*READ.prec), useNet=netCovers(A.Pn,A.n,A.trump), out=[];
   let di=0, cur=null, dead=false;
   const total=A.decisions.length;
   function slice(){
@@ -1137,7 +1145,7 @@ function assessHand(r, onProgress, onDone){
       if(di>=total){
         // the hand as the cards lay: after each card I played, my result if every seat then plays on as the bots do on the actual deal
         const lay=A.mine.map(m=>({ trick:m.trick, worth:+playOut(A,m.st,m.truth,m.card,useNet).toFixed(2) }));
-        const a={ version:4, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
+        const a={ version:4, prec:READ.prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
         return onDone(a);
       }
       const D=A.decisions[di];
@@ -1225,7 +1233,11 @@ let assessCancel=null;
 function mountAssessment(r, opts){
   const el=$("rvAssess"); if(!el) return;
   const key=r.id+r.savedAt; el.dataset.rec=key;
-  if(r.assessment && r.assessment.version>=4){ el.innerHTML=assessmentHtml(r); return; }
+  const stale = r.assessment && r.assessment.version>=4 && (r.assessment.prec||1)<READ.prec;      // assessed at a lower Precision than is now set
+  if(r.assessment && r.assessment.version>=4 && !(stale && opts.assess===true && opts.again)){
+    el.innerHTML=assessmentHtml(r)+(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">Assess again at the current Precision</button></p>' : "");
+    if(stale) $("rvAssessAgain").onclick=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true }));
+    return; }
   if(!r.tricks.some(k=>k.plays.some(p=>p.seat===0 && p.by==="you"))){ el.innerHTML='<p class="hint" style="margin:0">Nothing to assess: you had no choice of card in this hand.</p>'; return; }
   const run=()=>{
     if(assessCancel) assessCancel();
@@ -1234,7 +1246,7 @@ function mountAssessment(r, opts){
         const b=$("rvAssessBar"); if(b && $("rvAssess").dataset.rec===key){ b.style.width=(100*done/total).toFixed(0)+"%"; $("rvAssessPct").textContent="decision "+Math.min(total,Math.floor(done)+1)+" of "+total; }
       }, a=>{
         assessCancel=null; r.assessment=a; updateHand(r);
-        if($("rvAssess") && $("rvAssess").dataset.rec===key && !$("review").hidden) showReview(r, Object.assign({},opts,{ assess:false, keepScroll:true }));
+        if($("rvAssess") && $("rvAssess").dataset.rec===key && !$("review").hidden) showReview(r, Object.assign({},opts,{ assess:false, again:false, keepScroll:true }));
       });
   };
   if(opts.assess) run();
@@ -1847,6 +1859,10 @@ $("start").onclick=newGame;
 $("quit").onclick=()=>{ token++; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; $("setup").hidden=false; document.body.classList.remove("playing"); };
 for(const id of ["fromN","toN","shape","nPlayers"]) $(id).oninput=()=>{ syncSetupHint(); cuSync(); if(id==="nPlayers"){ DS.plays=[]; dsSync(); } };
 $("dlAll").onclick=()=>{ const a=loadHands(); if(a.length) download("ohhell-hands-"+stamp(new Date().toISOString())+".json", JSON.stringify(a,null,1)); };
+{ const PK="ohhell-play-precision"; let v="1"; try{ v=localStorage.getItem(PK)||"1"; }catch(e){}
+  if(!["1","4","10"].includes(v)) v="1";
+  $("precision").value=v; READ.prec=+v;
+  $("precision").onchange=()=>{ READ.prec=+$("precision").value; try{ localStorage.setItem(PK,$("precision").value); }catch(e){} }; }
 $("clearAll").onclick=()=>{ if($("clearAll").dataset.sure){ try{ localStorage.removeItem(KEY); }catch(e){} delete $("clearAll").dataset.sure; $("clearAll").textContent="Clear"; renderHistory(); }
   else { $("clearAll").dataset.sure="1"; $("clearAll").textContent="Click again to erase all"; setTimeout(()=>{ delete $("clearAll").dataset.sure; $("clearAll").textContent="Clear"; },4000); } };
 $("loadFile").onchange=e=>{
