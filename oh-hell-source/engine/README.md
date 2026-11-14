@@ -473,3 +473,18 @@ Also from Matt's hands today (`t21.js`): bid 0 on lead with 2♠ 2♥ and one di
 Precision setting (`READ.prec`: Normal 1, High 4, Very high 10; remembered in the browser): multiplies the candidates and layouts of the bots' card reading and the layouts of the report (160, 640, 1,600 per decision). A report made at a lower setting offers "Assess again at the current Precision". At High a bot's decision took 190 to 930 ms in the same timings. Not measured: whether High or Very high plays better. Tests: `browser-tests/t23.js`.
 
 One-card rounds solved for 4, 5 and 6 players: see `../one-card`.
+
+## 14 November 2026 (afternoon): seat values, and the formula's dealer
+
+`../seat-values` (script, data, chart): every seat's average result at every round size, 4 to 6 players, 120,000 deals a square, formula bids, network card play. The dealer is the worst seat everywhere (4 players: -2.15 at 1 card, about -0.35 at 7 to 8, -0.69 at 12), the first seat the best from about 6 cards up, and in the big rounds each later seat does worse than the one before. At one card the bots are within about 0.1 of the solved game (`../one-card`).
+
+The dealer result is largely the bid formula's doing. `auctionFactor` scales a later bidder's estimate by the tricks left over: at 4 players and 10 cards the dealer's average bid is 2.67 against 2.26 for the first seat, and it makes 50%. One seat changed, same deals, seats ahead bidding by formula (`../seat-values/dealer.js`):
+
+| Table | Deals | Dealer, formula | Dealer, no adjustment for bids ahead | Dealer, simulation bid |
+|---|---|---|---|---|
+| 4 players, 10 cards | 1,200 | -0.46 ± 0.27 | -0.12 (+0.33 ± 0.23 over formula) | +0.20 (+0.66 ± 0.24) |
+| 5 players, 10 cards | 700 | -0.68 ± 0.37 | -0.31 (+0.37 ± 0.26) | +0.08 (+0.76 ± 0.30) |
+| 4 players, 6 cards | 1,500 | -0.32 ± 0.23 | -0.30 (+0.02 ± 0.17) | +0.12 (+0.44 ± 0.16) |
+| 5 players, 6 cards | 1,200 | -0.60 ± 0.26 | -0.57 (+0.03 ± 0.16) | -0.20 (+0.40 ± 0.17) |
+
+With the adjustment halved or removed in every seat at 4 players and 10 cards (30,000 deals): seats +0.45 / +0.01 / 0.00 / -0.46 as it is, +0.32 / -0.05 / -0.02 / -0.25 halved, +0.26 / -0.10 / -0.01 / -0.16 removed. Not yet done: every seat bidding by simulation (`../seat-values-overnight`, running on Matt's laptop), and any change to the formula itself, which is also the opponent model in the calculator, the bid simulation and the card reading.
