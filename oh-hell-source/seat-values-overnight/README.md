@@ -6,7 +6,7 @@ What each seat is worth at every round size, with every seat bidding by the game
     node overnight.js 10       10 hours
     node summary.js            the table so far
 
-Each finished batch of 100 deals is added to `results.jsonl` at once. Stopping early with Ctrl+C keeps everything finished; running it again carries on. Send back `results.jsonl`.
+Each finished batch of 100 deals is added to `results.jsonl` at once. Stopping early with Ctrl+C keeps everything finished; running it again carries on. Send back `results.jsonl`. Every simulated bid is also saved to `bids.jsonl` (hand, turned card, seat, bids ahead, the formula's bid, the bid chosen, and what each candidate bid averaged in money); it is large, stays on the computer that made it, and is the training data for a bidding network.
 
 Files: `posmap.js` (one round size), `ohhell.html` and `simbid_block.js` (the engine and the bid simulation, copies of the ones in `../engine`).
 Modified from Jim Agniel's Oh Hell calculator (GPL v3) by Matt Glassman.

@@ -6,11 +6,12 @@
  * deals a bid) and the networks playing the cards. Works through all 31 round sizes in passes of 100 deals each,
  * using every processor core, until the time is up. Each finished batch is added to results.jsonl at once, so
  * stopping early (Ctrl+C) loses only the batches in progress, and running it again carries on from where it was.
- * Send back results.jsonl.
+ * Send back results.jsonl. Every simulated bid is also kept in bids.jsonl (large; keep it on this computer), which a
+ * later step uses to train a bidding network.
  */
 const { spawn } = require('child_process'), fs = require('fs'), path = require('path'), os = require('os');
 const HOURS = +(process.argv[2] || 8), BATCH = +(process.argv[3] || 100), WORKERS = +(process.argv[4] || os.cpus().length);
-const RES = path.join(__dirname, 'results.jsonl'), LOG = path.join(__dirname, 'log.txt'), end = Date.now() + HOURS * 3600e3;
+const RES = path.join(__dirname, 'results.jsonl'), BIDS = path.join(__dirname, 'bids.jsonl'), LOG = path.join(__dirname, 'log.txt'), end = Date.now() + HOURS * 3600e3;
 const cells = []; for (const [P, top] of [[4, 13], [5, 10], [6, 8]]) for (let n = 1; n <= top; n++) cells.push([P, n]);
 const done = {}; if (fs.existsSync(RES)) for (const l of fs.readFileSync(RES, 'utf8').split('\n')) { if (!l.trim()) continue; try { const r = JSON.parse(l), k = r.P + ':' + r.n; (done[k] = done[k] || []).push(r.seed); } catch (e) {} }
 const log = m => { const line = new Date().toLocaleString() + '  ' + m; console.log(line); fs.appendFileSync(LOG, line + '\n'); };
@@ -23,7 +24,7 @@ function next() {
     const [P, n, seed] = queue.shift(); running++;
     const ch = spawn(process.execPath, [path.join(__dirname, 'posmap.js'), P, n, BATCH, seed, 'sim', 'raw'].map(String), { stdio: ['ignore', 'pipe', 'inherit'] }); let out = '';
     ch.stdout.on('data', d => out += d);
-    ch.on('close', code => { running--; if (code === 0 && out.trim()) { fs.appendFileSync(RES, out.trim() + '\n'); finished++; dealsDone += BATCH; } else if (!stopping) log('a batch failed (' + P + ' players, ' + n + ' cards); carrying on'); next(); });
+    ch.on('close', code => { running--; if (code === 0 && out.trim()) { let r = null; try { r = JSON.parse(out); } catch (e) {} if (r) { const rec = r.rec || []; delete r.rec; if (rec.length) fs.appendFileSync(BIDS, rec.map(x => JSON.stringify(x)).join('\n') + '\n'); fs.appendFileSync(RES, JSON.stringify(r) + '\n'); finished++; dealsDone += BATCH; } } else if (!stopping) log('a batch failed (' + P + ' players, ' + n + ' cards); carrying on'); next(); });
   }
 }
 function finish() { log('stopped after ' + ((Date.now() - t0) / 3600e3).toFixed(2) + ' hours: ' + finished + ' batches, ' + dealsDone + ' deals this run. Results are in results.jsonl'); process.exit(0); }

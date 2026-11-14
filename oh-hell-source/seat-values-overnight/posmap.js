@@ -15,6 +15,7 @@ fs.writeFileSync(tmp, lines.slice(a, b).join('\n') + '\n' + fs.readFileSync(path
   '\nmodule.exports={simulateBid,muFor,bidAt,auctionFactor,playHandNet,playHand,netFor,vienna,mulberry32,suitOf,setKnown:(k)=>{KNOWN=k;}};');
 const E = require(tmp); fs.unlinkSync(tmp);
 const [P, n, deals, seed] = process.argv.slice(2, 6).map(Number), mode = process.argv[6] || 'formula';
+const REC = process.argv[7] === 'raw' ? [] : null;
 const rng = E.mulberry32(seed), S = Array.from({ length: P }, () => ({ m: 0, m2: 0, made: 0, bid: 0, pts: 0 })); let over = 0, under = 0, simDiff = 0;
 for (let i = 0; i < deals; i++) {
   const d = [...Array(52).keys()];
@@ -27,7 +28,9 @@ for (let i = 0; i < deals; i++) {
     const est = E.muFor(hands[p], trump, n, P, p), adj = Math.max(0, Math.min(n, est * E.auctionFactor(n, P, B, P - p)));
     const model = { bid: E.bidAt(adj, n, p === P - 1 ? n - B : -1), adj };
     let bid = model.bid;
-    if (mode === 'sim' && n > 1) { bid = E.simulateBid(hands[p], trump, turned, n, P, p, bids.slice(), model, (seed * 7919 + i * 31 + p) >>> 0, { samples: 150 }).bid; if (bid !== model.bid) simDiff++; }
+    if (mode === 'sim' && n > 1) { const r = E.simulateBid(hands[p], trump, turned, n, P, p, bids.slice(), model, (seed * 7919 + i * 31 + p) >>> 0, { samples: 150 }); bid = r.bid; if (bid !== model.bid) simDiff++;
+      // every simulated bid is kept, for training a bidding network later: hand, turned card, seat, bids ahead, formula bid, bid chosen, and the money each candidate averaged
+      if (REC) REC.push({ P, n, t: turned, p, h: hands[p], pr: bids.slice(), f: model.bid, b: bid, by: r.by === 'simulation' ? 1 : 0, tb: r.table ? r.table.map(x => [x.bid, x.edge, x.makes]) : null }); }
     bids.push(bid); B += bid;
   }
   E.setKnown(turned < 0 ? [] : [turned]);
@@ -36,7 +39,7 @@ for (let i = 0; i < deals; i++) {
   if (B > n) over++; else under++;
   for (let p = 0; p < P; p++) { const m = pt[p] - tot / P, s = S[p]; s.m += m; s.m2 += m * m; s.pts += pt[p]; s.bid += bids[p]; if (won[p] === bids[p]) s.made++; }
 }
-const out = { P, n, deals, mode, seed, over, simDiff, seats: S };
+const out = { P, n, deals, mode, seed, over, simDiff, seats: S, rec: REC };
 if (process.argv[7] === 'raw') console.log(JSON.stringify(out));
 else console.log(JSON.stringify({ P, n, deals, mode, over: over / deals, simDiff: simDiff / deals / P,
   seats: S.map(s => ({ ev: +(s.m / deals).toFixed(4), ci: +(1.96 * Math.sqrt((s.m2 / deals - (s.m / deals) ** 2) / deals)).toFixed(4), made: +(100 * s.made / deals).toFixed(1), bid: +(s.bid / deals).toFixed(3), pts: +(s.pts / deals).toFixed(3) })) }));
