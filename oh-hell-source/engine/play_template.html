@@ -882,7 +882,7 @@ function playOut(A, st, hands, first, useNet, me){
 
    S: { Pn, n, trump, turned, bids, order, hand, seen, voids, lens, won, turn,
         led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
-const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"soft", sig:1, noPlay:false, strict:false, tries:30 };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
+const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"soft", sig:1, noPlay:false, strict:false, tries:30, tieNet:true };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
 function readBidLik(mu,n,banned,obs){ const sig=sigLik(n,PROFILE_DEFAULT)*READ.sig; let p=0;
   for(const bd of bands(n,banned)){ if(bd.bid!==obs) continue; p += Phi(bd.hi>=n ? Infinity : (bd.hi-mu)/sig) - Phi(bd.lo<=0 ? -Infinity : (bd.lo-mu)/sig); }
   return Math.max(p,1e-12); }   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
@@ -964,7 +964,11 @@ function readChoose(S, rand){
   const K=READ.K, M=READ.K*READ.MF, RL=readLayouts(S,rand,M,K), picks=RL.picks, cands=RL.cands;
   const val=groups.map(()=>0);
   for(const hands of picks) for(let g=0;g<groups.length;g++) val[g]+=playOut(A,st,hands,groups[g][0],true,me);
-  let best=0; for(let g=1;g<groups.length;g++) if(val[g]>val[best]) best=g;
+  // Equal results (often a position that looks lost on every layout drawn) go to the card the network prefers, not to
+  // whichever card happens to come first. Found by Matt Glassman: a seat that had made its bid, holding the ace of
+  // spades and a low trump, led the ace because both leads came out the same on 30 layouts (14 Nov 2026).
+  const pref=g=>netScore.get(repOf(groups[g]));
+  let best=0; for(let g=1;g<groups.length;g++){ const d=val[g]-val[best]; if(d>1e-6 || (READ.tieNet && d>=-1e-6 && pref(g)>pref(best))) best=g; }
   const alts=[]; groups.forEach((g,x)=>{ for(const c of g) alts.push({ card:c, score:+(val[x]/K).toFixed(2) }); });
   const card=repOf(groups[best]);
   alts.sort((a,b)=>b.score-a.score || (b.card===card)-(a.card===card));
