@@ -488,3 +488,11 @@ The dealer result is largely the bid formula's doing. `auctionFactor` scales a l
 | 5 players, 6 cards | 1,200 | -0.60 ± 0.26 | -0.57 (+0.03 ± 0.16) | -0.20 (+0.40 ± 0.17) |
 
 With the adjustment halved or removed in every seat at 4 players and 10 cards (30,000 deals): seats +0.45 / +0.01 / 0.00 / -0.46 as it is, +0.32 / -0.05 / -0.02 / -0.25 halved, +0.26 / -0.10 / -0.01 / -0.16 removed. Not yet done: every seat bidding by simulation (`../seat-values-overnight`, running on Matt's laptop), and any change to the formula itself, which is also the opponent model in the calculator, the bid simulation and the card reading.
+
+## 14 November 2026: Jim Agniel's current bid tables against the fork's
+
+Jim's current `ohhell.html` (agniel/vibecode, last changed 26 September 2026) and the fork use the same 13 hand features, the same bid rule and the identical `auctionFactor`. They differ in the coefficient tables (the fork's were refitted in September 2026 to its own card play, 40,000 hands a round size; Jim's are fitted to about 310,000 hands under his play policy) and in the fork's handling of the turned card. One seat bidding from Jim's tables instead of the fork's, same deals, every card played by the fork's networks, 40,000 deals each, dollars a deal:
+
+4 players: 2 cards -0.00 ± 0.01, 3 -0.03 ± 0.01, 4 -0.05 ± 0.01, 5 -0.10 ± 0.02, 6 -0.16 ± 0.02, 7 -0.18 ± 0.03, 8 -0.15 ± 0.03, 10 -0.15 ± 0.04. 5 players: 3 cards -0.01 ± 0.01, 6 -0.12 ± 0.02, 10 -0.36 ± 0.04. 6 players: 4 cards -0.02 ± 0.01, 8 -0.20 ± 0.03.
+
+Jim's tables bid higher (2.60 against 2.43 a hand at 4 players and 10 cards) and differ from the fork's on 2% to 34% of hands. This judges his tables with the fork's card play, which they were not fitted to; it says nothing about his calculator with his own play policy. Script: `../seat-values/jim_cmp.js` (needs a clone of agniel/vibecode).
