@@ -1,13 +1,13 @@
 /* What is each seat worth? Every seat bid and played by the same bots.
  *
- *   node posmap.js <players> <cards> <deals> <seed> <formula|sim>
+ *   node posmap.js <players> <cards> <deals> <seed> <formula|sim> [raw]
  *
  * Seat 0 bids first and leads; seat P-1 is the dealer (hooked). Bids: the bid formula, or the game's simulation
  * bidding (150 sampled deals) in every seat. Cards: the networks where they apply, the rules elsewhere (three
  * players, one-card rounds). Money: a seat's Vienna points less the table's average. Prints one line of JSON.
  */
 const fs = require('fs'), path = require('path'), os = require('os');
-const ENG = process.env.OHHELL_ENGINE || path.join(__dirname, '..', 'engine');
+const ENG = process.env.OHHELL_ENGINE || (fs.existsSync(path.join(__dirname, 'ohhell.html')) ? __dirname : path.join(__dirname, '..', 'engine'));
 const lines = fs.readFileSync(path.join(ENG, 'ohhell.html'), 'utf8').split('\n');
 const a = lines.findIndex(l => l.includes('===== cards:')), b = lines.findIndex(l => l.includes('===== UI ====='));
 const tmp = path.join(os.tmpdir(), '_ohhell_posmap_' + process.pid + '.js');
@@ -36,5 +36,7 @@ for (let i = 0; i < deals; i++) {
   if (B > n) over++; else under++;
   for (let p = 0; p < P; p++) { const m = pt[p] - tot / P, s = S[p]; s.m += m; s.m2 += m * m; s.pts += pt[p]; s.bid += bids[p]; if (won[p] === bids[p]) s.made++; }
 }
-console.log(JSON.stringify({ P, n, deals, mode, over: over / deals, simDiff: simDiff / deals / P,
+const out = { P, n, deals, mode, seed, over, simDiff, seats: S };
+if (process.argv[7] === 'raw') console.log(JSON.stringify(out));
+else console.log(JSON.stringify({ P, n, deals, mode, over: over / deals, simDiff: simDiff / deals / P,
   seats: S.map(s => ({ ev: +(s.m / deals).toFixed(4), ci: +(1.96 * Math.sqrt((s.m2 / deals - (s.m / deals) ** 2) / deals)).toFixed(4), made: +(100 * s.made / deals).toFixed(1), bid: +(s.bid / deals).toFixed(3), pts: +(s.pts / deals).toFixed(3) })) }));
