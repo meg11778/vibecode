@@ -179,7 +179,8 @@ console.log('\nNetwork: weights intact');
 {
   // If the embedded weights are damaged the network still returns legal cards,
   // just bad ones. Whole tables of each engine on the same deals and bids: the
-  // network table should make clearly more contracts (about 67% against 54%).
+  // network table should make more contracts (about 58% against 55% since the
+  // first network was trained on money, 14 Nov 2026; about 67% before that).
   const rng = E.mulberry32(2026), P = 4, n = 7, deals = 1500;
   let mkN = 0, mkR = 0, sumOK = true;
   for (let i = 0; i < deals; i++) {
@@ -201,7 +202,7 @@ console.log('\nNetwork: weights intact');
   E.setKnown([]);
   const a = 100 * mkN / deals / P, b = 100 * mkR / deals / P;
   check('every trick is awarded to someone', sumOK);
-  check('network table makes clearly more contracts than a rules table', a > b + 5, 'rules ' + b.toFixed(1) + '% -> network ' + a.toFixed(1) + '%');
+  check('network table makes more contracts than a rules table', a > b + 1.5, 'rules ' + b.toFixed(1) + '% -> network ' + a.toFixed(1) + '%');
 }
 {
   // The same guard for the second network, on the games it plays.

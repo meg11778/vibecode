@@ -419,3 +419,43 @@ Same method (`readArena2`, one card-reading seat against the network on the same
 | 4 players, 13 cards, no trump, formula bids | 2,200 | +1.03 ± 0.22 | +0.51 ± 0.22 | +0.52 ± 0.21 |
 
 So the gain against simulation bidders is real at 4 players and 6 cards (about 12 cents a deal), and it comes from weighing layouts by the opponents' plays: playing out on bid-fitted layouts alone is, if anything, slightly worse than the network. At 13 cards with no trump about half the gain comes from playing each choice out and half from reading the play. The layout search ran out of tries on about 60% of decisions in both. Not measured: 5 and 6 players with simulation bidders at this sample size.
+
+## 14 November 2026: money-scored run of both networks; network 1 replaced
+
+Training: `train-money` (the existing 262- and 291-input networks trained on, every position scored in dollars: $1 a point, each seat paid its points less the table average), five hours each on Matt's laptop. Network 1 ran 5 generations, network 2 ran 6; every generation was accepted, each within a cent or two of the one before, so the logs alone did not settle it. Final against start, one seat swapped, same deals and bids (`arena.js`, dollars a deal, 95%):
+
+| Network | Deals | Other seats | Ordinary deals | Hard deals (off-model bids, long suits) |
+|---|---|---|---|---|
+| 1 (4 players, trump, 2 to 12 cards) | 330,000 each | previous network | +0.058 ± 0.010 | +0.022 ± 0.009 |
+| 1 | 330,000 each | new network | +0.082 ± 0.011 | +0.046 ± 0.009 |
+| 2, 4 players no trump (2 to 13) | 180,000 each | previous network | +0.028 ± 0.014 | +0.007 ± 0.011 |
+| 2, 5 players (2 to 10) | 135,000 each | previous network | +0.020 ± 0.014 | −0.007 ± 0.011 |
+| 2, 6 players (2 to 8) | 105,000 each | previous network | +0.006 ± 0.012 | +0.009 ± 0.010 |
+
+Network 1's gain grows with the round: about 3 cents at 2 cards, 6 at 4 to 9, 8 at 10 to 12. It makes its own bid about half a percentage point less often than the previous network in the same seat; a whole table of it makes 58% of contracts at 7 cards where the previous network's table made 67% (rules 55%). It passes every fixed hand in `assertions.js`.
+
+Network 2 was **not installed**: the gain is one to three cents, and it fails the twelve-spades no-trump hand (bid 3 made 36.5%, bid 5 90.5%, long hearts bid 3 45.5%; the installed network makes each at least 95%).
+
+**A seat that has gone over its bid, with the money network** (`bustStudy`, 3,000 deals, 8 cards, the money network in every seat; compare the table of 13 November):
+
+| seat | choice | n | network | reading |
+|---|---|---|---|---|
+| over, spare tricks remain | leads a boss card when it holds a non-boss | 117 | 52% (was 94%) | 32% (was 25%) |
+| over, spare tricks remain | takes the lead in the trick when it could play under | 32 | 81% | 47% |
+| over, spare tricks remain | cannot win: throws its highest card | 304 | 17% | 25% |
+| over, no spare tricks | leads a boss card | 184 | 68% (was 89%) | 47% (was 40%) |
+| over, no spare tricks | takes when it could play under | 63 | 90% | 76% (was 54%) |
+| has exactly its bid | cannot win: throws its highest card | 680 | 74% | 42% |
+
+So the network itself now cashes winners far less after going over, and reading with it is less reluctant to take when a trick must break someone. Discarding high cards after going over has not moved.
+
+**Card reading with the new network 1** (in the page, 4 players, 6 cards, formula bids, 4,200 deals per row; old and new weights in one test page):
+
+| Other seats | new net − old net | reading(old) − old net | reading(new) − new net | reading(new) − reading(old) |
+|---|---|---|---|---|
+| previous network | +0.08 ± 0.08 | +0.10 ± 0.11 | −0.05 ± 0.11 | −0.07 ± 0.10 |
+| new network | +0.02 ± 0.08 | +0.03 ± 0.11 | +0.06 ± 0.11 | +0.05 ± 0.11 |
+
+Reading with the new network is not measurably different from reading with the old one (combined about −0.01 ± 0.07). The pattern, each reading doing better against the network it assumes, is suggestive but inside the error bars. Not measured: reading bots against reading bots, simulation bidding with the new network, and the calculator's bid ranking with it.
+
+Installed: `net_best.json` is the money network (previous kept as `net_gen13_points.json`); `netdata.js`, `ohhell.html`, `ohhell-play.html` rebuilt. The "weights intact" check now asks only that a network table makes more contracts than a rules table (58.2% against 55.0%).
