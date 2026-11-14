@@ -496,3 +496,16 @@ Jim's current `ohhell.html` (agniel/vibecode, last changed 26 September 2026) an
 4 players: 2 cards -0.00 ± 0.01, 3 -0.03 ± 0.01, 4 -0.05 ± 0.01, 5 -0.10 ± 0.02, 6 -0.16 ± 0.02, 7 -0.18 ± 0.03, 8 -0.15 ± 0.03, 10 -0.15 ± 0.04. 5 players: 3 cards -0.01 ± 0.01, 6 -0.12 ± 0.02, 10 -0.36 ± 0.04. 6 players: 4 cards -0.02 ± 0.01, 8 -0.20 ± 0.03.
 
 Jim's tables bid higher (2.60 against 2.43 a hand at 4 players and 10 cards) and differ from the fork's on 2% to 34% of hands. This judges his tables with the fork's card play, which they were not fitted to; it says nothing about his calculator with his own play policy. Script: `../seat-values/jim_cmp.js` (needs a clone of agniel/vibecode).
+
+## 14 November 2026: the report gives Worth at every trick
+
+Matt's choice for the whole-hand view: keep "As the cards lay" and make Worth readable from trick to trick. Assessment version 5: every card of yours is played out, including tricks with one legal card, equivalent cards or a card set in the setup (greyed rows now carry Worth ± margin). The note under the table says what each column answers (Cost: was this the right card; Worth: how was I doing on what I could know; As the cards lay: what actually decided the hand) and points to the Precision setting for comparing Worth across tricks.
+
+Spread of Worth over five repeat reports (standard deviation, dollars), Normal against Very high Precision:
+
+| Hand | Normal (160 layouts) | Very high (1,600) |
+|---|---|---|
+| Matt's 4 players, 7 cards | 0.38, 0.21, 0.12, 0.09, 0.06, 0, 0 (3 s) | 0.09, 0.08, 0.09, 0.06, 0.02, 0, 0 (18 s) |
+| Matt's 5 players, 8 cards | 0.46, 0.40, 0.52, 0.54, 0.39, 0.55, 0.09, 0 (6 s) | 0.07, 0.07, 0.15, 0.29, 0.35, 0.59, 0.01, 0 (39 s) |
+
+So Very high makes the line trustworthy to about 10 cents where the layouts fit the auction, and leaves tricks 4 to 6 of the second hand rough (90 to 200 effective layouts: one seat's bid there fits few layouts). Also fixed: on a phone the saved-hand list in the deal setup made the page 50 px too wide.
