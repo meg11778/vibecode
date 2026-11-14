@@ -408,3 +408,14 @@ The no-trump gain is not yet split between reading the cards and simply playing 
 Nothing beats the current setting; the exact fit is worse at 5 players (−0.35 ± 0.23 paired). Simulation bids differ from the formula on about a third of bids. The layout search runs out of tries on about 60% of decisions at 4 players and 80% at 5, then tops up with layouts that ignore the bids. The live game is unchanged. The gain from reading against simulation bidders is not resolved at this sample size.
 
 **Report.** "Worth" levels were being read from trick to trick, which they do not support: each trick draws its own layouts, and late in a hand the weight can sit on about ten of them (Matt's 5-player 8-card hand, tricks 5 and 6: the level swung between −0.4 and +1.9 from run to run while the ranking held). The report (assessment version 4) now shows a ± margin on each level using the effective number of layouts, marks a decision "rough" below 30, draws up to four times the candidates when that happens (capped at about 1.5 s a decision), and adds "as the cards lay": the result on the actual deal if every seat plays on as the bots do after each card played. Both of Matt's hands are in `browser-tests/` (`t19.js`).
+
+## 13 November 2026 (late): reading against simulation bidders, and the no-trump split
+
+Same method (`readArena2`, one card-reading seat against the network on the same deals, dollars per deal, 95% error bars). "Bids only" (`noPlay`) still draws layouts to fit the bids and plays every choice out, but ignores what the opponents have played.
+
+| Table | Deals | Reading over network | Bids only over network | Reading over bids only (paired) |
+|---|---|---|---|---|
+| 4 players, 6 cards, every seat bidding by simulation | 6,600 | +0.12 ± 0.09 | −0.10 ± 0.09 | +0.22 ± 0.08 |
+| 4 players, 13 cards, no trump, formula bids | 2,200 | +1.03 ± 0.22 | +0.51 ± 0.22 | +0.52 ± 0.21 |
+
+So the gain against simulation bidders is real at 4 players and 6 cards (about 12 cents a deal), and it comes from weighing layouts by the opponents' plays: playing out on bid-fitted layouts alone is, if anything, slightly worse than the network. At 13 cards with no trump about half the gain comes from playing each choice out and half from reading the play. The layout search ran out of tries on about 60% of decisions in both. Not measured: 5 and 6 players with simulation bidders at this sample size.
