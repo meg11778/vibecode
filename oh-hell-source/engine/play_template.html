@@ -899,6 +899,9 @@ function readLayouts(S, rand, M, K){
   const playedBy=[...Array(Pn)].map(()=>[]); for(const e of S.hist) playedBy[e.seat].push(e.card);
   const before=new Array(Pn).fill(0), posOf=new Array(Pn).fill(0); { let B=0; S.order.forEach((q,i)=>{ before[q]=B; posOf[q]=i; B+=S.bids[q]; }); }
   KNOWN = S.turned>=0 ? [S.turned] : [];
+  // READ.bid "net": the bidding network says how likely each seat's bid is on the hand a layout gives it (where it covers the table)
+  const netBids = READ.bid==="net" && typeof bidNetCovers==="function" && bidNetCovers(Pn,S.n), ahead=[];
+  if(netBids) S.order.forEach((q,i)=>{ ahead[q]=S.order.slice(0,i).map(x=>S.bids[x]); });
   const cands=[], lw=[];
   const others=!READ.noPlay && S.hist.some(e=>e.seat!==me);
   // Layouts are first drawn to fit the bids: each is kept with probability
@@ -918,7 +921,8 @@ function readLayouts(S, rand, M, K){
       for(let q=0;q<Pn && acc>0;q++){ if(q===me) continue;
         const full=hands[q].concat(playedBy[q]).sort((a,b)=>a-b), pos=posOf[q];
         const mu=muFor(full,S.trump,S.n,Pn,pos)*auctionFactor(S.n,Pn,before[q],Pn-pos), ban = pos===Pn-1 ? S.n-before[q] : -1;
-        if(READ.bid==="exact") acc = bidAt(Math.max(0,Math.min(S.n,mu)),S.n,ban)===S.bids[q] ? 1 : 0;
+        if(netBids) acc = bidNetProbs(Pn,S.n,S.turned,pos,full,ahead[q])[S.bids[q]] >= rand() ? 1 : 0;      // kept with the probability the bidding network gives that bid on that hand
+        else if(READ.bid==="exact") acc = bidAt(Math.max(0,Math.min(S.n,mu)),S.n,ban)===S.bids[q] ? 1 : 0;
         else { acc=readBidLik(mu, S.n, ban, S.bids[q]); if(acc<1 && rand()>=acc) acc=0; else acc=1; }
       }
       if(acc>0) break;
@@ -1046,6 +1050,7 @@ function readArena(Pn, n, deals, seed){
    bots do in a game, instead of by the bid formula. Returns, per deal, each
    setting's gain over the network for the one seat that reads. */
 function readArena2(Pn, n, deals, seed, modes, simBids){
+  const firstBids=[];
   const rng=mulberry32(seed), out=modes.map(()=>[]), keep=Object.assign({},READ); let off=0, tot=0, unfit=modes.map(()=>0), decs=modes.map(()=>0);
   for(let d=0; d<deals; d++){
     const deck=[...Array(52).keys()]; for(let i=51;i>0;i--){ const j=(rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
@@ -1055,8 +1060,10 @@ function readArena2(Pn, n, deals, seed, modes, simBids){
     const bids=[]; let B=0;
     for(let q=0;q<Pn;q++){ KNOWN = turned>=0 ? [turned] : [];
       const est=muFor(hands0[q],trump,n,Pn,q), adj=Math.max(0,Math.min(n,est*auctionFactor(n,Pn,B,Pn-q))), f=bidAt(adj,n,q===Pn-1?n-B:-1); let b=f;
-      if(simBids){ const r=simulateBid(hands0[q],trump,turned,n,Pn,q,bids.slice(),{ bid:f, adj },(seed*7919+d*31+q)>>>0,null); if(r.bid!=null) b=r.bid; }
+      if(simBids===2 && bidNetCovers(Pn,n)){ const pb=bidNetProbs(Pn,n,turned,q,hands0[q],bids), u=rng(); let acc=0; b=n; for(let x=0;x<=n;x++){ acc+=pb[x]; if(u<acc){ b=x; break; } } if(q===Pn-1 && b===n-B){ let bp=-1; for(let x=0;x<=n;x++) if(x!==n-B && pb[x]>bp){ bp=pb[x]; b=x; } } }      // bids drawn from the bidding network: a fast stand-in for simulation bidders
+      else if(simBids){ const r=simulateBid(hands0[q],trump,turned,n,Pn,q,bids.slice(),{ bid:f, adj },(seed*7919+d*31+q)>>>0,null); if(r.bid!=null) b=r.bid; }
       tot++; if(b!==f) off++; bids.push(b); B+=b; }
+    if(d<8) firstBids.push(bids.join(""));
     KNOWN = turned>=0 ? [turned] : [];
     const play=mi=>{
       const prng=mulberry32((seed^0x51ed270b)+d);
@@ -1080,7 +1087,7 @@ function readArena2(Pn, n, deals, seed, modes, simBids){
     for(let mi=0;mi<modes.length;mi++) out[mi].push(+(play(mi)-base).toFixed(4));
   }
   Object.assign(READ,keep);
-  return { Pn, n, deals, diffs:out, bidsOffFormula: off/tot, unfit:unfit.map((u,i)=>decs[i]?u/decs[i]:0) };
+  return { firstBids, Pn, n, deals, diffs:out, bidsOffFormula: off/tot, unfit:unfit.map((u,i)=>decs[i]?u/decs[i]:0) };
 }
 function bustStudy(Pn, n, deals, seed){
   const rng=mulberry32(seed), prng=mulberry32(seed^0x51ed270b);

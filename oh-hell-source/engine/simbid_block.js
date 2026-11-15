@@ -20,6 +20,8 @@
    hand: the bot's cards. pos: its place in the bidding (0 bids first and leads).
    prior: the bids made so far, in order. model: { bid, adj } from the bid model.
    Uses the engine's globals; touches nothing on the page. */
+/* "net": the bidding network models the other bidders where it covers the table; "formula": the bid formula does. */
+let SIMBID_MODEL="formula";
 function simulateBid(hand, trump, turned, n, P, pos, prior, model, seed, opt){
   opt = opt || {};
   const K = opt.samples || 150, WIN = opt.window == null ? 2 : opt.window, MAXDRAW = opt.maxDraws || 6000;
@@ -28,10 +30,13 @@ function simulateBid(hand, trump, turned, n, P, pos, prior, model, seed, opt){
   KNOWN = (turned >= 0) ? [turned] : [];
   for(let c=0;c<52;c++) if(!mine.has(c) && c!==turned) pool.push(c);
   const claimed = prior.reduce((a,b)=>a+b,0), banned = (pos===P-1) ? n-claimed : -1;
-  const c0 = Math.round(model.adj), cands = [];
+  // Which picture of the other bidders to use: the bidding network where it applies ("net"), otherwise the bid formula.
+  const useNet = (opt.model || SIMBID_MODEL)==="net" && typeof bidNetCovers==="function" && bidNetCovers(P,n);
+  const c0 = useNet ? bidNetBid(P,n,turned,pos,hand,prior) : Math.round(model.adj), cands = [];
   const also = opt.also || [];
   for(let b=0;b<=n;b++) if(b!==banned && (Math.abs(b-c0)<=WIN || b===model.bid || also.includes(b))) cands.push(b);
-  if(cands.length<2) return { bid:model.bid, by:"formula", why:"only one bid in range" };
+  const fallback = useNet ? c0 : model.bid, fbBy = useNet ? "bidding network" : "formula";
+  if(cands.length<2) return { bid:fallback, by:fbBy, why:"only one bid in range" };
 
   // 1. candidate deals and their weights
   const need = (P-1)*n, deals = [], wts = [];
@@ -43,7 +48,8 @@ function simulateBid(hand, trump, turned, n, P, pos, prior, model, seed, opt){
     for(let s=0;s<P;s++) hands[s] = (s===pos) ? hand : pool.slice(k*n, (k++)*n+n);
     let w=1, Bo=0;
     for(let s=0;s<pos && w>0;s++){
-      w *= bidLikelihood(muFor(hands[s],trump,n,P,s)*auctionFactor(n,P,Bo,P-s), n, -1, prior[s], profOf(cfg,s));
+      w *= useNet ? 0.98*bidNetProbs(P,n,turned,s,hands[s],prior.slice(0,s))[prior[s]] + 0.02/(n+1)      // a small floor, so one odd bid cannot rule every deal out
+                  : bidLikelihood(muFor(hands[s],trump,n,P,s)*auctionFactor(n,P,Bo,P-s), n, -1, prior[s], profOf(cfg,s));
       Bo += prior[s];
     }
     if(w>0){ deals.push(hands); wts.push(w); wSum+=w; wSum2+=w*w; }
@@ -51,7 +57,7 @@ function simulateBid(hand, trump, turned, n, P, pos, prior, model, seed, opt){
     if(pos>0 && d%200===199 && wSum2>0 && (wSum*wSum)/wSum2 >= 3*K) break;
   }
   const ess = wSum2>0 ? (wSum*wSum)/wSum2 : 0;
-  if(ess < 25) return { bid:model.bid, by:"formula", why:"the bids so far do not fit the bid model", ess:+ess.toFixed(1) };
+  if(ess < 25) return { bid:fallback, by:fbBy, why:"the bids so far do not fit the bid model", ess:+ess.toFixed(1) };
 
   // 2. draw K deals in proportion to weight (systematic resampling)
   const picks = []; { let acc=0, i=0; const stepW=wSum/K, u0=rng()*stepW;
@@ -63,6 +69,7 @@ function simulateBid(hand, trump, turned, n, P, pos, prior, model, seed, opt){
   const sum = cands.map(()=>0), made = cands.map(()=>0), raw = new Array(P).fill(0), u = new Array(P).fill(0);
   for(const hands of picks){
     for(let s=pos+1;s<P;s++){
+      if(useNet){ u[s]=rng(); continue; }          // one draw a seat, reused for every candidate bid
       raw[s]=muFor(hands[s],trump,n,P,s);
       const a=Math.max(rng(),1e-12), b2=rng();
       u[s]=Math.sqrt(-2*Math.log(a))*Math.cos(2*Math.PI*b2);
@@ -72,6 +79,11 @@ function simulateBid(hand, trump, turned, n, P, pos, prior, model, seed, opt){
       for(let s=0;s<pos;s++){ bids[s]=prior[s]; B+=prior[s]; }
       bids[pos]=cands[ci]; B+=cands[ci];
       for(let s=pos+1;s<P;s++){
+        if(useNet){            // the seats behind bid as the network says the simulation would, drawn from its spread
+          const pb=bidNetProbs(P,n,turned,s,hands[s],bids.slice(0,s)); let acc=0, b=n;
+          for(let q=0;q<=n;q++){ acc+=pb[q]; if(u[s]<acc){ b=q; break; } }
+          if(s===P-1 && b===n-B){ b=-1; let bestp=-1; for(let q=0;q<=n;q++) if(q!==n-B && pb[q]>bestp){ bestp=pb[q]; b=q; } }
+          bids[s]=b; B+=b; continue; }
         const pr=profOf(cfg,s);
         const e=Math.max(0,Math.min(n, raw[s]*auctionFactor(n,P,B,P-s)+pr.bias+u[s]*sigLik(n,pr)));
         const b=bidAt(e,n,(s===P-1)?n-B:-1); bids[s]=b; B+=b;
@@ -86,7 +98,7 @@ function simulateBid(hand, trump, turned, n, P, pos, prior, model, seed, opt){
   }
   // 4. best average; a tie goes to the bid model's own choice
   let best=0;
-  for(let ci=1;ci<cands.length;ci++) if(sum[ci]>sum[best] || (sum[ci]===sum[best] && cands[ci]===model.bid)) best=ci;
+  for(let ci=1;ci<cands.length;ci++) if(sum[ci]>sum[best] || (sum[ci]===sum[best] && cands[ci]===fallback)) best=ci;
   // what one particular bid gave up against the best, with its sampling error
   let cmp=null; const mi = vals ? cands.indexOf(opt.cmp) : -1;
   if(mi>=0){ const cost=(sum[best]-sum[mi])/K; let d2=0;
