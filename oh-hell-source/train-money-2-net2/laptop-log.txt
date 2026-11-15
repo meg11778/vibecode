@@ -1,0 +1,72 @@
+
+=== generation 1   11/15/2026, 12:02:08 PM ===
+  gain over the rules (dollars a round), by cards in the round
+  seats |     2     3     4     5     6     7     8     9    10    11    12    13
+   4 nt | +0.19 +0.37 +0.49 +0.65 +0.97 +1.14 +1.30 +1.52 +1.58 +1.59 +1.51 +1.49
+      5 | +0.09 +0.30 +0.46 +0.64 +0.65 +0.90 +1.16 +1.37 +1.31                  
+      6 | +0.14 +0.26 +0.36 +0.43 +0.64 +0.71 +0.78                              
+  no trump at 5 and 6 seats: 5 seats 5 cards +0.50, 5 seats 9 cards +0.99, 6 seats 4 cards +0.32, 6 seats 7 cards +0.61
+  gain over the current network: 4 seats -0.01 ±0.03 | 5 seats -0.00 ±0.03 | 6 seats -0.00 ±0.03 | all -0.01 ±0.017
+  average over the rules: 4 seats +1.07 | 5 seats +0.76 | 6 seats +0.47 | all +0.82
+  hard deals (off-model bids, long suits), gain over the rules: 4 seats 13 cards nt +0.97, 4 seats 8 cards nt +0.96, 5 seats 6 cards +0.47, 5 seats 10 cards +0.69, 6 seats 5 cards +0.29, 6 seats 8 cards +0.53
+  hard deals, gain over the current network: +0.01 ±0.040
+  ACCEPTED - generation 1 is now the current network
+  generation took 42.9 minutes
+
+=== generation 2   11/15/2026, 12:45:02 PM ===
+  gain over the rules (dollars a round), by cards in the round
+  seats |     2     3     4     5     6     7     8     9    10    11    12    13
+   4 nt | +0.17 +0.35 +0.43 +0.65 +0.90 +1.07 +1.33 +1.37 +1.53 +1.42 +1.51 +1.52
+      5 | +0.13 +0.30 +0.37 +0.60 +0.71 +0.80 +1.09 +1.36 +1.47                  
+      6 | +0.09 +0.19 +0.36 +0.48 +0.56 +0.67 +0.97                              
+  no trump at 5 and 6 seats: 5 seats 5 cards +0.51, 5 seats 9 cards +1.13, 6 seats 4 cards +0.29, 6 seats 7 cards +0.63
+  gain over the current network: 4 seats -0.00 ±0.03 | 5 seats -0.03 ±0.03 | 6 seats +0.01 ±0.03 | all -0.01 ±0.016
+  average over the rules: 4 seats +1.02 | 5 seats +0.76 | 6 seats +0.48 | all +0.80
+  hard deals (off-model bids, long suits), gain over the rules: 4 seats 13 cards nt +1.01, 4 seats 8 cards nt +1.07, 5 seats 6 cards +0.46, 5 seats 10 cards +0.90, 6 seats 5 cards +0.30, 6 seats 8 cards +0.56
+  hard deals, gain over the current network: -0.00 ±0.037
+  ACCEPTED - generation 2 is now the current network
+  generation took 46.8 minutes
+
+=== generation 3   11/15/2026, 1:31:49 PM ===
+  gain over the rules (dollars a round), by cards in the round
+  seats |     2     3     4     5     6     7     8     9    10    11    12    13
+   4 nt | +0.19 +0.45 +0.60 +0.67 +0.97 +1.02 +1.17 +1.48 +1.44 +1.54 +1.55 +1.42
+      5 | +0.11 +0.27 +0.38 +0.64 +0.72 +0.79 +1.04 +1.16 +1.31                  
+      6 | +0.04 +0.16 +0.27 +0.45 +0.69 +0.73 +0.87                              
+  no trump at 5 and 6 seats: 5 seats 5 cards +0.48, 5 seats 9 cards +1.06, 6 seats 4 cards +0.28, 6 seats 7 cards +0.51
+  gain over the current network: 4 seats +0.02 ±0.03 | 5 seats -0.01 ±0.03 | 6 seats +0.01 ±0.02 | all +0.01 ±0.015
+  average over the rules: 4 seats +1.04 | 5 seats +0.71 | 6 seats +0.46 | all +0.79
+  hard deals (off-model bids, long suits), gain over the rules: 4 seats 13 cards nt +0.93, 4 seats 8 cards nt +0.94, 5 seats 6 cards +0.51, 5 seats 10 cards +0.90, 6 seats 5 cards +0.38, 6 seats 8 cards +0.57
+  hard deals, gain over the current network: +0.03 ±0.036
+  ACCEPTED - generation 3 is now the current network
+  generation took 48.7 minutes
+
+=== generation 4   11/15/2026, 2:20:32 PM ===
+  gain over the rules (dollars a round), by cards in the round
+  seats |     2     3     4     5     6     7     8     9    10    11    12    13
+   4 nt | +0.19 +0.46 +0.54 +0.71 +0.97 +1.16 +1.09 +1.41 +1.51 +1.61 +1.50 +1.63
+      5 | +0.15 +0.26 +0.42 +0.55 +0.65 +0.93 +1.13 +1.15 +1.26                  
+      6 | +0.12 +0.18 +0.39 +0.47 +0.69 +0.68 +0.91                              
+  no trump at 5 and 6 seats: 5 seats 5 cards +0.51, 5 seats 9 cards +1.11, 6 seats 4 cards +0.25, 6 seats 7 cards +0.68
+  gain over the current network: 4 seats -0.00 ±0.03 | 5 seats +0.01 ±0.03 | 6 seats +0.03 ±0.02 | all +0.01 ±0.016
+  average over the rules: 4 seats +1.06 | 5 seats +0.72 | 6 seats +0.49 | all +0.81
+  hard deals (off-model bids, long suits), gain over the rules: 4 seats 13 cards nt +1.11, 4 seats 8 cards nt +1.16, 5 seats 6 cards +0.42, 5 seats 10 cards +0.83, 6 seats 5 cards +0.35, 6 seats 8 cards +0.52
+  hard deals, gain over the current network: -0.02 ±0.036
+  ACCEPTED - generation 4 is now the current network
+  generation took 47.7 minutes
+
+=== generation 5   11/15/2026, 3:08:11 PM ===
+  gain over the rules (dollars a round), by cards in the round
+  seats |     2     3     4     5     6     7     8     9    10    11    12    13
+   4 nt | +0.15 +0.41 +0.52 +0.82 +0.97 +1.05 +1.24 +1.30 +1.62 +1.61 +1.51 +1.56
+      5 | +0.18 +0.26 +0.41 +0.61 +0.62 +0.89 +0.99 +1.19 +1.31                  
+      6 | +0.11 +0.25 +0.31 +0.46 +0.60 +0.75 +0.95                              
+  no trump at 5 and 6 seats: 5 seats 5 cards +0.53, 5 seats 9 cards +1.02, 6 seats 4 cards +0.21, 6 seats 7 cards +0.47
+  gain over the current network: 4 seats -0.01 ±0.03 | 5 seats +0.00 ±0.03 | 6 seats -0.01 ±0.02 | all -0.01 ±0.015
+  average over the rules: 4 seats +1.07 | 5 seats +0.72 | 6 seats +0.49 | all +0.81
+  hard deals (off-model bids, long suits), gain over the rules: 4 seats 13 cards nt +0.97, 4 seats 8 cards nt +0.96, 5 seats 6 cards +0.34, 5 seats 10 cards +0.73, 6 seats 5 cards +0.34, 6 seats 8 cards +0.61
+  hard deals, gain over the current network: -0.00 ±0.035
+  ACCEPTED - generation 5 is now the current network
+  generation took 46.8 minutes
+
+=== generation 6   11/15/2026, 3:54:58 PM ===
