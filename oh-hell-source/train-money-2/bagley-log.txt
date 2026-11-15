@@ -1,0 +1,1442 @@
+
+=== generation 1   11/14/2026, 4:45:22 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.40 ±0.05 |  -0.01 ±0.02       | 68%
+      4 |  +0.56 ±0.07 |  -0.01 ±0.03       | 66%
+      5 |  +0.78 ±0.08 |  +0.04 ±0.04       | 66%
+      6 |  +0.96 ±0.09 |  +0.01 ±0.05       | 65%
+      7 |  +1.19 ±0.10 |  +0.01 ±0.06       | 65%
+      8 |  +1.30 ±0.10 |  +0.02 ±0.06       | 66%
+      9 |  +1.40 ±0.11 |  +0.01 ±0.07       | 66%
+     10 |  +1.70 ±0.11 |  +0.02 ±0.08       | 66%
+     11 |  +1.86 ±0.11 |  +0.01 ±0.09       | 66%
+     12 |  +2.01 ±0.12 |  +0.07 ±0.09       | 65%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.41, 8 cards +0.76, 10 cards +0.93, 12 cards +1.13
+  hard deals, gain over the current network: +0.02 ±0.029
+  average: +1.123 over the rules, +0.015 ±0.018 over the current network
+  ACCEPTED - generation 1 is now the current network
+  generation took 11.5 minutes
+
+=== generation 2   11/14/2026, 4:56:55 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.34 ±0.05 |  -0.01 ±0.02       | 69%
+      4 |  +0.57 ±0.07 |  +0.01 ±0.03       | 67%
+      5 |  +0.82 ±0.08 |  +0.01 ±0.03       | 67%
+      6 |  +1.00 ±0.09 |  +0.03 ±0.04       | 65%
+      7 |  +1.23 ±0.10 |  +0.00 ±0.05       | 67%
+      8 |  +1.39 ±0.10 |  -0.00 ±0.06       | 67%
+      9 |  +1.49 ±0.11 |  -0.01 ±0.06       | 66%
+     10 |  +1.70 ±0.11 |  +0.02 ±0.07       | 66%
+     11 |  +1.85 ±0.11 |  +0.05 ±0.08       | 67%
+     12 |  +2.02 ±0.12 |  -0.05 ±0.09       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.41, 8 cards +0.72, 10 cards +0.88, 12 cards +1.16
+  hard deals, gain over the current network: -0.01 ±0.026
+  average: +1.146 over the rules, +0.004 ±0.016 over the current network
+  ACCEPTED - generation 2 is now the current network
+  generation took 11.6 minutes
+
+=== generation 3   11/14/2026, 5:08:29 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.17 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.36 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.61 ±0.07 |  +0.01 ±0.02       | 66%
+      5 |  +0.70 ±0.08 |  +0.03 ±0.03       | 65%
+      6 |  +1.02 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.12 ±0.10 |  +0.03 ±0.04       | 66%
+      8 |  +1.33 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.46 ±0.11 |  +0.06 ±0.06       | 66%
+     10 |  +1.78 ±0.11 |  -0.01 ±0.07       | 67%
+     11 |  +1.85 ±0.11 |  +0.06 ±0.07       | 67%
+     12 |  +2.05 ±0.12 |  -0.02 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.35, 8 cards +0.71, 10 cards +0.92, 12 cards +1.07
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.133 over the rules, +0.015 ±0.015 over the current network
+  ACCEPTED - generation 3 is now the current network
+  generation took 12.6 minutes
+
+=== generation 4   11/14/2026, 5:21:06 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.17 ±0.03 |  -0.00 ±0.01       | 74%
+      3 |  +0.37 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.51 ±0.07 |  -0.01 ±0.03       | 65%
+      5 |  +0.84 ±0.08 |  -0.00 ±0.03       | 66%
+      6 |  +1.00 ±0.09 |  +0.00 ±0.04       | 66%
+      7 |  +1.19 ±0.09 |  +0.01 ±0.04       | 65%
+      8 |  +1.38 ±0.10 |  -0.03 ±0.05       | 67%
+      9 |  +1.53 ±0.10 |  -0.05 ±0.06       | 66%
+     10 |  +1.78 ±0.11 |  +0.01 ±0.07       | 67%
+     11 |  +1.89 ±0.11 |  -0.03 ±0.07       | 66%
+     12 |  +2.14 ±0.11 |  -0.04 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.70, 10 cards +0.92, 12 cards +1.12
+  hard deals, gain over the current network: +0.00 ±0.025
+  average: +1.164 over the rules, -0.011 ±0.015 over the current network
+  ACCEPTED - generation 4 is now the current network
+  generation took 12.3 minutes
+
+=== generation 5   11/14/2026, 5:33:23 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  +0.01 ±0.01       | 73%
+      3 |  +0.35 ±0.05 |  -0.00 ±0.02       | 68%
+      4 |  +0.58 ±0.07 |  -0.03 ±0.03       | 66%
+      5 |  +0.74 ±0.08 |  -0.02 ±0.03       | 66%
+      6 |  +0.90 ±0.09 |  -0.03 ±0.04       | 64%
+      7 |  +1.20 ±0.10 |  -0.01 ±0.04       | 65%
+      8 |  +1.39 ±0.10 |  -0.04 ±0.05       | 68%
+      9 |  +1.51 ±0.11 |  +0.02 ±0.06       | 67%
+     10 |  +1.77 ±0.11 |  -0.02 ±0.07       | 67%
+     11 |  +1.91 ±0.11 |  +0.02 ±0.07       | 67%
+     12 |  +2.00 ±0.12 |  -0.02 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.35, 8 cards +0.76, 10 cards +1.00, 12 cards +1.17
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.141 over the rules, -0.010 ±0.015 over the current network
+  ACCEPTED - generation 5 is now the current network
+  generation took 12.5 minutes
+
+=== generation 6   11/14/2026, 5:45:52 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  -0.01 ±0.01       | 73%
+      3 |  +0.38 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.53 ±0.06 |  -0.00 ±0.03       | 66%
+      5 |  +0.80 ±0.08 |  +0.02 ±0.03       | 66%
+      6 |  +1.02 ±0.09 |  -0.02 ±0.04       | 66%
+      7 |  +1.20 ±0.10 |  +0.01 ±0.04       | 65%
+      8 |  +1.38 ±0.10 |  -0.01 ±0.05       | 67%
+      9 |  +1.59 ±0.11 |  +0.05 ±0.06       | 67%
+     10 |  +1.73 ±0.11 |  -0.03 ±0.06       | 67%
+     11 |  +1.89 ±0.11 |  +0.08 ±0.07       | 67%
+     12 |  +2.18 ±0.12 |  +0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.38, 8 cards +0.65, 10 cards +1.02, 12 cards +1.10
+  hard deals, gain over the current network: +0.01 ±0.025
+  average: +1.172 over the rules, +0.012 ±0.015 over the current network
+  ACCEPTED - generation 6 is now the current network
+  generation took 12.4 minutes
+
+=== generation 7   11/14/2026, 5:58:18 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.36 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.61 ±0.07 |  -0.01 ±0.03       | 67%
+      5 |  +0.66 ±0.08 |  +0.00 ±0.03       | 65%
+      6 |  +0.98 ±0.09 |  +0.03 ±0.04       | 67%
+      7 |  +1.18 ±0.10 |  +0.02 ±0.05       | 66%
+      8 |  +1.35 ±0.10 |  +0.03 ±0.05       | 67%
+      9 |  +1.52 ±0.11 |  +0.05 ±0.06       | 66%
+     10 |  +1.73 ±0.11 |  -0.12 ±0.06       | 67%
+     11 |  +2.02 ±0.11 |  -0.00 ±0.07       | 67%
+     12 |  +2.03 ±0.12 |  +0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.47, 8 cards +0.77, 10 cards +0.91, 12 cards +1.03
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.150 over the rules, +0.002 ±0.015 over the current network
+  ACCEPTED - generation 7 is now the current network
+  generation took 12.4 minutes
+
+=== generation 8   11/14/2026, 6:10:43 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.43 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.57 ±0.07 |  -0.01 ±0.02       | 68%
+      5 |  +0.74 ±0.08 |  +0.03 ±0.03       | 66%
+      6 |  +0.94 ±0.09 |  +0.01 ±0.04       | 65%
+      7 |  +1.18 ±0.10 |  -0.00 ±0.04       | 65%
+      8 |  +1.36 ±0.10 |  +0.04 ±0.05       | 67%
+      9 |  +1.41 ±0.11 |  -0.04 ±0.06       | 65%
+     10 |  +1.71 ±0.11 |  -0.01 ±0.07       | 67%
+     11 |  +1.92 ±0.11 |  -0.01 ±0.07       | 67%
+     12 |  +2.06 ±0.12 |  +0.01 ±0.08       | 68%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.39, 8 cards +0.71, 10 cards +0.98, 12 cards +1.17
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.136 over the rules, +0.001 ±0.015 over the current network
+  ACCEPTED - generation 8 is now the current network
+  generation took 12.5 minutes
+
+=== generation 9   11/14/2026, 6:23:11 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.00 ±0.01       | 73%
+      3 |  +0.39 ±0.05 |  -0.01 ±0.02       | 69%
+      4 |  +0.61 ±0.07 |  -0.00 ±0.03       | 66%
+      5 |  +0.79 ±0.08 |  -0.01 ±0.03       | 65%
+      6 |  +1.07 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.12 ±0.10 |  -0.00 ±0.04       | 66%
+      8 |  +1.28 ±0.10 |  +0.04 ±0.05       | 66%
+      9 |  +1.54 ±0.10 |  -0.02 ±0.06       | 66%
+     10 |  +1.70 ±0.11 |  +0.02 ±0.06       | 67%
+     11 |  +1.92 ±0.11 |  -0.00 ±0.07       | 67%
+     12 |  +2.06 ±0.12 |  +0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.36, 8 cards +0.71, 10 cards +0.99, 12 cards +1.12
+  hard deals, gain over the current network: -0.02 ±0.024
+  average: +1.151 over the rules, +0.006 ±0.015 over the current network
+  ACCEPTED - generation 9 is now the current network
+  generation took 12.1 minutes
+
+=== generation 10   11/14/2026, 6:35:17 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.37 ±0.05 |  -0.00 ±0.02       | 69%
+      4 |  +0.56 ±0.07 |  -0.00 ±0.02       | 67%
+      5 |  +0.82 ±0.08 |  +0.00 ±0.03       | 67%
+      6 |  +0.98 ±0.09 |  -0.03 ±0.04       | 65%
+      7 |  +1.19 ±0.10 |  +0.02 ±0.04       | 66%
+      8 |  +1.40 ±0.10 |  -0.01 ±0.05       | 67%
+      9 |  +1.54 ±0.11 |  -0.01 ±0.06       | 67%
+     10 |  +1.71 ±0.11 |  -0.01 ±0.07       | 66%
+     11 |  +1.92 ±0.11 |  -0.01 ±0.07       | 67%
+     12 |  +2.11 ±0.11 |  -0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.75, 10 cards +0.95, 12 cards +1.18
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.161 over the rules, -0.006 ±0.015 over the current network
+  ACCEPTED - generation 10 is now the current network
+  generation took 12.4 minutes
+
+=== generation 11   11/14/2026, 6:47:42 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.17 ±0.03 |  -0.01 ±0.01       | 73%
+      3 |  +0.38 ±0.05 |  +0.00 ±0.02       | 70%
+      4 |  +0.56 ±0.07 |  +0.00 ±0.02       | 67%
+      5 |  +0.71 ±0.08 |  +0.00 ±0.03       | 65%
+      6 |  +0.96 ±0.09 |  -0.02 ±0.04       | 66%
+      7 |  +1.12 ±0.09 |  +0.01 ±0.04       | 66%
+      8 |  +1.26 ±0.10 |  -0.00 ±0.05       | 65%
+      9 |  +1.54 ±0.11 |  +0.00 ±0.06       | 66%
+     10 |  +1.72 ±0.11 |  -0.02 ±0.07       | 66%
+     11 |  +1.87 ±0.11 |  -0.01 ±0.07       | 66%
+     12 |  +2.03 ±0.12 |  +0.01 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.33, 8 cards +0.69, 10 cards +0.92, 12 cards +1.17
+  hard deals, gain over the current network: -0.02 ±0.024
+  average: +1.120 over the rules, -0.004 ±0.015 over the current network
+  ACCEPTED - generation 11 is now the current network
+  generation took 12.3 minutes
+
+=== generation 12   11/14/2026, 7:00:01 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.01 ±0.01       | 73%
+      3 |  +0.37 ±0.05 |  -0.00 ±0.02       | 69%
+      4 |  +0.63 ±0.07 |  +0.02 ±0.03       | 66%
+      5 |  +0.69 ±0.08 |  +0.01 ±0.03       | 67%
+      6 |  +0.92 ±0.09 |  -0.02 ±0.04       | 64%
+      7 |  +1.24 ±0.10 |  -0.03 ±0.04       | 65%
+      8 |  +1.43 ±0.10 |  -0.02 ±0.05       | 67%
+      9 |  +1.57 ±0.11 |  +0.02 ±0.06       | 66%
+     10 |  +1.72 ±0.11 |  -0.01 ±0.06       | 67%
+     11 |  +1.99 ±0.11 |  +0.00 ±0.07       | 67%
+     12 |  +2.08 ±0.12 |  -0.01 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.78, 10 cards +1.01, 12 cards +1.23
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.168 over the rules, -0.004 ±0.015 over the current network
+  ACCEPTED - generation 12 is now the current network
+  generation took 12.2 minutes
+
+=== generation 13   11/14/2026, 7:12:16 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  +0.01 ±0.01       | 74%
+      3 |  +0.35 ±0.05 |  +0.00 ±0.02       | 70%
+      4 |  +0.60 ±0.07 |  -0.02 ±0.03       | 67%
+      5 |  +0.76 ±0.08 |  +0.01 ±0.03       | 65%
+      6 |  +1.13 ±0.09 |  +0.03 ±0.04       | 66%
+      7 |  +1.18 ±0.10 |  +0.03 ±0.04       | 66%
+      8 |  +1.30 ±0.10 |  +0.03 ±0.05       | 66%
+      9 |  +1.61 ±0.11 |  +0.00 ±0.06       | 66%
+     10 |  +1.65 ±0.11 |  -0.03 ±0.06       | 66%
+     11 |  +1.87 ±0.11 |  +0.01 ±0.07       | 67%
+     12 |  +2.16 ±0.12 |  -0.00 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.41, 8 cards +0.65, 10 cards +1.05, 12 cards +1.12
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.164 over the rules, +0.007 ±0.015 over the current network
+  ACCEPTED - generation 13 is now the current network
+  generation took 12.3 minutes
+
+=== generation 14   11/14/2026, 7:24:31 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.41 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.55 ±0.07 |  +0.00 ±0.02       | 67%
+      5 |  +0.80 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +0.90 ±0.09 |  +0.01 ±0.04       | 65%
+      7 |  +1.18 ±0.10 |  +0.03 ±0.05       | 65%
+      8 |  +1.45 ±0.10 |  -0.01 ±0.05       | 66%
+      9 |  +1.60 ±0.11 |  +0.04 ±0.06       | 67%
+     10 |  +1.84 ±0.11 |  -0.01 ±0.07       | 67%
+     11 |  +1.94 ±0.11 |  -0.04 ±0.07       | 66%
+     12 |  +1.98 ±0.11 |  -0.04 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.39, 8 cards +0.75, 10 cards +1.03, 12 cards +1.18
+  hard deals, gain over the current network: -0.02 ±0.024
+  average: +1.170 over the rules, -0.001 ±0.015 over the current network
+  ACCEPTED - generation 14 is now the current network
+  generation took 12.3 minutes
+
+=== generation 15   11/14/2026, 7:36:46 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.33 ±0.05 |  -0.00 ±0.02       | 68%
+      4 |  +0.51 ±0.07 |  +0.01 ±0.02       | 66%
+      5 |  +0.71 ±0.08 |  +0.00 ±0.03       | 66%
+      6 |  +0.99 ±0.09 |  -0.01 ±0.04       | 66%
+      7 |  +1.20 ±0.10 |  -0.04 ±0.04       | 66%
+      8 |  +1.44 ±0.10 |  -0.02 ±0.05       | 67%
+      9 |  +1.53 ±0.11 |  +0.02 ±0.06       | 66%
+     10 |  +1.82 ±0.11 |  -0.02 ±0.06       | 67%
+     11 |  +1.86 ±0.11 |  -0.04 ±0.07       | 66%
+     12 |  +1.98 ±0.11 |  -0.01 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.45, 8 cards +0.81, 10 cards +0.97, 12 cards +1.10
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.141 over the rules, -0.009 ±0.015 over the current network
+  ACCEPTED - generation 15 is now the current network
+  generation took 12.3 minutes
+
+=== generation 16   11/14/2026, 7:49:03 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.36 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.57 ±0.07 |  -0.00 ±0.02       | 67%
+      5 |  +0.83 ±0.08 |  +0.01 ±0.03       | 65%
+      6 |  +0.97 ±0.09 |  +0.01 ±0.04       | 65%
+      7 |  +1.11 ±0.10 |  -0.04 ±0.05       | 66%
+      8 |  +1.32 ±0.10 |  -0.02 ±0.05       | 66%
+      9 |  +1.53 ±0.11 |  +0.04 ±0.06       | 66%
+     10 |  +1.88 ±0.11 |  -0.03 ±0.07       | 67%
+     11 |  +1.78 ±0.11 |  -0.03 ±0.07       | 66%
+     12 |  +2.07 ±0.12 |  +0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.49, 8 cards +0.66, 10 cards +0.91, 12 cards +1.10
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.146 over the rules, -0.006 ±0.015 over the current network
+  ACCEPTED - generation 16 is now the current network
+  generation took 12.2 minutes
+
+=== generation 17   11/14/2026, 8:01:15 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  +0.00 ±0.01       | 73%
+      3 |  +0.36 ±0.05 |  -0.00 ±0.02       | 70%
+      4 |  +0.59 ±0.07 |  -0.01 ±0.02       | 66%
+      5 |  +0.77 ±0.08 |  +0.02 ±0.03       | 66%
+      6 |  +1.04 ±0.09 |  +0.03 ±0.04       | 66%
+      7 |  +1.18 ±0.10 |  -0.00 ±0.05       | 65%
+      8 |  +1.37 ±0.10 |  -0.02 ±0.05       | 66%
+      9 |  +1.53 ±0.11 |  -0.01 ±0.06       | 67%
+     10 |  +1.80 ±0.11 |  -0.01 ±0.07       | 68%
+     11 |  +1.91 ±0.11 |  -0.00 ±0.07       | 67%
+     12 |  +2.08 ±0.12 |  -0.04 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.49, 8 cards +0.73, 10 cards +1.05, 12 cards +1.15
+  hard deals, gain over the current network: -0.00 ±0.025
+  average: +1.165 over the rules, -0.004 ±0.015 over the current network
+  ACCEPTED - generation 17 is now the current network
+  generation took 12.2 minutes
+
+=== generation 18   11/14/2026, 8:13:24 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.38 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.58 ±0.07 |  -0.00 ±0.03       | 66%
+      5 |  +0.87 ±0.08 |  +0.04 ±0.03       | 66%
+      6 |  +0.97 ±0.09 |  -0.00 ±0.04       | 66%
+      7 |  +1.15 ±0.10 |  -0.00 ±0.04       | 66%
+      8 |  +1.26 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.48 ±0.11 |  +0.01 ±0.06       | 67%
+     10 |  +1.72 ±0.11 |  +0.00 ±0.06       | 66%
+     11 |  +1.83 ±0.11 |  -0.03 ±0.07       | 67%
+     12 |  +2.05 ±0.12 |  +0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.33, 8 cards +0.68, 10 cards +0.93, 12 cards +1.07
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.134 over the rules, +0.005 ±0.015 over the current network
+  ACCEPTED - generation 18 is now the current network
+  generation took 12.1 minutes
+
+=== generation 19   11/14/2026, 8:25:30 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  +0.01 ±0.01       | 72%
+      3 |  +0.39 ±0.05 |  -0.01 ±0.02       | 69%
+      4 |  +0.47 ±0.06 |  -0.01 ±0.03       | 67%
+      5 |  +0.77 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +1.03 ±0.09 |  -0.04 ±0.04       | 66%
+      7 |  +1.18 ±0.10 |  -0.06 ±0.04       | 66%
+      8 |  +1.39 ±0.10 |  -0.01 ±0.05       | 66%
+      9 |  +1.44 ±0.11 |  -0.01 ±0.06       | 65%
+     10 |  +1.89 ±0.11 |  +0.01 ±0.06       | 68%
+     11 |  +1.80 ±0.11 |  +0.06 ±0.07       | 66%
+     12 |  +2.04 ±0.11 |  -0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.47, 8 cards +0.77, 10 cards +1.04, 12 cards +1.16
+  hard deals, gain over the current network: -0.00 ±0.024
+  average: +1.146 over the rules, -0.007 ±0.015 over the current network
+  ACCEPTED - generation 19 is now the current network
+  generation took 11.9 minutes
+
+=== generation 20   11/14/2026, 8:37:22 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  +0.00 ±0.01       | 73%
+      3 |  +0.39 ±0.05 |  +0.00 ±0.02       | 70%
+      4 |  +0.56 ±0.07 |  +0.03 ±0.02       | 67%
+      5 |  +0.80 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +0.98 ±0.09 |  +0.00 ±0.04       | 65%
+      7 |  +1.13 ±0.10 |  +0.04 ±0.05       | 66%
+      8 |  +1.42 ±0.10 |  +0.06 ±0.05       | 68%
+      9 |  +1.59 ±0.11 |  +0.02 ±0.06       | 67%
+     10 |  +1.60 ±0.11 |  -0.02 ±0.06       | 67%
+     11 |  +1.79 ±0.11 |  -0.02 ±0.07       | 67%
+     12 |  +2.05 ±0.12 |  +0.06 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.38, 8 cards +0.76, 10 cards +0.94, 12 cards +1.11
+  hard deals, gain over the current network: -0.01 ±0.025
+  average: +1.137 over the rules, +0.014 ±0.015 over the current network
+  ACCEPTED - generation 20 is now the current network
+  generation took 12.2 minutes
+
+=== generation 21   11/14/2026, 8:49:35 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.17 ±0.03 |  +0.01 ±0.01       | 73%
+      3 |  +0.41 ±0.05 |  -0.00 ±0.02       | 69%
+      4 |  +0.57 ±0.07 |  +0.01 ±0.02       | 67%
+      5 |  +0.76 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +1.00 ±0.09 |  -0.00 ±0.04       | 66%
+      7 |  +1.14 ±0.10 |  +0.00 ±0.04       | 67%
+      8 |  +1.38 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.51 ±0.11 |  -0.01 ±0.06       | 67%
+     10 |  +1.72 ±0.11 |  +0.05 ±0.06       | 67%
+     11 |  +1.93 ±0.11 |  -0.03 ±0.07       | 67%
+     12 |  +2.07 ±0.12 |  -0.02 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.43, 8 cards +0.74, 10 cards +0.95, 12 cards +1.18
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.152 over the rules, -0.000 ±0.015 over the current network
+  ACCEPTED - generation 21 is now the current network
+  generation took 12.3 minutes
+
+=== generation 22   11/14/2026, 9:01:50 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.33 ±0.05 |  -0.01 ±0.02       | 69%
+      4 |  +0.55 ±0.07 |  +0.02 ±0.02       | 67%
+      5 |  +0.72 ±0.08 |  -0.00 ±0.03       | 65%
+      6 |  +0.93 ±0.09 |  -0.01 ±0.04       | 66%
+      7 |  +1.18 ±0.10 |  +0.02 ±0.04       | 66%
+      8 |  +1.44 ±0.10 |  -0.03 ±0.05       | 67%
+      9 |  +1.51 ±0.11 |  +0.03 ±0.06       | 67%
+     10 |  +1.80 ±0.11 |  +0.04 ±0.07       | 67%
+     11 |  +1.93 ±0.11 |  +0.03 ±0.07       | 67%
+     12 |  +2.02 ±0.12 |  +0.06 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.42, 8 cards +0.76, 10 cards +0.99, 12 cards +1.13
+  hard deals, gain over the current network: -0.00 ±0.024
+  average: +1.144 over the rules, +0.013 ±0.015 over the current network
+  ACCEPTED - generation 22 is now the current network
+  generation took 12.1 minutes
+
+=== generation 23   11/14/2026, 9:13:59 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.01 ±0.01       | 72%
+      3 |  +0.40 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.59 ±0.07 |  +0.00 ±0.02       | 66%
+      5 |  +0.79 ±0.08 |  +0.04 ±0.03       | 66%
+      6 |  +0.97 ±0.09 |  -0.02 ±0.04       | 65%
+      7 |  +1.10 ±0.10 |  -0.05 ±0.04       | 65%
+      8 |  +1.36 ±0.10 |  +0.00 ±0.05       | 67%
+      9 |  +1.67 ±0.11 |  -0.04 ±0.06       | 67%
+     10 |  +1.75 ±0.11 |  +0.01 ±0.06       | 67%
+     11 |  +1.90 ±0.11 |  -0.08 ±0.07       | 67%
+     12 |  +2.12 ±0.12 |  -0.00 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.81, 10 cards +0.93, 12 cards +1.03
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.166 over the rules, -0.012 ±0.015 over the current network
+  ACCEPTED - generation 23 is now the current network
+  generation took 12.2 minutes
+
+=== generation 24   11/14/2026, 9:26:10 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.39 ±0.05 |  +0.02 ±0.02       | 69%
+      4 |  +0.61 ±0.07 |  -0.00 ±0.03       | 67%
+      5 |  +0.72 ±0.08 |  -0.04 ±0.03       | 66%
+      6 |  +0.95 ±0.09 |  +0.02 ±0.04       | 67%
+      7 |  +1.13 ±0.10 |  -0.01 ±0.04       | 65%
+      8 |  +1.41 ±0.10 |  +0.04 ±0.05       | 67%
+      9 |  +1.57 ±0.11 |  +0.03 ±0.06       | 66%
+     10 |  +1.76 ±0.11 |  -0.01 ±0.06       | 66%
+     11 |  +1.93 ±0.11 |  +0.04 ±0.07       | 68%
+     12 |  +2.10 ±0.12 |  -0.05 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.39, 8 cards +0.78, 10 cards +0.90, 12 cards +1.13
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.159 over the rules, +0.003 ±0.015 over the current network
+  ACCEPTED - generation 24 is now the current network
+  generation took 12.1 minutes
+
+=== generation 25   11/14/2026, 9:38:15 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.16 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.39 ±0.05 |  +0.00 ±0.02       | 68%
+      4 |  +0.57 ±0.07 |  +0.00 ±0.02       | 66%
+      5 |  +0.75 ±0.08 |  +0.02 ±0.03       | 66%
+      6 |  +1.03 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.14 ±0.09 |  +0.02 ±0.04       | 66%
+      8 |  +1.43 ±0.10 |  -0.03 ±0.05       | 67%
+      9 |  +1.62 ±0.11 |  -0.04 ±0.06       | 67%
+     10 |  +1.69 ±0.11 |  -0.00 ±0.07       | 67%
+     11 |  +1.86 ±0.11 |  -0.02 ±0.07       | 67%
+     12 |  +2.13 ±0.12 |  -0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.43, 8 cards +0.74, 10 cards +0.89, 12 cards +1.14
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.161 over the rules, -0.003 ±0.015 over the current network
+  ACCEPTED - generation 25 is now the current network
+  generation took 12.2 minutes
+
+=== generation 26   11/14/2026, 9:50:28 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.01 ±0.01       | 72%
+      3 |  +0.40 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.62 ±0.07 |  -0.01 ±0.03       | 66%
+      5 |  +0.81 ±0.08 |  -0.03 ±0.03       | 66%
+      6 |  +0.91 ±0.09 |  +0.01 ±0.04       | 65%
+      7 |  +1.15 ±0.10 |  -0.01 ±0.04       | 65%
+      8 |  +1.38 ±0.10 |  +0.04 ±0.05       | 67%
+      9 |  +1.47 ±0.11 |  +0.01 ±0.06       | 67%
+     10 |  +1.78 ±0.11 |  -0.02 ±0.06       | 68%
+     11 |  +1.90 ±0.11 |  -0.01 ±0.07       | 67%
+     12 |  +2.10 ±0.12 |  +0.01 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.37, 8 cards +0.74, 10 cards +0.93, 12 cards +1.19
+  hard deals, gain over the current network: -0.00 ±0.024
+  average: +1.154 over the rules, +0.000 ±0.015 over the current network
+  ACCEPTED - generation 26 is now the current network
+  generation took 12.1 minutes
+
+=== generation 27   11/14/2026, 10:02:35 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.40 ±0.05 |  +0.01 ±0.02       | 68%
+      4 |  +0.59 ±0.07 |  +0.01 ±0.02       | 67%
+      5 |  +0.74 ±0.08 |  -0.00 ±0.03       | 65%
+      6 |  +0.93 ±0.09 |  -0.02 ±0.03       | 65%
+      7 |  +1.21 ±0.10 |  -0.02 ±0.04       | 66%
+      8 |  +1.40 ±0.10 |  -0.03 ±0.05       | 66%
+      9 |  +1.53 ±0.11 |  +0.01 ±0.06       | 67%
+     10 |  +1.72 ±0.11 |  -0.01 ±0.06       | 67%
+     11 |  +1.90 ±0.11 |  +0.03 ±0.07       | 66%
+     12 |  +2.05 ±0.12 |  +0.05 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.42, 8 cards +0.72, 10 cards +0.91, 12 cards +1.16
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.151 over the rules, +0.003 ±0.015 over the current network
+  ACCEPTED - generation 27 is now the current network
+  generation took 12.2 minutes
+
+=== generation 28   11/14/2026, 10:14:47 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.33 ±0.05 |  -0.00 ±0.02       | 70%
+      4 |  +0.55 ±0.07 |  -0.01 ±0.03       | 67%
+      5 |  +0.76 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +1.04 ±0.09 |  +0.02 ±0.04       | 64%
+      7 |  +1.16 ±0.10 |  -0.01 ±0.04       | 66%
+      8 |  +1.37 ±0.10 |  -0.00 ±0.05       | 67%
+      9 |  +1.63 ±0.11 |  +0.02 ±0.06       | 67%
+     10 |  +1.70 ±0.11 |  -0.03 ±0.06       | 66%
+     11 |  +1.90 ±0.11 |  -0.02 ±0.07       | 67%
+     12 |  +2.16 ±0.12 |  +0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.43, 8 cards +0.77, 10 cards +0.89, 12 cards +1.18
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.164 over the rules, -0.002 ±0.015 over the current network
+  ACCEPTED - generation 28 is now the current network
+  generation took 11.9 minutes
+
+=== generation 29   11/14/2026, 10:26:44 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.36 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.61 ±0.07 |  -0.00 ±0.02       | 67%
+      5 |  +0.84 ±0.08 |  +0.03 ±0.03       | 65%
+      6 |  +1.06 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.17 ±0.10 |  +0.01 ±0.05       | 66%
+      8 |  +1.36 ±0.10 |  -0.01 ±0.05       | 67%
+      9 |  +1.54 ±0.11 |  -0.02 ±0.06       | 67%
+     10 |  +1.78 ±0.11 |  -0.02 ±0.07       | 67%
+     11 |  +2.00 ±0.11 |  +0.09 ±0.07       | 67%
+     12 |  +2.08 ±0.12 |  -0.05 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.42, 8 cards +0.78, 10 cards +0.87, 12 cards +1.18
+  hard deals, gain over the current network: -0.05 ±0.025
+  average: +1.181 over the rules, +0.003 ±0.015 over the current network
+  ACCEPTED - generation 29 is now the current network
+  generation took 12.0 minutes
+
+=== generation 30   11/14/2026, 10:38:43 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.35 ±0.05 |  -0.00 ±0.02       | 69%
+      4 |  +0.57 ±0.07 |  +0.01 ±0.03       | 67%
+      5 |  +0.83 ±0.08 |  +0.02 ±0.03       | 66%
+      6 |  +1.01 ±0.09 |  +0.00 ±0.04       | 66%
+      7 |  +1.19 ±0.10 |  -0.03 ±0.04       | 66%
+      8 |  +1.36 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.55 ±0.11 |  +0.03 ±0.06       | 66%
+     10 |  +1.78 ±0.11 |  +0.06 ±0.06       | 67%
+     11 |  +1.94 ±0.11 |  +0.03 ±0.07       | 67%
+     12 |  +2.17 ±0.12 |  +0.06 ±0.08       | 68%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.36, 8 cards +0.75, 10 cards +0.91, 12 cards +1.06
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.175 over the rules, +0.015 ±0.015 over the current network
+  ACCEPTED - generation 30 is now the current network
+  generation took 12.2 minutes
+
+=== generation 31   11/14/2026, 10:50:53 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.22 ±0.03 |  -0.01 ±0.01       | 73%
+      3 |  +0.40 ±0.05 |  -0.01 ±0.02       | 68%
+      4 |  +0.61 ±0.07 |  +0.01 ±0.02       | 67%
+      5 |  +0.80 ±0.08 |  +0.01 ±0.03       | 67%
+      6 |  +1.02 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.13 ±0.10 |  +0.02 ±0.05       | 65%
+      8 |  +1.38 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.51 ±0.11 |  -0.02 ±0.06       | 67%
+     10 |  +1.69 ±0.11 |  +0.08 ±0.06       | 66%
+     11 |  +1.90 ±0.11 |  +0.04 ±0.07       | 66%
+     12 |  +2.11 ±0.12 |  -0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.76, 10 cards +0.95, 12 cards +1.12
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.160 over the rules, +0.011 ±0.015 over the current network
+  ACCEPTED - generation 31 is now the current network
+  generation took 12.1 minutes
+
+=== generation 32   11/14/2026, 11:02:57 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.01 ±0.01       | 73%
+      3 |  +0.36 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.54 ±0.07 |  -0.02 ±0.02       | 67%
+      5 |  +0.78 ±0.08 |  -0.02 ±0.03       | 66%
+      6 |  +0.98 ±0.09 |  +0.02 ±0.04       | 66%
+      7 |  +1.18 ±0.10 |  +0.02 ±0.04       | 66%
+      8 |  +1.27 ±0.10 |  -0.03 ±0.05       | 67%
+      9 |  +1.49 ±0.11 |  +0.00 ±0.06       | 66%
+     10 |  +1.72 ±0.11 |  +0.02 ±0.06       | 67%
+     11 |  +1.84 ±0.11 |  +0.02 ±0.07       | 67%
+     12 |  +2.04 ±0.12 |  -0.04 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.41, 8 cards +0.81, 10 cards +0.89, 12 cards +1.13
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.126 over the rules, -0.003 ±0.015 over the current network
+  ACCEPTED - generation 32 is now the current network
+  generation took 12.2 minutes
+
+=== generation 33   11/14/2026, 11:15:07 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.36 ±0.05 |  +0.01 ±0.02       | 68%
+      4 |  +0.57 ±0.07 |  -0.03 ±0.03       | 66%
+      5 |  +0.78 ±0.08 |  -0.00 ±0.03       | 67%
+      6 |  +0.92 ±0.09 |  -0.00 ±0.04       | 65%
+      7 |  +1.18 ±0.10 |  +0.03 ±0.04       | 65%
+      8 |  +1.36 ±0.10 |  -0.03 ±0.05       | 67%
+      9 |  +1.55 ±0.11 |  -0.06 ±0.06       | 66%
+     10 |  +1.84 ±0.11 |  +0.04 ±0.06       | 68%
+     11 |  +1.78 ±0.11 |  +0.04 ±0.07       | 66%
+     12 |  +2.07 ±0.12 |  -0.05 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.38, 8 cards +0.72, 10 cards +0.95, 12 cards +1.21
+  hard deals, gain over the current network: -0.02 ±0.024
+  average: +1.147 over the rules, -0.005 ±0.015 over the current network
+  ACCEPTED - generation 33 is now the current network
+  generation took 12.1 minutes
+
+=== generation 34   11/14/2026, 11:27:13 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.39 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.58 ±0.07 |  -0.00 ±0.02       | 67%
+      5 |  +0.75 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +0.97 ±0.09 |  +0.04 ±0.04       | 66%
+      7 |  +1.19 ±0.10 |  -0.01 ±0.04       | 66%
+      8 |  +1.45 ±0.10 |  +0.04 ±0.05       | 67%
+      9 |  +1.59 ±0.11 |  -0.02 ±0.06       | 66%
+     10 |  +1.64 ±0.11 |  -0.07 ±0.06       | 66%
+     11 |  +1.96 ±0.11 |  +0.02 ±0.07       | 67%
+     12 |  +2.11 ±0.12 |  +0.07 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.44, 8 cards +0.72, 10 cards +0.93, 12 cards +1.19
+  hard deals, gain over the current network: -0.00 ±0.024
+  average: +1.165 over the rules, +0.007 ±0.015 over the current network
+  ACCEPTED - generation 34 is now the current network
+  generation took 12.1 minutes
+
+=== generation 35   11/14/2026, 11:39:19 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.34 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.58 ±0.07 |  -0.01 ±0.03       | 68%
+      5 |  +0.68 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +0.96 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.30 ±0.10 |  +0.05 ±0.05       | 67%
+      8 |  +1.32 ±0.10 |  +0.03 ±0.05       | 67%
+      9 |  +1.58 ±0.11 |  +0.01 ±0.06       | 67%
+     10 |  +1.73 ±0.11 |  -0.00 ±0.07       | 67%
+     11 |  +1.94 ±0.11 |  +0.02 ±0.07       | 67%
+     12 |  +2.07 ±0.11 |  +0.08 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.79, 10 cards +0.89, 12 cards +1.16
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.155 over the rules, +0.017 ±0.015 over the current network
+  ACCEPTED - generation 35 is now the current network
+  generation took 12.2 minutes
+
+=== generation 36   11/14/2026, 11:51:31 PM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.37 ±0.05 |  -0.01 ±0.02       | 68%
+      4 |  +0.62 ±0.07 |  +0.01 ±0.02       | 67%
+      5 |  +0.78 ±0.08 |  -0.00 ±0.03       | 66%
+      6 |  +0.98 ±0.09 |  -0.03 ±0.04       | 65%
+      7 |  +1.24 ±0.10 |  +0.00 ±0.04       | 66%
+      8 |  +1.39 ±0.10 |  +0.01 ±0.05       | 66%
+      9 |  +1.54 ±0.11 |  +0.03 ±0.06       | 67%
+     10 |  +1.75 ±0.11 |  +0.04 ±0.06       | 68%
+     11 |  +1.87 ±0.11 |  +0.08 ±0.07       | 67%
+     12 |  +2.07 ±0.12 |  -0.04 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.43, 8 cards +0.77, 10 cards +0.99, 12 cards +1.14
+  hard deals, gain over the current network: +0.02 ±0.024
+  average: +1.163 over the rules, +0.009 ±0.015 over the current network
+  ACCEPTED - generation 36 is now the current network
+  generation took 12.1 minutes
+
+=== generation 37   11/15/2026, 12:03:37 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.36 ±0.05 |  -0.01 ±0.02       | 68%
+      4 |  +0.57 ±0.07 |  +0.00 ±0.02       | 65%
+      5 |  +0.81 ±0.08 |  +0.03 ±0.03       | 66%
+      6 |  +0.99 ±0.09 |  +0.01 ±0.04       | 65%
+      7 |  +1.15 ±0.10 |  -0.01 ±0.04       | 65%
+      8 |  +1.43 ±0.10 |  +0.01 ±0.05       | 67%
+      9 |  +1.56 ±0.11 |  -0.00 ±0.06       | 67%
+     10 |  +1.73 ±0.11 |  +0.04 ±0.06       | 68%
+     11 |  +1.82 ±0.11 |  -0.11 ±0.07       | 66%
+     12 |  +2.12 ±0.12 |  +0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.47, 8 cards +0.65, 10 cards +0.88, 12 cards +1.21
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.158 over the rules, -0.002 ±0.015 over the current network
+  ACCEPTED - generation 37 is now the current network
+  generation took 12.1 minutes
+
+=== generation 38   11/15/2026, 12:15:43 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.17 ±0.03 |  +0.01 ±0.01       | 72%
+      3 |  +0.37 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.58 ±0.07 |  -0.01 ±0.03       | 67%
+      5 |  +0.78 ±0.08 |  -0.02 ±0.03       | 67%
+      6 |  +0.91 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.18 ±0.09 |  +0.01 ±0.04       | 66%
+      8 |  +1.35 ±0.10 |  -0.01 ±0.05       | 66%
+      9 |  +1.51 ±0.11 |  +0.02 ±0.06       | 66%
+     10 |  +1.77 ±0.11 |  +0.03 ±0.06       | 66%
+     11 |  +1.81 ±0.11 |  -0.00 ±0.07       | 67%
+     12 |  +2.12 ±0.12 |  -0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.78, 10 cards +0.92, 12 cards +1.05
+  hard deals, gain over the current network: +0.03 ±0.025
+  average: +1.142 over the rules, +0.000 ±0.015 over the current network
+  ACCEPTED - generation 38 is now the current network
+  generation took 12.1 minutes
+
+=== generation 39   11/15/2026, 12:27:49 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.35 ±0.05 |  -0.00 ±0.02       | 69%
+      4 |  +0.62 ±0.07 |  -0.01 ±0.02       | 67%
+      5 |  +0.80 ±0.08 |  -0.01 ±0.03       | 65%
+      6 |  +1.00 ±0.09 |  -0.00 ±0.04       | 67%
+      7 |  +1.07 ±0.10 |  -0.00 ±0.05       | 65%
+      8 |  +1.33 ±0.10 |  +0.03 ±0.05       | 67%
+      9 |  +1.54 ±0.11 |  +0.06 ±0.06       | 66%
+     10 |  +1.78 ±0.11 |  +0.04 ±0.06       | 67%
+     11 |  +1.91 ±0.11 |  -0.02 ±0.07       | 67%
+     12 |  +2.06 ±0.11 |  +0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.46, 8 cards +0.70, 10 cards +0.97, 12 cards +1.22
+  hard deals, gain over the current network: -0.02 ±0.024
+  average: +1.147 over the rules, +0.011 ±0.015 over the current network
+  ACCEPTED - generation 39 is now the current network
+  generation took 12.1 minutes
+
+=== generation 40   11/15/2026, 12:39:55 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.16 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.38 ±0.05 |  -0.01 ±0.02       | 69%
+      4 |  +0.57 ±0.07 |  +0.02 ±0.03       | 66%
+      5 |  +0.78 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +1.10 ±0.09 |  +0.03 ±0.04       | 66%
+      7 |  +1.19 ±0.10 |  -0.01 ±0.05       | 65%
+      8 |  +1.29 ±0.10 |  +0.02 ±0.05       | 66%
+      9 |  +1.46 ±0.11 |  -0.05 ±0.05       | 67%
+     10 |  +1.76 ±0.11 |  -0.02 ±0.06       | 68%
+     11 |  +1.87 ±0.11 |  -0.01 ±0.07       | 66%
+     12 |  +2.08 ±0.12 |  -0.05 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.72, 10 cards +0.93, 12 cards +1.10
+  hard deals, gain over the current network: -0.02 ±0.025
+  average: +1.149 over the rules, -0.006 ±0.015 over the current network
+  ACCEPTED - generation 40 is now the current network
+  generation took 12.1 minutes
+
+=== generation 41   11/15/2026, 12:51:59 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.01 ±0.01       | 73%
+      3 |  +0.35 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.58 ±0.07 |  -0.00 ±0.03       | 67%
+      5 |  +0.76 ±0.08 |  -0.02 ±0.03       | 66%
+      6 |  +1.00 ±0.09 |  +0.01 ±0.04       | 65%
+      7 |  +1.25 ±0.10 |  +0.03 ±0.04       | 66%
+      8 |  +1.24 ±0.10 |  +0.04 ±0.05       | 65%
+      9 |  +1.62 ±0.11 |  +0.01 ±0.06       | 67%
+     10 |  +1.74 ±0.11 |  +0.02 ±0.06       | 68%
+     11 |  +1.93 ±0.11 |  +0.02 ±0.07       | 67%
+     12 |  +2.11 ±0.12 |  +0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.39, 8 cards +0.79, 10 cards +0.97, 12 cards +1.18
+  hard deals, gain over the current network: -0.00 ±0.024
+  average: +1.162 over the rules, +0.011 ±0.015 over the current network
+  ACCEPTED - generation 41 is now the current network
+  generation took 12.1 minutes
+
+=== generation 42   11/15/2026, 1:04:07 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.41 ±0.05 |  -0.00 ±0.02       | 70%
+      4 |  +0.58 ±0.07 |  +0.01 ±0.02       | 67%
+      5 |  +0.80 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +1.00 ±0.09 |  +0.00 ±0.04       | 66%
+      7 |  +1.19 ±0.10 |  -0.01 ±0.04       | 67%
+      8 |  +1.32 ±0.10 |  +0.04 ±0.05       | 66%
+      9 |  +1.53 ±0.11 |  -0.02 ±0.06       | 67%
+     10 |  +1.67 ±0.11 |  -0.02 ±0.06       | 66%
+     11 |  +1.88 ±0.11 |  -0.07 ±0.07       | 66%
+     12 |  +2.11 ±0.11 |  +0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.45, 8 cards +0.75, 10 cards +0.91, 12 cards +1.05
+  hard deals, gain over the current network: +0.02 ±0.024
+  average: +1.153 over the rules, -0.005 ±0.015 over the current network
+  ACCEPTED - generation 42 is now the current network
+  generation took 12.1 minutes
+
+=== generation 43   11/15/2026, 1:16:14 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.43 ±0.05 |  -0.02 ±0.02       | 70%
+      4 |  +0.60 ±0.07 |  -0.00 ±0.03       | 67%
+      5 |  +0.75 ±0.08 |  -0.00 ±0.03       | 66%
+      6 |  +0.97 ±0.09 |  -0.02 ±0.04       | 66%
+      7 |  +1.24 ±0.10 |  -0.02 ±0.04       | 67%
+      8 |  +1.38 ±0.10 |  -0.00 ±0.05       | 65%
+      9 |  +1.54 ±0.11 |  +0.00 ±0.06       | 67%
+     10 |  +1.81 ±0.11 |  -0.03 ±0.06       | 69%
+     11 |  +1.82 ±0.11 |  -0.03 ±0.07       | 67%
+     12 |  +2.06 ±0.12 |  +0.05 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.78, 10 cards +0.97, 12 cards +1.09
+  hard deals, gain over the current network: +0.02 ±0.024
+  average: +1.162 over the rules, -0.007 ±0.015 over the current network
+  ACCEPTED - generation 43 is now the current network
+  generation took 12.1 minutes
+
+=== generation 44   11/15/2026, 1:28:20 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.38 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.53 ±0.07 |  -0.02 ±0.02       | 66%
+      5 |  +0.73 ±0.08 |  -0.01 ±0.03       | 65%
+      6 |  +1.01 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.28 ±0.10 |  -0.01 ±0.04       | 67%
+      8 |  +1.43 ±0.10 |  +0.02 ±0.05       | 66%
+      9 |  +1.45 ±0.11 |  -0.02 ±0.06       | 66%
+     10 |  +1.80 ±0.11 |  -0.02 ±0.07       | 68%
+     11 |  +1.87 ±0.11 |  -0.06 ±0.07       | 66%
+     12 |  +2.18 ±0.11 |  -0.06 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.42, 8 cards +0.68, 10 cards +0.98, 12 cards +1.12
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.169 over the rules, -0.016 ±0.015 over the current network
+  rejected - keeping the current network; its data is still used
+  generation took 12.1 minutes
+
+=== generation 45   11/15/2026, 1:40:26 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.00 ±0.01       | 73%
+      3 |  +0.38 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.59 ±0.07 |  +0.00 ±0.03       | 68%
+      5 |  +0.82 ±0.08 |  -0.02 ±0.03       | 66%
+      6 |  +1.04 ±0.09 |  +0.00 ±0.04       | 66%
+      7 |  +1.11 ±0.10 |  -0.03 ±0.05       | 67%
+      8 |  +1.36 ±0.10 |  -0.03 ±0.05       | 66%
+      9 |  +1.60 ±0.11 |  +0.04 ±0.06       | 67%
+     10 |  +1.73 ±0.11 |  -0.02 ±0.07       | 67%
+     11 |  +1.93 ±0.11 |  -0.02 ±0.08       | 66%
+     12 |  +2.23 ±0.11 |  +0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.75, 10 cards +0.88, 12 cards +1.13
+  hard deals, gain over the current network: -0.01 ±0.025
+  average: +1.179 over the rules, -0.007 ±0.016 over the current network
+  ACCEPTED - generation 45 is now the current network
+  generation took 12.0 minutes
+
+=== generation 46   11/15/2026, 1:52:27 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.01 ±0.01       | 73%
+      3 |  +0.39 ±0.05 |  +0.00 ±0.02       | 68%
+      4 |  +0.56 ±0.07 |  -0.02 ±0.03       | 66%
+      5 |  +0.87 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +0.98 ±0.09 |  +0.00 ±0.04       | 66%
+      7 |  +1.14 ±0.10 |  +0.03 ±0.04       | 66%
+      8 |  +1.35 ±0.10 |  -0.02 ±0.05       | 66%
+      9 |  +1.50 ±0.11 |  +0.04 ±0.06       | 66%
+     10 |  +1.80 ±0.11 |  -0.06 ±0.06       | 67%
+     11 |  +1.88 ±0.11 |  +0.02 ±0.07       | 67%
+     12 |  +2.21 ±0.11 |  +0.02 ±0.08       | 68%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.73, 10 cards +0.97, 12 cards +1.19
+  hard deals, gain over the current network: -0.01 ±0.023
+  average: +1.170 over the rules, +0.000 ±0.015 over the current network
+  ACCEPTED - generation 46 is now the current network
+  generation took 12.1 minutes
+
+=== generation 47   11/15/2026, 2:04:34 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.17 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.37 ±0.05 |  -0.01 ±0.02       | 68%
+      4 |  +0.62 ±0.07 |  -0.00 ±0.02       | 67%
+      5 |  +0.75 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +1.00 ±0.09 |  +0.02 ±0.04       | 66%
+      7 |  +1.20 ±0.10 |  +0.00 ±0.04       | 66%
+      8 |  +1.33 ±0.10 |  +0.01 ±0.05       | 67%
+      9 |  +1.50 ±0.10 |  +0.00 ±0.06       | 66%
+     10 |  +1.78 ±0.11 |  +0.01 ±0.06       | 67%
+     11 |  +1.82 ±0.11 |  -0.08 ±0.07       | 66%
+     12 |  +2.15 ±0.11 |  -0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.37, 8 cards +0.77, 10 cards +0.97, 12 cards +1.18
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.153 over the rules, -0.005 ±0.015 over the current network
+  ACCEPTED - generation 47 is now the current network
+  generation took 12.0 minutes
+
+=== generation 48   11/15/2026, 2:16:36 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.36 ±0.05 |  +0.00 ±0.02       | 68%
+      4 |  +0.64 ±0.07 |  +0.04 ±0.02       | 67%
+      5 |  +0.80 ±0.08 |  -0.02 ±0.03       | 66%
+      6 |  +1.03 ±0.09 |  -0.03 ±0.04       | 66%
+      7 |  +1.06 ±0.10 |  +0.01 ±0.04       | 65%
+      8 |  +1.30 ±0.10 |  +0.01 ±0.05       | 67%
+      9 |  +1.54 ±0.11 |  -0.00 ±0.06       | 66%
+     10 |  +1.84 ±0.11 |  -0.02 ±0.06       | 68%
+     11 |  +1.91 ±0.11 |  +0.01 ±0.07       | 67%
+     12 |  +2.11 ±0.12 |  +0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.44, 8 cards +0.73, 10 cards +1.00, 12 cards +1.09
+  hard deals, gain over the current network: -0.00 ±0.024
+  average: +1.164 over the rules, +0.000 ±0.015 over the current network
+  ACCEPTED - generation 48 is now the current network
+  generation took 12.1 minutes
+
+=== generation 49   11/15/2026, 2:28:40 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.17 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.36 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.55 ±0.07 |  -0.00 ±0.03       | 67%
+      5 |  +0.75 ±0.08 |  -0.00 ±0.03       | 66%
+      6 |  +1.02 ±0.09 |  -0.00 ±0.04       | 66%
+      7 |  +1.19 ±0.10 |  -0.03 ±0.04       | 66%
+      8 |  +1.46 ±0.10 |  +0.00 ±0.05       | 67%
+      9 |  +1.60 ±0.11 |  -0.00 ±0.06       | 67%
+     10 |  +1.64 ±0.11 |  +0.00 ±0.06       | 67%
+     11 |  +1.88 ±0.11 |  -0.02 ±0.07       | 66%
+     12 |  +2.18 ±0.11 |  +0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.44, 8 cards +0.77, 10 cards +1.00, 12 cards +1.17
+  hard deals, gain over the current network: -0.03 ±0.024
+  average: +1.166 over the rules, -0.004 ±0.015 over the current network
+  ACCEPTED - generation 49 is now the current network
+  generation took 12.1 minutes
+
+=== generation 50   11/15/2026, 2:40:47 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.39 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.56 ±0.07 |  +0.00 ±0.02       | 67%
+      5 |  +0.76 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +0.93 ±0.09 |  -0.01 ±0.04       | 65%
+      7 |  +1.24 ±0.10 |  -0.03 ±0.04       | 66%
+      8 |  +1.40 ±0.10 |  -0.02 ±0.05       | 66%
+      9 |  +1.62 ±0.11 |  -0.05 ±0.06       | 67%
+     10 |  +1.79 ±0.11 |  +0.07 ±0.06       | 66%
+     11 |  +1.97 ±0.11 |  +0.05 ±0.07       | 67%
+     12 |  +2.17 ±0.11 |  +0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.41, 8 cards +0.78, 10 cards +0.98, 12 cards +1.19
+  hard deals, gain over the current network: +0.04 ±0.024
+  average: +1.183 over the rules, +0.005 ±0.015 over the current network
+  ACCEPTED - generation 50 is now the current network
+  generation took 12.1 minutes
+
+=== generation 51   11/15/2026, 2:52:50 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.22 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.41 ±0.05 |  +0.00 ±0.02       | 70%
+      4 |  +0.54 ±0.07 |  +0.02 ±0.02       | 66%
+      5 |  +0.83 ±0.08 |  +0.02 ±0.03       | 66%
+      6 |  +1.00 ±0.09 |  -0.01 ±0.04       | 66%
+      7 |  +1.19 ±0.10 |  -0.01 ±0.05       | 66%
+      8 |  +1.39 ±0.10 |  -0.01 ±0.05       | 66%
+      9 |  +1.71 ±0.11 |  -0.02 ±0.06       | 68%
+     10 |  +1.80 ±0.11 |  +0.02 ±0.06       | 67%
+     11 |  +1.97 ±0.11 |  +0.06 ±0.07       | 67%
+     12 |  +2.11 ±0.12 |  +0.05 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.39, 8 cards +0.80, 10 cards +0.99, 12 cards +1.18
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.198 over the rules, +0.011 ±0.015 over the current network
+  ACCEPTED - generation 51 is now the current network
+  generation took 12.1 minutes
+
+=== generation 52   11/15/2026, 3:04:54 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.37 ±0.05 |  +0.00 ±0.02       | 69%
+      4 |  +0.58 ±0.07 |  +0.00 ±0.03       | 67%
+      5 |  +0.76 ±0.08 |  +0.02 ±0.03       | 65%
+      6 |  +0.95 ±0.09 |  +0.03 ±0.04       | 65%
+      7 |  +1.26 ±0.10 |  +0.00 ±0.04       | 66%
+      8 |  +1.31 ±0.10 |  -0.03 ±0.05       | 65%
+      9 |  +1.54 ±0.11 |  +0.02 ±0.06       | 66%
+     10 |  +1.65 ±0.11 |  +0.03 ±0.06       | 66%
+     11 |  +1.82 ±0.11 |  +0.04 ±0.07       | 66%
+     12 |  +2.11 ±0.12 |  -0.00 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.41, 8 cards +0.74, 10 cards +0.93, 12 cards +1.12
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.141 over the rules, +0.010 ±0.015 over the current network
+  ACCEPTED - generation 52 is now the current network
+  generation took 12.0 minutes
+
+=== generation 53   11/15/2026, 3:16:57 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  +0.01 ±0.01       | 73%
+      3 |  +0.37 ±0.05 |  -0.01 ±0.02       | 69%
+      4 |  +0.54 ±0.07 |  +0.01 ±0.02       | 67%
+      5 |  +0.76 ±0.08 |  -0.01 ±0.03       | 65%
+      6 |  +1.09 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.20 ±0.10 |  -0.01 ±0.04       | 65%
+      8 |  +1.29 ±0.10 |  +0.04 ±0.05       | 66%
+      9 |  +1.46 ±0.11 |  -0.00 ±0.06       | 67%
+     10 |  +1.69 ±0.11 |  -0.01 ±0.06       | 67%
+     11 |  +1.86 ±0.11 |  +0.02 ±0.07       | 67%
+     12 |  +2.02 ±0.12 |  -0.05 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.39, 8 cards +0.70, 10 cards +1.00, 12 cards +1.26
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.135 over the rules, -0.002 ±0.015 over the current network
+  ACCEPTED - generation 53 is now the current network
+  generation took 12.0 minutes
+
+=== generation 54   11/15/2026, 3:28:57 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.00 ±0.01       | 73%
+      3 |  +0.42 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.66 ±0.07 |  +0.01 ±0.02       | 66%
+      5 |  +0.73 ±0.08 |  -0.03 ±0.03       | 66%
+      6 |  +0.97 ±0.09 |  +0.00 ±0.04       | 66%
+      7 |  +1.26 ±0.10 |  +0.00 ±0.04       | 66%
+      8 |  +1.38 ±0.10 |  +0.01 ±0.05       | 66%
+      9 |  +1.53 ±0.11 |  -0.01 ±0.06       | 67%
+     10 |  +1.80 ±0.11 |  -0.04 ±0.06       | 67%
+     11 |  +1.96 ±0.11 |  -0.04 ±0.07       | 68%
+     12 |  +1.95 ±0.12 |  +0.04 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.72, 10 cards +0.98, 12 cards +1.13
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.167 over the rules, -0.004 ±0.015 over the current network
+  ACCEPTED - generation 54 is now the current network
+  generation took 12.0 minutes
+
+=== generation 55   11/15/2026, 3:40:59 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.40 ±0.05 |  -0.01 ±0.02       | 69%
+      4 |  +0.54 ±0.07 |  +0.02 ±0.02       | 66%
+      5 |  +0.79 ±0.08 |  +0.00 ±0.03       | 67%
+      6 |  +0.92 ±0.09 |  -0.04 ±0.04       | 66%
+      7 |  +1.30 ±0.10 |  +0.01 ±0.04       | 66%
+      8 |  +1.35 ±0.10 |  -0.02 ±0.05       | 67%
+      9 |  +1.60 ±0.11 |  -0.02 ±0.06       | 67%
+     10 |  +1.69 ±0.11 |  +0.01 ±0.06       | 67%
+     11 |  +1.98 ±0.11 |  -0.01 ±0.07       | 67%
+     12 |  +2.16 ±0.11 |  -0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.74, 10 cards +0.95, 12 cards +1.22
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.175 over the rules, -0.008 ±0.015 over the current network
+  ACCEPTED - generation 55 is now the current network
+  generation took 11.9 minutes
+
+=== generation 56   11/15/2026, 3:52:54 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.35 ±0.05 |  +0.02 ±0.02       | 69%
+      4 |  +0.53 ±0.07 |  +0.02 ±0.02       | 66%
+      5 |  +0.76 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +0.97 ±0.09 |  -0.00 ±0.04       | 66%
+      7 |  +1.14 ±0.10 |  +0.02 ±0.04       | 66%
+      8 |  +1.39 ±0.10 |  -0.00 ±0.05       | 66%
+      9 |  +1.55 ±0.11 |  +0.03 ±0.06       | 66%
+     10 |  +1.77 ±0.11 |  -0.00 ±0.06       | 67%
+     11 |  +1.87 ±0.11 |  -0.04 ±0.07       | 67%
+     12 |  +2.14 ±0.11 |  -0.01 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.46, 8 cards +0.77, 10 cards +0.94, 12 cards +1.15
+  hard deals, gain over the current network: +0.02 ±0.024
+  average: +1.150 over the rules, +0.004 ±0.015 over the current network
+  ACCEPTED - generation 56 is now the current network
+  generation took 12.0 minutes
+
+=== generation 57   11/15/2026, 4:04:57 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.42 ±0.05 |  -0.01 ±0.02       | 70%
+      4 |  +0.59 ±0.07 |  -0.03 ±0.02       | 66%
+      5 |  +0.77 ±0.08 |  -0.01 ±0.03       | 65%
+      6 |  +0.97 ±0.09 |  -0.00 ±0.04       | 66%
+      7 |  +1.13 ±0.10 |  -0.00 ±0.04       | 66%
+      8 |  +1.41 ±0.10 |  +0.02 ±0.05       | 67%
+      9 |  +1.63 ±0.10 |  -0.01 ±0.06       | 66%
+     10 |  +1.72 ±0.11 |  +0.02 ±0.06       | 67%
+     11 |  +1.90 ±0.11 |  +0.04 ±0.07       | 66%
+     12 |  +2.10 ±0.12 |  +0.09 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.41, 8 cards +0.70, 10 cards +0.97, 12 cards +1.15
+  hard deals, gain over the current network: -0.02 ±0.024
+  average: +1.167 over the rules, +0.010 ±0.015 over the current network
+  ACCEPTED - generation 57 is now the current network
+  generation took 12.0 minutes
+
+=== generation 58   11/15/2026, 4:16:57 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.38 ±0.05 |  +0.02 ±0.02       | 69%
+      4 |  +0.52 ±0.07 |  -0.01 ±0.02       | 66%
+      5 |  +0.78 ±0.08 |  +0.01 ±0.03       | 65%
+      6 |  +0.98 ±0.09 |  +0.01 ±0.04       | 67%
+      7 |  +1.07 ±0.10 |  -0.02 ±0.04       | 65%
+      8 |  +1.43 ±0.10 |  +0.01 ±0.05       | 67%
+      9 |  +1.53 ±0.10 |  +0.06 ±0.05       | 67%
+     10 |  +1.69 ±0.11 |  -0.00 ±0.06       | 67%
+     11 |  +1.82 ±0.11 |  +0.00 ±0.07       | 66%
+     12 |  +1.97 ±0.11 |  +0.02 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.76, 10 cards +1.03, 12 cards +1.14
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.125 over the rules, +0.010 ±0.014 over the current network
+  ACCEPTED - generation 58 is now the current network
+  generation took 12.0 minutes
+
+=== generation 59   11/15/2026, 4:28:59 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  +0.01 ±0.01       | 72%
+      3 |  +0.35 ±0.05 |  -0.00 ±0.02       | 69%
+      4 |  +0.61 ±0.07 |  -0.02 ±0.03       | 67%
+      5 |  +0.84 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +0.92 ±0.09 |  +0.01 ±0.03       | 66%
+      7 |  +1.16 ±0.10 |  +0.02 ±0.04       | 66%
+      8 |  +1.32 ±0.10 |  -0.04 ±0.05       | 67%
+      9 |  +1.55 ±0.11 |  -0.03 ±0.06       | 66%
+     10 |  +1.79 ±0.11 |  +0.03 ±0.06       | 67%
+     11 |  +1.93 ±0.11 |  -0.02 ±0.07       | 66%
+     12 |  +2.05 ±0.11 |  +0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.39, 8 cards +0.70, 10 cards +0.90, 12 cards +1.22
+  hard deals, gain over the current network: +0.00 ±0.024
+  average: +1.156 over the rules, -0.001 ±0.015 over the current network
+  ACCEPTED - generation 59 is now the current network
+  generation took 11.9 minutes
+
+=== generation 60   11/15/2026, 4:40:56 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.40 ±0.05 |  -0.00 ±0.02       | 69%
+      4 |  +0.62 ±0.07 |  -0.00 ±0.02       | 67%
+      5 |  +0.78 ±0.08 |  -0.02 ±0.03       | 65%
+      6 |  +0.96 ±0.09 |  -0.03 ±0.04       | 66%
+      7 |  +1.18 ±0.10 |  -0.03 ±0.04       | 66%
+      8 |  +1.39 ±0.10 |  -0.00 ±0.05       | 66%
+      9 |  +1.55 ±0.11 |  +0.03 ±0.06       | 66%
+     10 |  +1.67 ±0.11 |  +0.02 ±0.06       | 68%
+     11 |  +1.93 ±0.11 |  -0.02 ±0.07       | 66%
+     12 |  +2.06 ±0.12 |  +0.02 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.42, 8 cards +0.68, 10 cards +1.03, 12 cards +1.18
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.158 over the rules, -0.004 ±0.015 over the current network
+  ACCEPTED - generation 60 is now the current network
+  generation took 12.0 minutes
+
+=== generation 61   11/15/2026, 4:52:55 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.38 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.62 ±0.07 |  -0.01 ±0.02       | 67%
+      5 |  +0.73 ±0.08 |  -0.00 ±0.03       | 66%
+      6 |  +0.99 ±0.09 |  -0.07 ±0.04       | 66%
+      7 |  +1.24 ±0.10 |  -0.01 ±0.04       | 66%
+      8 |  +1.35 ±0.10 |  +0.01 ±0.05       | 66%
+      9 |  +1.53 ±0.11 |  -0.02 ±0.06       | 66%
+     10 |  +1.79 ±0.11 |  +0.01 ±0.06       | 67%
+     11 |  +1.93 ±0.11 |  -0.04 ±0.07       | 67%
+     12 |  +2.10 ±0.11 |  +0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.45, 8 cards +0.70, 10 cards +0.95, 12 cards +1.12
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.167 over the rules, -0.009 ±0.015 over the current network
+  ACCEPTED - generation 61 is now the current network
+  generation took 11.9 minutes
+
+=== generation 62   11/15/2026, 5:04:50 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.41 ±0.05 |  +0.02 ±0.02       | 69%
+      4 |  +0.59 ±0.07 |  -0.01 ±0.03       | 67%
+      5 |  +0.80 ±0.08 |  -0.01 ±0.03       | 65%
+      6 |  +1.00 ±0.09 |  -0.01 ±0.04       | 66%
+      7 |  +1.10 ±0.10 |  -0.03 ±0.04       | 65%
+      8 |  +1.36 ±0.10 |  +0.01 ±0.05       | 66%
+      9 |  +1.57 ±0.11 |  -0.03 ±0.06       | 68%
+     10 |  +1.82 ±0.11 |  -0.02 ±0.06       | 67%
+     11 |  +1.83 ±0.11 |  -0.04 ±0.07       | 66%
+     12 |  +2.14 ±0.12 |  +0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.39, 8 cards +0.67, 10 cards +0.96, 12 cards +1.18
+  hard deals, gain over the current network: -0.02 ±0.024
+  average: +1.166 over the rules, -0.009 ±0.015 over the current network
+  ACCEPTED - generation 62 is now the current network
+  generation took 11.9 minutes
+
+=== generation 63   11/15/2026, 5:16:47 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.16 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.33 ±0.05 |  -0.00 ±0.02       | 69%
+      4 |  +0.59 ±0.07 |  +0.00 ±0.02       | 67%
+      5 |  +0.81 ±0.08 |  +0.03 ±0.03       | 66%
+      6 |  +0.88 ±0.09 |  -0.01 ±0.04       | 65%
+      7 |  +1.15 ±0.10 |  +0.01 ±0.04       | 66%
+      8 |  +1.29 ±0.10 |  -0.01 ±0.05       | 66%
+      9 |  +1.56 ±0.11 |  -0.01 ±0.06       | 67%
+     10 |  +1.74 ±0.11 |  -0.01 ±0.06       | 66%
+     11 |  +1.76 ±0.11 |  +0.03 ±0.07       | 66%
+     12 |  +2.14 ±0.11 |  +0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.45, 8 cards +0.73, 10 cards +0.87, 12 cards +1.18
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.129 over the rules, +0.007 ±0.015 over the current network
+  ACCEPTED - generation 63 is now the current network
+  generation took 11.9 minutes
+
+=== generation 64   11/15/2026, 5:28:42 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.20 ±0.03 |  -0.01 ±0.01       | 72%
+      3 |  +0.37 ±0.05 |  +0.01 ±0.02       | 70%
+      4 |  +0.60 ±0.07 |  +0.02 ±0.02       | 67%
+      5 |  +0.75 ±0.08 |  -0.00 ±0.03       | 66%
+      6 |  +0.96 ±0.09 |  -0.01 ±0.04       | 67%
+      7 |  +1.22 ±0.10 |  -0.02 ±0.04       | 67%
+      8 |  +1.47 ±0.10 |  +0.05 ±0.05       | 67%
+      9 |  +1.44 ±0.11 |  +0.02 ±0.06       | 66%
+     10 |  +1.72 ±0.11 |  +0.01 ±0.06       | 67%
+     11 |  +1.90 ±0.11 |  -0.00 ±0.07       | 66%
+     12 |  +2.06 ±0.11 |  +0.00 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.42, 8 cards +0.79, 10 cards +1.03, 12 cards +1.18
+  hard deals, gain over the current network: -0.01 ±0.023
+  average: +1.153 over the rules, +0.006 ±0.015 over the current network
+  ACCEPTED - generation 64 is now the current network
+  generation took 12.0 minutes
+
+=== generation 65   11/15/2026, 5:40:42 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.00 ±0.01       | 72%
+      3 |  +0.41 ±0.05 |  -0.01 ±0.02       | 69%
+      4 |  +0.56 ±0.07 |  +0.00 ±0.03       | 66%
+      5 |  +0.75 ±0.08 |  -0.01 ±0.03       | 67%
+      6 |  +1.00 ±0.09 |  -0.01 ±0.04       | 66%
+      7 |  +1.21 ±0.10 |  +0.01 ±0.04       | 66%
+      8 |  +1.36 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.63 ±0.11 |  +0.03 ±0.06       | 68%
+     10 |  +1.78 ±0.11 |  +0.01 ±0.06       | 67%
+     11 |  +1.92 ±0.11 |  +0.03 ±0.07       | 66%
+     12 |  +2.02 ±0.11 |  +0.09 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.73, 10 cards +0.94, 12 cards +1.12
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.166 over the rules, +0.013 ±0.015 over the current network
+  ACCEPTED - generation 65 is now the current network
+  generation took 12.0 minutes
+
+=== generation 66   11/15/2026, 5:52:40 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.19 ±0.03 |  -0.01 ±0.01       | 73%
+      3 |  +0.39 ±0.05 |  -0.01 ±0.02       | 70%
+      4 |  +0.59 ±0.07 |  +0.00 ±0.02       | 67%
+      5 |  +0.70 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +0.96 ±0.09 |  -0.01 ±0.04       | 66%
+      7 |  +1.08 ±0.10 |  -0.00 ±0.04       | 65%
+      8 |  +1.33 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.61 ±0.11 |  +0.01 ±0.06       | 66%
+     10 |  +1.67 ±0.11 |  -0.02 ±0.06       | 66%
+     11 |  +1.89 ±0.11 |  +0.03 ±0.07       | 66%
+     12 |  +2.14 ±0.12 |  -0.03 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.42, 8 cards +0.74, 10 cards +0.89, 12 cards +1.19
+  hard deals, gain over the current network: -0.00 ±0.024
+  average: +1.141 over the rules, -0.002 ±0.015 over the current network
+  ACCEPTED - generation 66 is now the current network
+  generation took 12.0 minutes
+
+=== generation 67   11/15/2026, 6:04:39 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.00 ±0.01       | 71%
+      3 |  +0.41 ±0.05 |  +0.00 ±0.02       | 70%
+      4 |  +0.59 ±0.07 |  -0.00 ±0.02       | 66%
+      5 |  +0.81 ±0.08 |  -0.02 ±0.03       | 66%
+      6 |  +1.02 ±0.09 |  +0.02 ±0.03       | 66%
+      7 |  +1.14 ±0.10 |  -0.02 ±0.04       | 65%
+      8 |  +1.32 ±0.10 |  +0.01 ±0.05       | 66%
+      9 |  +1.52 ±0.10 |  +0.05 ±0.06       | 66%
+     10 |  +1.91 ±0.11 |  +0.01 ±0.06       | 68%
+     11 |  +1.91 ±0.11 |  +0.05 ±0.07       | 67%
+     12 |  +2.18 ±0.12 |  +0.01 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.31, 8 cards +0.83, 10 cards +0.90, 12 cards +1.13
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.182 over the rules, +0.010 ±0.015 over the current network
+  ACCEPTED - generation 67 is now the current network
+  generation took 12.0 minutes
+
+=== generation 68   11/15/2026, 6:16:38 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  +0.00 ±0.01       | 73%
+      3 |  +0.39 ±0.05 |  -0.02 ±0.02       | 69%
+      4 |  +0.58 ±0.07 |  +0.00 ±0.02       | 67%
+      5 |  +0.73 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +0.92 ±0.09 |  -0.03 ±0.04       | 66%
+      7 |  +1.15 ±0.10 |  +0.01 ±0.04       | 66%
+      8 |  +1.42 ±0.10 |  +0.05 ±0.05       | 67%
+      9 |  +1.58 ±0.11 |  -0.02 ±0.06       | 66%
+     10 |  +1.74 ±0.11 |  -0.10 ±0.06       | 67%
+     11 |  +1.88 ±0.11 |  -0.09 ±0.07       | 67%
+     12 |  +2.15 ±0.11 |  +0.02 ±0.08       | 66%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.72, 10 cards +0.93, 12 cards +1.11
+  hard deals, gain over the current network: +0.01 ±0.024
+  average: +1.155 over the rules, -0.014 ±0.015 over the current network
+  ACCEPTED - generation 68 is now the current network
+  generation took 11.9 minutes
+
+=== generation 69   11/15/2026, 6:28:33 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  +0.00 ±0.01       | 73%
+      3 |  +0.36 ±0.05 |  +0.01 ±0.02       | 69%
+      4 |  +0.55 ±0.07 |  -0.01 ±0.03       | 66%
+      5 |  +0.82 ±0.08 |  +0.01 ±0.03       | 66%
+      6 |  +1.04 ±0.09 |  +0.00 ±0.04       | 66%
+      7 |  +1.19 ±0.10 |  -0.00 ±0.04       | 66%
+      8 |  +1.44 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.50 ±0.11 |  -0.02 ±0.06       | 67%
+     10 |  +1.72 ±0.11 |  -0.01 ±0.06       | 67%
+     11 |  +1.92 ±0.11 |  -0.02 ±0.07       | 68%
+     12 |  +2.11 ±0.11 |  +0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.68, 10 cards +0.93, 12 cards +1.11
+  hard deals, gain over the current network: +0.01 ±0.023
+  average: +1.169 over the rules, -0.001 ±0.015 over the current network
+  ACCEPTED - generation 69 is now the current network
+  generation took 12.0 minutes
+
+=== generation 70   11/15/2026, 6:40:30 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.38 ±0.05 |  -0.02 ±0.02       | 69%
+      4 |  +0.56 ±0.07 |  -0.00 ±0.03       | 66%
+      5 |  +0.77 ±0.08 |  -0.01 ±0.03       | 65%
+      6 |  +0.93 ±0.09 |  +0.00 ±0.04       | 66%
+      7 |  +1.24 ±0.10 |  +0.00 ±0.04       | 66%
+      8 |  +1.38 ±0.10 |  -0.02 ±0.05       | 66%
+      9 |  +1.54 ±0.11 |  +0.03 ±0.06       | 67%
+     10 |  +1.68 ±0.11 |  -0.02 ±0.06       | 67%
+     11 |  +1.86 ±0.11 |  -0.00 ±0.07       | 67%
+     12 |  +2.06 ±0.12 |  -0.02 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.70, 10 cards +0.93, 12 cards +1.07
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.147 over the rules, -0.006 ±0.015 over the current network
+  ACCEPTED - generation 70 is now the current network
+  generation took 11.9 minutes
+
+=== generation 71   11/15/2026, 6:52:24 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.18 ±0.03 |  -0.00 ±0.01       | 73%
+      3 |  +0.38 ±0.05 |  +0.02 ±0.02       | 69%
+      4 |  +0.55 ±0.07 |  -0.00 ±0.02       | 67%
+      5 |  +0.80 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +0.97 ±0.09 |  -0.01 ±0.04       | 66%
+      7 |  +1.19 ±0.10 |  +0.05 ±0.04       | 66%
+      8 |  +1.29 ±0.10 |  +0.00 ±0.05       | 66%
+      9 |  +1.62 ±0.11 |  -0.04 ±0.05       | 67%
+     10 |  +1.72 ±0.11 |  -0.03 ±0.06       | 67%
+     11 |  +1.91 ±0.11 |  -0.05 ±0.07       | 66%
+     12 |  +2.10 ±0.11 |  -0.05 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.40, 8 cards +0.75, 10 cards +0.91, 12 cards +1.15
+  hard deals, gain over the current network: -0.00 ±0.024
+  average: +1.155 over the rules, -0.012 ±0.014 over the current network
+  ACCEPTED - generation 71 is now the current network
+  generation took 12.0 minutes
+
+=== generation 72   11/15/2026, 7:04:22 AM ===
+  dollars a round: $1 a point, each seat paid its points less the table average
+  cards | vs rules     | vs current network | contracts made (new)
+      2 |  +0.21 ±0.03 |  -0.00 ±0.01       | 72%
+      3 |  +0.39 ±0.05 |  +0.01 ±0.02       | 68%
+      4 |  +0.49 ±0.07 |  -0.01 ±0.03       | 67%
+      5 |  +0.80 ±0.08 |  -0.01 ±0.03       | 66%
+      6 |  +1.02 ±0.09 |  +0.01 ±0.04       | 66%
+      7 |  +1.18 ±0.10 |  +0.00 ±0.04       | 66%
+      8 |  +1.29 ±0.10 |  +0.01 ±0.05       | 66%
+      9 |  +1.59 ±0.11 |  +0.02 ±0.05       | 67%
+     10 |  +1.75 ±0.11 |  -0.01 ±0.06       | 68%
+     11 |  +1.87 ±0.11 |  +0.01 ±0.07       | 67%
+     12 |  +2.04 ±0.12 |  +0.06 ±0.08       | 67%
+  hard deals (off-model bids, long suits), gain over the rules: 5 cards +0.43, 8 cards +0.80, 10 cards +1.04, 12 cards +1.20
+  hard deals, gain over the current network: -0.01 ±0.024
+  average: +1.148 over the rules, +0.009 ±0.015 over the current network
+  ACCEPTED - generation 72 is now the current network
+  generation took 12.0 minutes
+
+=== generation 73   11/15/2026, 7:16:21 AM ===
