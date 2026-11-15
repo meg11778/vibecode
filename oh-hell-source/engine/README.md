@@ -509,3 +509,18 @@ Spread of Worth over five repeat reports (standard deviation, dollars), Normal a
 | Matt's 5 players, 8 cards | 0.46, 0.40, 0.52, 0.54, 0.39, 0.55, 0.09, 0 (6 s) | 0.07, 0.07, 0.15, 0.29, 0.35, 0.59, 0.01, 0 (39 s) |
 
 So Very high makes the line trustworthy to about 10 cents where the layouts fit the auction, and leaves tricks 4 to 6 of the second hand rough (90 to 200 effective layouts: one seat's bid there fits few layouts). Also fixed: on a phone the saved-hand list in the deal setup made the page 50 px too wide.
+
+## 15 November 2026: second money run installed; seat values with simulation bidding; first bidding network
+
+**Network 1, second money run** (`../train-money-2`, Bagley's desktop: 72 generations at about 12 minutes each, 60,000 records and 8,000 test deals a generation; log in `bagley-log.txt`). The log is flat: gain over the rules averaged in blocks of 12 generations +1.147, +1.152, +1.158, +1.159, +1.160, +1.157; the per-generation gains over the current network sum to +0.08 ± 0.13; 71 of 72 accepted. Final against the installed network, one seat, 330,000 deals a row:
+
+| Other seats | Ordinary deals | Hard deals |
+|---|---|---|
+| installed network | +0.036 ± 0.010 | +0.037 ± 0.009 |
+| the new network | +0.031 ± 0.010 | +0.035 ± 0.008 |
+
+Installed (`net_best.json`; the 14 November network is kept as `net_money_gen5.json`). All 58 assertions pass. Not rerun with it: the over-bid study, the card-reading comparison. The training has levelled off; more generations of the same run are not expected to help.
+
+**Seat values with simulation bidding** (`../seat-values/posmap_sim.json`, `sim_results.jsonl`; Matt's laptop, 18 hours, 7,100 deals a square, each figure ±0.10 to ±0.12). Dealer at 4 players: -2.09, -1.39, -0.75, -0.44, -0.31, -0.17, -0.07, +0.05, +0.04, -0.12, -0.01, -0.25, -0.36 (1 to 13 cards); the formula had -0.35 to -0.69 from 7 cards up. First seat +0.13 to +0.25 from 3 cards up; second seat -0.11 to -0.20 at 7 to 10 cards. At 5 players and 10 cards the dealer is -0.08, at 6 players and 8 cards -0.31. So good bidding removes most of the dealer's big-round loss; the dealer does not measurably pass the first seat. The heat map shows both layers.
+
+**Bidding network** (`../bid-network`, trained on the 957,300 simulated bids that run saved; 102 inputs, 2 x 128, 30 epochs, a few minutes). On 40,000 held-out bids: same bid as the simulation 88.2% (formula 66.4%); gives up $0.050 a bid by the simulation's own prices (formula $0.491); dealer's bids 86.4% and $0.074 (formula 69.1%, $0.535); 4 players 82.6%, 5 players 89.9%, 6 players 92.6%. As a bidder in one seat against the formula, same deals, formula bidders elsewhere, network card play (`evalbid.js`, 24,000 deals a row, about ±0.10 a seat), average over seats: 4 players +0.19 (3 cards), +0.35 (6), +0.45 (8), +0.53 (10), +0.68 (12), +0.88 (13, no trump); 5 players +0.31 (5), +0.51 (8), +0.77 (10); 6 players +0.29 (4), +0.65 (8). Positive in every seat of every row; the dealer bids about 0.3 of a trick lower than the formula. Not yet done: against simulation bidders, and in any of the formula's jobs in the pages.
