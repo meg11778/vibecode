@@ -206,7 +206,8 @@ console.log('\nNetwork: weights intact');
 }
 {
   // The same guard for the second network, on the games it plays.
-  for (const [P, n, noTrump, margin, label] of [[4, 13, true, 5, 'four seats, 13 cards, no trump'], [5, 8, false, 4, 'five seats, 8 cards'], [6, 7, false, 3, 'six seats, 7 cards']]) {
+  // margins lowered 15 Nov 2026: the money-trained network breaks more bids, its own included (57.5% against 52.5% at 13 cards)
+  for (const [P, n, noTrump, margin, label] of [[4, 13, true, 3, 'four seats, 13 cards, no trump'], [5, 8, false, 3, 'five seats, 8 cards'], [6, 7, false, 2, 'six seats, 7 cards']]) {
     const rng = E.mulberry32(2027 + P), deals = 1000;
     let mkN = 0, mkR = 0, sumOK = true;
     for (let i = 0; i < deals; i++) {
@@ -253,18 +254,27 @@ console.log('\nNetwork: twelve spades at no trump  (found by Matt Glassman)');
   // there every time. The second network once played this as if spades were
   // trumps and made bid 3 one time in a hundred. `safety: false` tests the
   // network alone; the default also tries the rules in your seat.
+  // Since 15 Nov 2026 the low bids are judged in money, not by how often they
+  // make: holding twelve spades and a bid of 2 or 3, running the whole suit
+  // (12 tricks, every other bidder broken) earns more than cashing the bid and
+  // getting out ($5.24 against $2.10 at bid 3), and the money-trained network
+  // does that. The floors below are what making the bid exactly is worth.
   const hand = [C(D,2)]; for (let r = 2; r <= 14; r++) if (r !== 3) hand.push(C(S,r));
   const alone = sim(hand, -1, 13, { iters: 400, play: 'net', safety: false });
-  for (const b of [3, 5, 8]) check('network alone: bid ' + b + ' makes >= 95%', row(alone,'all',b).makePct >= 95, row(alone,'all',b).makePct.toFixed(1) + '%');
+  const FLOOR = { 2: 1.1, 3: 1.7, 5: 3.5 };
+  for (const b of [3, 5]) check('network alone: bid ' + b + ' is worth at least $' + FLOOR[b].toFixed(2), row(alone,'all',b).delta >= FLOOR[b], '$' + row(alone,'all',b).delta.toFixed(2) + ', makes ' + row(alone,'all',b).makePct.toFixed(1) + '%');
+  check('network alone: bid 8 makes >= 95%', row(alone,'all',8).makePct >= 95, row(alone,'all',8).makePct.toFixed(1) + '%');
   const both = sim(hand, -1, 13, { iters: 400, play: 'net' });
   check('two-way pricing is on by default with a network', both.twoWay === true && alone.twoWay === false);
-  for (const b of [2, 6, 10]) check('two-way: bid ' + b + ' makes >= 95%', row(both,'all',b).makePct >= 95, row(both,'all',b).makePct.toFixed(1) + '%');
+  check('two-way: bid 2 is worth at least $' + FLOOR[2].toFixed(2), row(both,'all',2).delta >= FLOOR[2], '$' + row(both,'all',2).delta.toFixed(2));
+  for (const b of [6, 10]) check('two-way: bid ' + b + ' makes >= 95%', row(both,'all',b).makePct >= 95, row(both,'all',b).makePct.toFixed(1) + '%');
   check('two-way never scores a bid below the network alone', both.views.all.rows.every((r, i) => r.delta >= alone.views.all.rows[i].delta - 0.3),
         both.views.all.rows.map((r, i) => (r.delta - alone.views.all.rows[i].delta).toFixed(2)).join(' '));
   // the same hand with the long suit in hearts: suits must not matter at no trump
   const hearts = [C(D,2)]; for (let r = 2; r <= 14; r++) if (r !== 3) hearts.push(C(H,r));
   const hh = sim(hearts, -1, 13, { iters: 400, play: 'net', safety: false });
-  for (const b of [3, 8]) check('long hearts, network alone: bid ' + b + ' makes >= 95%', row(hh,'all',b).makePct >= 95, row(hh,'all',b).makePct.toFixed(1) + '%');
+  check('long hearts, network alone: bid 3 is worth at least $' + FLOOR[3].toFixed(2), row(hh,'all',3).delta >= FLOOR[3], '$' + row(hh,'all',3).delta.toFixed(2));
+  check('long hearts, network alone: bid 8 makes >= 95%', row(hh,'all',8).makePct >= 95, row(hh,'all',8).makePct.toFixed(1) + '%');
 }
 
 /* ------------------------------------------------------------------ */
