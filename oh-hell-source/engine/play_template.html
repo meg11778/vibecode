@@ -395,6 +395,22 @@ function observe(H, seat){
    Two cards of a suit are equivalent when every rank between them is held by
    the same player or already gone: played in an earlier trick, or the turned
    card. A card in the current trick is not gone. */
+/* Two side suits are mirror images when nothing tells them apart: no card of either has been played or turned, nobody
+   has shown out of either, and you hold the same ranks in both. Then a card in one is worth exactly what its twin in
+   the other is, and their groups are joined. Found by Matt Glassman (16 Nov 2026): leading from J♠ and J♦ with no
+   spade or diamond yet played, the report priced the two jacks a few cents apart. */
+function mirrorGroups(groups, hand, seen, voids, trump, turned){
+  const ranks=[0,0,0,0]; for(const c of hand) ranks[suitOf(c)] |= 1<<(c%13);
+  const clean=s=>{ if(s===trump || !ranks[s]) return false; for(let r=0;r<13;r++) if(seen[s*13+r] || s*13+r===turned) return false; return true; };
+  let out=groups;
+  for(let a=0;a<4;a++) for(let b=a+1;b<4;b++){
+    if(!clean(a) || !clean(b) || ranks[a]!==ranks[b] || (voids && voids.some(v=>v[a]!==v[b]))) continue;
+    for(let r=0;r<13;r++){ if(!(ranks[a]>>r&1)) continue;
+      const ga=out.find(g=>g.includes(a*13+r)), gb=out.find(g=>g.includes(b*13+r));
+      if(ga && gb && ga!==gb) out=out.filter(g=>g!==ga && g!==gb).concat([ga.concat(gb)]); }
+  }
+  return out;
+}
 function equivGroups(cards, seen, trick, turned){
   const inTrick=new Set(trick), gone=c=>(seen[c] && !inTrick.has(c)) || c===turned;
   const a=cards.slice().sort((x,y)=>x-y), out=[];
@@ -962,7 +978,7 @@ function readChoose(S, rand){
   const Pn=S.Pn, me=S.turn, legal=legalCards(S.hand,S.led);
   const A={ Pn, n:S.n, trump:S.trump, turned:S.turned, bids:S.bids };
   const st={ won:S.won, seen:S.seen, voids:S.voids, trick:S.trick, led:S.led, winCard:S.winCard, winner:S.winner, playedInTrick:S.playedInTrick };
-  const groups=equivGroups(legal,S.seen,S.trick,S.turned);
+  const groups=mirrorGroups(equivGroups(legal,S.seen,S.trick,S.turned), S.hand, S.seen, S.voids, S.trump, S.turned);
   const raw=netChoose({ hand:S.hand, seen:S.seen, voids:S.voids, lens:S.lens, bids:S.bids, won:S.won, turn:me, led:S.led, winCard:S.winCard, winner:S.winner,
                         playedInTrick:S.playedInTrick, trick:S.trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
   const netScore=new Map(raw.map(a=>[a.card,a.score]));
@@ -1158,7 +1174,7 @@ function assessHand(r, onProgress, onDone){
       }
       const D=A.decisions[di];
       if(!cur){
-        const legal=legalCards(D.st.hand,D.st.led); let groups=equivGroups(legal,D.st.seen,D.st.trick,A.turned);
+        const legal=legalCards(D.st.hand,D.st.led); let groups=mirrorGroups(equivGroups(legal,D.st.seen,D.st.trick,A.turned), D.st.hand, D.st.seen, D.st.voids, A.trump, A.turned);
         // no real choice (one legal card, cards all equivalent, or a card set in the setup): the card is still played out, so the hand's worth has a figure at every trick
         const single = D.noChoice || groups.length<2 ? (D.noChoice || "same") : null;
         if(single) groups=[[D.card]];

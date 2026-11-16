@@ -536,3 +536,7 @@ Installed (`net_best.json`; the 14 November network is kept as `net_money_gen5.j
 ## 15 November 2026 (afternoon): network 2, second leg of the money run: flat, not installed
 
 Matt's laptop, five generations (about 47 minutes each). Per-generation gains over the current network: -0.01, -0.01, +0.01, +0.01, -0.01 (each ±0.016). Final against the installed network, one seat, 15,000 deals a round size: 4 players no trump +0.004 ± 0.013 (180,000 deals), 5 players +0.030 ± 0.013 (135,000), 6 players +0.003 ± 0.012 (105,000). Not installed; the run was stopped. With network 1's second leg (+0.04 after 72 generations) this says the money self-play has levelled off for both networks. Log: `../train-money-2-net2/laptop-log.txt`.
+
+## 16 November 2026: mirror-image suits are one choice
+
+Found by Matt: 5 players, 4 cards, on lead at trick 3 with J♠ and J♦, no spade or diamond yet played. The two leads are the same play, but the report priced them a few cents apart. Causes: each of the 160 layouts treats the two suits differently, so the averages differ by chance (on 8,000 layouts: $1.681 against $1.669, margin ±0.055); and the network itself is not exactly suit-symmetric (its scores for the two jacks are -1.78 and -1.83). `mirrorGroups` now joins two side suits when no card of either has been played or turned, nobody has shown out of either, and the seat holds the same ranks in both; the report and the card-reading bots then treat twin cards as one choice. Test `browser-tests/t24.js`.
