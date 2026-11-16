@@ -411,13 +411,20 @@ function mirrorGroups(groups, hand, seen, voids, trump, turned){
   }
   return out;
 }
-function equivGroups(cards, seen, trick, turned){
+/* Two of your cards in one suit are the same play when every card between them is out of the way: played in an earlier
+   trick or turned. A card between them that lies in the CURRENT trick normally keeps them apart, since the higher of
+   your two might beat it and the lower not. It does not when neither of your two can win this trick anyway (the higher
+   one does not beat the card now winning): then both lose the trick, and once it is over the card between them is
+   gone. Found by Matt Glassman (16 Nov 2026): 5♦ led, the ace played, holding 6♦ and 4♦; the report priced them apart.
+   winCard and trump are needed for that case; without them the cards in the current trick always keep cards apart. */
+function equivGroups(cards, seen, trick, turned, winCard, trump){
   const inTrick=new Set(trick), gone=c=>(seen[c] && !inTrick.has(c)) || c===turned;
   const a=cards.slice().sort((x,y)=>x-y), out=[];
   for(let i=0;i<a.length;){
     let j=i;
     while(j+1<a.length && suitOf(a[j+1])===suitOf(a[j])){
-      let ok=true; for(let c=a[j]+1;c<a[j+1];c++) if(!gone(c)){ ok=false; break; }
+      const bothLose = winCard!==undefined && winCard>=0 && trump!==undefined && !beatsCard(a[j+1],winCard,trump);
+      let ok=true; for(let c=a[j]+1;c<a[j+1];c++) if(!gone(c) && !(bothLose && inTrick.has(c))){ ok=false; break; }
       if(!ok) break; j++;
     }
     out.push(a.slice(i,j+1)); i=j+1;
@@ -467,7 +474,7 @@ function netChoose(o, fast){
      tried and measured no better (-0.08 +/-0.05 points a round at 12 cards,
      about zero elsewhere). */
   const at=new Map(alts.map(a=>[a.card,a]));
-  for(const g of equivGroups(legal,o.seen,o.trick,o.turned)){
+  for(const g of equivGroups(legal,o.seen,o.trick,o.turned,o.winCard,o.trump)){
     let mx=-Infinity; for(const c of g) mx=Math.max(mx,at.get(c).score);
     for(const c of g) at.get(c).score=mx;
   }
@@ -978,7 +985,7 @@ function readChoose(S, rand){
   const Pn=S.Pn, me=S.turn, legal=legalCards(S.hand,S.led);
   const A={ Pn, n:S.n, trump:S.trump, turned:S.turned, bids:S.bids };
   const st={ won:S.won, seen:S.seen, voids:S.voids, trick:S.trick, led:S.led, winCard:S.winCard, winner:S.winner, playedInTrick:S.playedInTrick };
-  const groups=mirrorGroups(equivGroups(legal,S.seen,S.trick,S.turned), S.hand, S.seen, S.voids, S.trump, S.turned);
+  const groups=mirrorGroups(equivGroups(legal,S.seen,S.trick,S.turned,S.winCard,S.trump), S.hand, S.seen, S.voids, S.trump, S.turned);
   const raw=netChoose({ hand:S.hand, seen:S.seen, voids:S.voids, lens:S.lens, bids:S.bids, won:S.won, turn:me, led:S.led, winCard:S.winCard, winner:S.winner,
                         playedInTrick:S.playedInTrick, trick:S.trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
   const netScore=new Map(raw.map(a=>[a.card,a.score]));
@@ -1174,7 +1181,7 @@ function assessHand(r, onProgress, onDone){
       }
       const D=A.decisions[di];
       if(!cur){
-        const legal=legalCards(D.st.hand,D.st.led); let groups=mirrorGroups(equivGroups(legal,D.st.seen,D.st.trick,A.turned), D.st.hand, D.st.seen, D.st.voids, A.trump, A.turned);
+        const legal=legalCards(D.st.hand,D.st.led); let groups=mirrorGroups(equivGroups(legal,D.st.seen,D.st.trick,A.turned,D.st.winCard,A.trump), D.st.hand, D.st.seen, D.st.voids, A.trump, A.turned);
         // no real choice (one legal card, cards all equivalent, or a card set in the setup): the card is still played out, so the hand's worth has a figure at every trick
         const single = D.noChoice || groups.length<2 ? (D.noChoice || "same") : null;
         if(single) groups=[[D.card]];

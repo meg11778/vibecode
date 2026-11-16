@@ -1,0 +1,17 @@
+Oh Hell hand 5 of 15 | 5 players | 7 cards | trump ♦ (turned Q♦) | dealer West | bots played by: neural network with card reading
+Hands:
+  You   8♦ 6♦ 4♦ 2♦ 5♠ 2♠ Q♣
+  West  A♠ 9♠ 3♠ Q♥ J♥ 7♥ A♣
+  NW    5♦ 3♦ 7♠ 6♠ 10♥ 8♥ 6♣
+  NE    J♠ 10♠ K♥ 4♥ 3♥ J♣ 3♣
+  East  A♦ K♦ 9♥ 2♥ K♣ 9♣ 8♣
+Bids, in order: NW 0, NE 0, East 2, You 2, West 2
+Trick  1: NW leads 5♦, NE J♠, East A♦, You 6♦, West J♥  -> East
+Trick  2: East leads K♦, You 4♦, West A♠, NW 3♦, NE 10♠  -> East
+Trick  3: East leads 8♣, You Q♣, West A♣, NW 6♣, NE J♣  -> West
+Trick  4: West leads 9♠, NW 7♠, NE 3♣, East K♣, You 5♠  -> West
+Trick  5: West leads 7♥, NW 8♥, NE 4♥, East 2♥, You 2♠  -> NW
+Trick  6: NW leads 10♥, NE 3♥, East 9♥, You 2♦, West Q♥  -> You
+Trick  7: You lead 8♦, West 3♠, NW 6♠, NE K♥, East 9♣  -> You
+Result: You bid 2 took 2 = 12; West bid 2 took 2 = 12; NW bid 0 took 1 = 1; NE bid 0 took 0 = 12; East bid 2 took 2 = 12
+Totals after: You 50, West 55, NW 26, NE 41, East 29
