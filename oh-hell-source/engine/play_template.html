@@ -934,7 +934,7 @@ function playOut(A, st, hands, first, useNet, me){
 
    S: { Pn, n, trump, turned, bids, order, hand, seen, voids, lens, won, turn,
         led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
-const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1, deal:"fair" };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
+const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1, deal:"fair", rounds:4, z:2 };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
 function readBidLik(mu,n,banned,obs){ const sig=sigLik(n,PROFILE_DEFAULT)*READ.sig; let p=0;
   for(const bd of bands(n,banned)){ if(bd.bid!==obs) continue; p += Phi(bd.hi>=n ? Infinity : (bd.hi-mu)/sig) - Phi(bd.lo<=0 ? -Infinity : (bd.lo-mu)/sig); }
   return Math.max(p,1e-12); }   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
@@ -1023,18 +1023,32 @@ function readChoose(S, rand){
   // Precision setting) multiplies both.
   const left=S.lens.reduce((a,b)=>a+b,0), M=Math.round(READ.K*READ.MF*READ.prec);
   const K=Math.min(M, Math.round(READ.prec*(READ.budget>0 ? Math.max(READ.K, Math.min(READ.kMax, Math.floor(READ.budget/(groups.length*Math.max(1,left))))) : READ.K)));
-  const RL=readLayouts(S,rand,M,K), picks=RL.picks, cands=RL.cands;
-  const val=groups.map(()=>0);
-  for(const hands of picks) for(let g=0;g<groups.length;g++) val[g]+=playOut(A,st,hands,groups[g][0],true,me);
+  // Close calls get more layouts (17 Nov 2026). A bot threw the 5 of diamonds from 10♠ 6♣ 5♦ about one time in four
+  // because the two best throws were 45 cents apart and each figure moved 40 cents from run to run (Matt Glassman's
+  // discard hand). After each batch the two best choices are compared layout by layout; while their gap is under
+  // READ.z standard errors, another batch is read and played, up to READ.rounds batches in all.
+  let RL=readLayouts(S,rand,M,K), picks=RL.picks; const cands=RL.cands;
+  const val=groups.map(()=>0), per=groups.map(()=>[]); let N=0, rounds=1;
+  for(;;){
+    for(const hands of picks){ for(let g=0;g<groups.length;g++){ const v=playOut(A,st,hands,groups[g][0],true,me); val[g]+=v; per[g].push(v); } N++; }
+    if(rounds>=READ.rounds) break;
+    let b1=0, b2=-1; for(let g=1;g<groups.length;g++) if(val[g]>val[b1]) b1=g;
+    for(let g=0;g<groups.length;g++) if(g!==b1 && (b2<0 || val[g]>val[b2])) b2=g;
+    let s=0, s2=0; for(let i=0;i<N;i++){ const d=per[b1][i]-per[b2][i]; s+=d; s2+=d*d; }
+    const mean=s/N, se=Math.sqrt(Math.max(0, s2/N-mean*mean)/N);
+    if(mean>READ.z*se) break;                       // clear enough (level choices, se 0, stop too: mean > 0 fails only on exact ties, which more layouts rarely break)
+    if(se===0) break;
+    rounds++; RL=readLayouts(S,rand,M,K); picks=RL.picks;
+  }
   // Equal results (often a position that looks lost on every layout drawn) go to the card the network prefers, not to
   // whichever card happens to come first. Found by Matt Glassman: a seat that had made its bid, holding the ace of
   // spades and a low trump, led the ace because both leads came out the same on 30 layouts (14 Nov 2026).
   const pref=g=>netScore.get(repOf(groups[g]));
   let best=0; for(let g=1;g<groups.length;g++){ const d=val[g]-val[best]; if(d>1e-6 || (READ.tieNet && d>=-1e-6 && pref(g)>pref(best))) best=g; }
-  const alts=[]; groups.forEach((g,x)=>{ for(const c of g) alts.push({ card:c, score:+(val[x]/K).toFixed(2) }); });
+  const alts=[]; groups.forEach((g,x)=>{ for(const c of g) alts.push({ card:c, score:+(val[x]/N).toFixed(2) }); });
   const card=repOf(groups[best]);
   alts.sort((a,b)=>b.score-a.score || (b.card===card)-(a.card===card));
-  const out={ card, alts, ess:RL.ess, fit:RL.fit };
+  const out={ card, alts, ess:RL.ess, fit:RL.fit, rounds, layouts:N };
   if(S.truth){                                   // test only: the share of hidden cards the layouts put in the right hand
     const score=set=>{ let ok=0, tot=0; for(const hs of set) for(let q=0;q<Pn;q++) if(q!==me) for(const c of hs[q]){ tot++; if(S.truth[q].includes(c)) ok++; } return tot ? ok/tot : 1; };
     out.hitRead=score(picks); out.hitPlain=score(cands);

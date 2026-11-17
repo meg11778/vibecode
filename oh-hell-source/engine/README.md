@@ -629,3 +629,20 @@ So against these bots the read is sound and, on this hand, not sure enough: once
 **What it does mean.** The bots are predictable. Each one plays the card its own sums rate best, with no mixing, and within a run of touching cards it always plays the one the network prefers (holding 6♦ 5♦ it never plays the 5). A reader gains from that, and the report prices Matt's plays against these bots, not against people: a person in East's seat could throw the 5♦ from 5♦ 2♦ 6♣ and the report's certainty would be wrong. Not done: bots mixing between plays that are close or the same (which would make them harder to read and the reading honestly less sure); a separate, looser reading for study against human-like opponents.
 
 **East's own throw at trick 2 (Matt's follow-up question).** `read-calibration/east_t2.js` replays East's real choice (10♠ 6♣ 5♦, zero bid, hearts led). Priced on many layouts (Very high precision, 40 runs) the throws are worth: 6♣ +$0.29, 5♦ -$0.17, 10♠ -$1.71. Throwing the 6♣ leaves East out of clubs, so the 10♠ can go on a club lead. So the 5♦ was a mistake of about 45 cents by the bot's own sums. It happened because at Normal precision each figure moves about $0.40 from run to run: the bot chose the 5♦ in 24% of 300 runs (the 6♣ 76%, the 10♠ never); at Very high precision 3%. Same cause as the NE queen lead of 16 Nov. Not done: drawing more layouts only when the two best choices are close.
+
+## 17 November 2026 (night): close calls get more layouts
+
+The card-reading bot priced every choice on one batch of layouts. When its two best cards were close, noise decided: East's 5♦ throw above (45 cents worse than the 6♣) came out 24% of the time. `readChoose` now compares its two best choices layout by layout after each batch, and while the gap is under `READ.z` (2) standard errors it reads and plays another batch, up to `READ.rounds` (4) in all. Clear choices cost nothing extra. `READ.rounds=1` is the old behaviour.
+
+**East's throw** (300 runs, node): the 5♦ chosen 24% with one batch, 11% with up to two, 7% with up to four. In Chromium (`browser-tests/t28.js`, 150 runs): 23% to 8%; that choice takes 485 ms on average instead of 162 (longest 757).
+
+**Cost of noise by the bot's own sums** (`read-calibration/regret.js`, `regret_sum.js`, `r_4x4.txt`, `r_4x7.txt`). Card-reading bots in every seat; each choice priced once at 10x precision as the reference, then each setting chooses four times; cost = reference worth of the best card minus that of the card chosen. Times are node on a busy 2-core machine.
+
+| | 4 players, 4 cards (154 choices) | 4 players, 7 cards (116 choices) |
+|---|---|---|
+| one batch: cost per choice | $0.039 ± 0.016, 278 ms | $0.098 ± 0.036, 439 ms |
+| up to 2 batches: saves | $0.018 ± 0.011, 389 ms | $0.018 ± 0.028, 693 ms |
+| up to 4 batches: saves | $0.025 ± 0.015, 544 ms (longest 2.6 s) | $0.046 ± 0.035, 1,123 ms (longest 3.0 s) |
+| Precision x2 on every choice: saves | $0.018 ± 0.012, 546 ms | $0.034 ± 0.026, 875 ms |
+
+About half of all choices have their two best cards within 50 cents. Small samples: the saving is real at 4 cards and likely at 7; it is not shown to beat simply doubling the Precision for the same time. The reference is the bot's own pricing, so this says the bot follows its own sums better, not that it wins more money: **not measured against opponents** (a few cents a choice would need tens of thousands of deals). Switched on in the game (`READ.rounds=4`); the report's own pricing is unchanged. Phone speed not measured.
