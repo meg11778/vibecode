@@ -3708,7 +3708,32 @@ function assessSetup(r){
 }
 /* Hidden hands for the other seats: random, respecting the suits each has
    shown out of (the sampler the self-play training used). */
+/* Deal the unseen cards to the other seats so that nobody gets a suit they have shown out of, every such deal being
+   equally likely. Cards left over stay undealt (in rounds that do not use the whole deck).
+   Until 17 Nov 2026 each seat in turn simply took the first cards it was allowed from one shuffled pile. That is not
+   an even deal: the cards an earlier seat had to skip pile up at the front for the next seat. Found by Matt Glassman
+   on a hand where West had shown out of spades: East was then given a spade as its last card about half the time,
+   and the report misjudged which of two discards was safer. Now: any legal deal to start from, then several hundred
+   random exchanges between two places (a seat's card or an undealt card), each made only if it breaks no void. Every
+   exchange is as likely as its reverse, so the result settles on an even draw from the legal deals. */
 function dealHidden(unseen, lens, voids, Pn, rand, me){
+  me=me||0;
+  const start=dealFirstFit(unseen, lens, voids, Pn, rand, me);
+  if(READ.deal==="first" || !start) return start;
+  const anyVoid=voids.some((v,p)=>p!==me && v.some(Boolean));
+  if(!anyVoid) return start;                                   // nothing to respect: the shuffled pile is already even
+  const card=[], owner=[]; for(let p=0;p<Pn;p++) if(p!==me) for(const c of start[p]){ card.push(c); owner.push(p); }
+  const dealt=new Set(card); for(const c of unseen) if(!dealt.has(c)){ card.push(c); owner.push(-1); }
+  const N=card.length, ok=(c,o)=> o<0 || !voids[o][suitOf(c)];
+  for(let step=0, steps=8*N; step<steps; step++){
+    const a=(rand()*N)|0, b=(rand()*N)|0; if(owner[a]===owner[b]) continue;
+    if(ok(card[a],owner[b]) && ok(card[b],owner[a])){ const t=card[a]; card[a]=card[b]; card[b]=t; }
+  }
+  const out=new Array(Pn); for(let p=0;p<Pn;p++) if(p!==me) out[p]=[];
+  for(let i=0;i<N;i++) if(owner[i]>=0) out[owner[i]].push(card[i]);
+  return out;
+}
+function dealFirstFit(unseen, lens, voids, Pn, rand, me){
   me=me||0;
   const order=[]; for(let p=0;p<Pn;p++) if(p!==me) order.push(p);
   order.sort((a,b)=>voids[b].filter(Boolean).length-voids[a].filter(Boolean).length);
@@ -3787,7 +3812,7 @@ function playOut(A, st, hands, first, useNet, me){
 
    S: { Pn, n, trump, turned, bids, order, hand, seen, voids, lens, won, turn,
         led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
-const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1 };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
+const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1, deal:"fair" };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
 function readBidLik(mu,n,banned,obs){ const sig=sigLik(n,PROFILE_DEFAULT)*READ.sig; let p=0;
   for(const bd of bands(n,banned)){ if(bd.bid!==obs) continue; p += Phi(bd.hi>=n ? Infinity : (bd.hi-mu)/sig) - Phi(bd.lo<=0 ? -Infinity : (bd.lo-mu)/sig); }
   return Math.max(p,1e-12); }   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
@@ -3990,6 +4015,44 @@ function readArena2(Pn, n, deals, seed, modes, simBids){
   }
   Object.assign(READ,keep);
   return { firstBids, Pn, n, deals, diffs:out, bidsOffFormula: off/tot, unfit:unfit.map((u,i)=>decs[i]?u/decs[i]:0) };
+}
+/* Test hook: how well does the reading model predict what card-reading bots actually play? Every seat plays by card
+   reading (bids drawn from the bidding network). For each choice between unlike cards it records the plain network's
+   score for every legal card and which one the reading bot played. The sharpness (READ.beta) and floor (READ.eps)
+   that make those plays most likely are then fitted outside. `who`: "read" (default) or "net" (the plain network plays,
+   for comparison: the model should then be sharpest). */
+function readCalib(Pn, n, deals, seed, who){
+  const rng=mulberry32(seed), rows=[];
+  for(let d=0; d<deals; d++){
+    const deck=[...Array(52).keys()]; for(let i=51;i>0;i--){ const j=(rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+    const h=[]; for(let q=0;q<Pn;q++) h.push(deck.slice(q*n,(q+1)*n).sort((a,b)=>a-b));
+    const turned = Pn*n<52 ? deck[Pn*n] : -1, trump = turned>=0 ? suitOf(turned) : -1, order=[...Array(Pn).keys()];
+    KNOWN = turned>=0 ? [turned] : [];
+    const bids=[]; let B=0;
+    for(let q=0;q<Pn;q++){ let b;
+      if(bidNetCovers(Pn,n)){ const pb=bidNetProbs(Pn,n,turned,q,h[q],bids), u=rng(); let acc=0; b=n; for(let x=0;x<=n;x++){ acc+=pb[x]; if(u<acc){ b=x; break; } } if(q===Pn-1 && b===n-B){ let bp=-1; for(let x=0;x<=n;x++) if(x!==n-B && pb[x]>bp){ bp=pb[x]; b=x; } } }
+      else b=bidAt(Math.max(0,Math.min(n,muFor(h[q],trump,n,Pn,q)*auctionFactor(n,Pn,B,Pn-q))),n,q===Pn-1?n-B:-1);
+      bids.push(b); B+=b; }
+    KNOWN = turned>=0 ? [turned] : [];
+    const prng=mulberry32((seed*7919+d*104729)>>>0), won=new Array(Pn).fill(0), seen=new Uint8Array(52), voids=h.map(()=>[false,false,false,false]), hist=[];
+    let turn=0, led=-1, winCard=-1, winner=0, i=0, trick=[];
+    for(let left=Pn*n; left>0; left--){
+      const lg=legalCards(h[turn],led); let c;
+      if(lg.length===1) c=lg[0];
+      else {
+        const st={ hand:h[turn], seen, voids, lens:h.map(x=>x.length), bids, won, turn, led, winCard, winner, playedInTrick:i, trick, turned, trump, n, P:Pn };
+        const al=netChoose(st,2).alts;
+        if(who==="net") c=netChoose(st,true).card;
+        else c=readChoose({ Pn, n, trump, turned, bids, order, hand:h[turn], seen, voids, lens:h.map(x=>x.length), won, turn, led, winCard, winner, playedInTrick:i, trick, hist }, prng).card;
+        if(equivGroups(lg,seen,trick,turned,winCard,trump).length>1) rows.push({ left:h[turn].length, s:al.map(a=>+a.score.toFixed(3)), k:al.findIndex(a=>a.card===c) });
+      }
+      h[turn].splice(h[turn].indexOf(c),1); seen[c]=1; trick.push(c); hist.push({ seat:turn, card:c });
+      if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[turn][led]=true;
+      if(beatsCard(c,winCard,trump)){ winCard=c; winner=turn; }
+      if(++i===Pn){ won[winner]++; turn=winner; i=0; led=-1; winCard=-1; trick=[]; } else turn=(turn+1)%Pn;
+    }
+  }
+  return rows;
 }
 function bustStudy(Pn, n, deals, seed){
   const rng=mulberry32(seed), prng=mulberry32(seed^0x51ed270b);
