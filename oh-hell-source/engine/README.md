@@ -596,3 +596,34 @@ Found from Matt's hand (4 players, 4 cards, trump hearts, a zero bid): at trick 
 **Effect on the bots' card play: not measurable at this sample.** One seat reading with each deal against the plain network, bidding-network bidders, same deals: new deal minus old +$0.13 ± 0.26 (4 players, 7 cards, 300 deals) and +$0.04 ± 0.29 (5 players, 6 cards, 300 deals). That rules out a large loss and nothing more.
 
 **Still open on this hand: the reading of East's discard is too confident.** With the even deal the two throws come out level (97.5% against 97.7% of the zero bid made), where bids alone say the 10♦ is right by about 68 cents. The reading puts East's last card at a diamond 3% of the time (bids alone: 34%), because East threw the 5♦ at trick 2 and the network, holding 5♦ 6♣ and another diamond, much prefers to throw the 6♣. The real East held 10♠ 6♣ 5♦ and threw the 5♦, which the network on its own ranks last of the three. The sharpness of the reading (`beta` 2, `eps` 0.02) was tuned against opponents that play the plain network; the game's bots also read cards and stray from it. `readCalib` (a test hook) records what card-reading bots actually choose beside the network's scores, so the sharpness can be fitted to them. Matt's guidance: a seat that has shown out is a certainty and should be used fully; inferences from which card someone chose are probabilities and must be calibrated, and the report should need to be quite sure before preferring to keep a 10 over a 4.
+
+## 17 November 2026 (evening): the sharpness of the card reading, measured. It was not the problem
+
+The entry above guessed that the reading of East's 5♦ discard was over-confident because its sharpness had been tuned against plain-network opponents. Three measurements, all with card-reading bots in every seat and bids drawn from the bidding network (`oh-hell-source/read-calibration/`), say otherwise.
+
+**1. How well the network's scores predict a card-reading bot's play** (`calib_node.js`, `fit.js`). 9,039 choices (4 players, 4 and 6 cards). The bot played the network's first choice 76% of the time. Best fit of `P(card) = (1-eps) softmax(beta x score) + eps/legal`: beta 1.9 (1.7 to 2.0), eps 0.04 (0.03 to 0.05). The published setting is beta 2, eps 0.02: log-likelihood per choice -0.6512 against -0.6485 at the best fit. By kind of choice (754 choices from the second run): leads are less predictable (best beta 1.2), follows more (2.3), throws 1.8. The setting stays.
+
+**2. Is the picture of the hidden cards right, end to end?** (`post_calib.js`, `post_sum.js`). Before each choice the reading's chance that each other seat still holds each suit it has not shown out of was written beside the truth: 7,618 cases at 4 players, 4 and 5 cards.
+
+| The reading said | The seat held the suit | cases |
+|---|---|---|
+| 1% | 4% ± 2 | 475 |
+| 10% | 14% ± 4 | 346 |
+| 22% | 25% ± 3 | 881 |
+| 40% | 43% ± 3 | 1,447 |
+| 60% | 59% ± 2 | 2,040 |
+| 76% | 73% ± 2 | 1,541 |
+| 89% | 86% ± 3 | 529 |
+| 98% | 99% ± 1 | 359 |
+
+Log score -0.553 for the reading, -0.582 for the bids alone. In the 910 cases where the seat had earlier thrown a card of that suit (Matt's case), the reading said 48.3% on average, the truth was 49.6%, and the bids alone said 59.6%; log score -0.545 against -0.631. The reading is a little too sure at the ends there (said 1%: held 8% ± 5; said 90%: held 80% ± 11).
+
+**3. Matt's hand replayed** (`east_truth.js`, `east_truth.txt`). East's choices depend only on East's cards and what everyone has seen, so they can be replayed exactly. For each of the 30 cards East might still hold, a card-reading bot was put in East's seat 200 times at each of East's three turns.
+
+- Holding the 5♦, the 6♣ and **any other diamond**, the bot threw the 5♦ **0 times in 200, for each of the 11 diamonds**. With a lower diamond it throws the 6♣; with a higher one it throws that.
+- With a spade as the third card it threw the 5♦ about 20% of the time (the real East, with the 10♠: 22%). With a club from the 7 up: 89 to 100%.
+- With an even chance for each card beforehand, East's last card is a club 83.5%, a spade 16.5%, a diamond 0.0%, the 2♠ 2.2%. The reading's own formula on the same footing gives clubs 74.7%, spades 21.2%, diamonds 4.1%.
+
+So against these bots the read is sound and, on this hand, not sure enough: once East throws the 5♦ it holds no other diamond, the 10♦ cannot lose the last trick, and the 4♠ loses it only to the 2♠ (about 2%, and then only if West has no trump and North no higher spade). The report's "level" is right for this table.
+
+**What it does mean.** The bots are predictable. Each one plays the card its own sums rate best, with no mixing, and within a run of touching cards it always plays the one the network prefers (holding 6♦ 5♦ it never plays the 5). A reader gains from that, and the report prices Matt's plays against these bots, not against people: a person in East's seat could throw the 5♦ from 5♦ 2♦ 6♣ and the report's certainty would be wrong. Not done: bots mixing between plays that are close or the same (which would make them harder to read and the reading honestly less sure); a separate, looser reading for study against human-like opponents.
