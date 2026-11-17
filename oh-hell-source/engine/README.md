@@ -544,3 +544,41 @@ Found by Matt: 5 players, 4 cards, on lead at trick 3 with J♠ and J♦, no spa
 ## 16 November 2026 (later): cards separated only by a card in the current trick
 
 Found by Matt: 5 players, 7 cards, trump diamonds. The 5♦ is led, the ace goes on it, and he holds 6♦ and 4♦. The two are the same play (both lose the trick, and the 5 is then gone), but `equivGroups` kept apart any two cards with a card of the current trick between them, so the report priced them separately and preferred the 4. The rule now also joins them when the higher of the two cannot beat the card winning the trick. It still keeps them apart when the higher one would win (5 led, holding 6 and 4, nothing higher played; or a 5 of trumps ruffing and you hold the 6 and 4 of trumps). Applies to the report, the card-reading bots and the hover figures. Tests: `browser-tests/equiv_rules.js` (13 cases, node) and `t25.js` (the hand).
+
+## 17 November 2026: the bidding network becomes the bots' picture of the other bidders
+
+Bagley's desktop, `../bid-network/bidder-test`, 8 hours, 431,800 deals (results in `../bid-network/bidder-test/results-2026-11-16.jsonl`).
+
+**Bidders in one seat, dollars a deal against the simulation with the formula picture; other seats bid from the bidding network; 29,800 deals a row.**
+
+| Table | Formula | Bidding network alone | Simulation, network picture |
+|---|---|---|---|
+| 4 players, 3 cards | -0.167 ± 0.027 | -0.003 ± 0.017 | +0.040 ± 0.020 |
+| 4 players, 5 cards | -0.288 ± 0.039 | +0.004 ± 0.023 | +0.018 ± 0.026 |
+| 4 players, 7 cards | -0.339 ± 0.044 | +0.018 ± 0.028 | +0.027 ± 0.032 |
+| 4 players, 9 cards | -0.394 ± 0.048 | +0.009 ± 0.030 | +0.047 ± 0.036 |
+| 4 players, 11 cards | -0.515 ± 0.051 | +0.015 ± 0.034 | +0.049 ± 0.039 |
+| 4 players, 13 cards | -0.797 ± 0.056 | -0.023 ± 0.037 | +0.419 ± 0.046 |
+| 5 players, 4 cards | -0.219 ± 0.033 | +0.021 ± 0.018 | +0.027 ± 0.022 |
+| 5 players, 7 cards | -0.354 ± 0.043 | +0.026 ± 0.025 | +0.055 ± 0.031 |
+| 5 players, 10 cards | -0.518 ± 0.051 | +0.031 ± 0.029 | +0.130 ± 0.038 |
+| 6 players, 4 cards | -0.300 ± 0.033 | +0.002 ± 0.016 | +0.034 ± 0.020 |
+| 6 players, 8 cards | -0.476 ± 0.047 | +0.028 ± 0.025 | +0.112 ± 0.035 |
+
+The two simulations chose the same bid on 78% of deals; a bid took 239 ms with the formula picture and 418 ms with the network picture on that machine.
+
+**Card reading in one seat at a table of simulation bidders (formula picture), dollars a deal over the plain network.**
+
+| Table | Deals | Formula picture | Network picture | Network over formula | Layout search out of tries |
+|---|---|---|---|---|---|
+| 4 players, 4 cards | 14,900 | +0.034 ± 0.034 | +0.065 ± 0.036 | +0.030 ± 0.035 | 35% -> 20% |
+| 4 players, 6 cards | 14,850 | +0.074 ± 0.054 | +0.143 ± 0.055 | +0.069 ± 0.055 | 58% -> 42% |
+| 4 players, 9 cards | 14,850 | -0.067 ± 0.075 | +0.129 ± 0.074 | +0.196 ± 0.075 | 80% -> 67% |
+| 4 players, 12 cards | 14,850 | +0.257 ± 0.088 | +0.433 ± 0.087 | +0.176 ± 0.085 | 86% -> 73% |
+| 5 players, 5 cards | 14,850 | +0.072 ± 0.045 | +0.133 ± 0.045 | +0.061 ± 0.045 | 69% -> 52% |
+| 5 players, 8 cards | 14,850 | +0.026 ± 0.067 | +0.075 ± 0.067 | +0.049 ± 0.069 | 91% -> 76% |
+| 6 players, 5 cards | 14,800 | -0.020 ± 0.043 | +0.081 ± 0.042 | +0.101 ± 0.043 | 82% -> 66% |
+
+Note the formula-picture column: at a table of simulation bidders, card reading with the formula picture is not clearly better than the plain network at 5 and 6 players or at 9 cards. With the network picture it is positive in every row.
+
+**Switched on in the game page:** `SIMBID_MODEL="net"` (the bid simulation weighs deals, bids the seats behind and centres its candidates with the bidding network; where the simulation has nothing to go on the network's own bid stands in) and `READ.bid="net"` (card reading and the report keep a layout with the probability the bidding network gives each seat's bid). Tables the network does not cover (three players, one-card rounds) use the formula as before. In Chromium a dealer's bid at 4 players and 10 cards takes about 0.6 s, up from 0.3 s. Matt's zero-bid hand (first to bid at 5 players with A♥ Q♥ A♦) now bids 1: `browser-tests/t26.js`. Not done: the calculator (`ohhell.html`) still uses the formula as its picture of the bids. Not measured: the two switches together at a table where every seat uses them; the bidding network was trained on bids made with the formula picture, so it should be retrained on the new bids.

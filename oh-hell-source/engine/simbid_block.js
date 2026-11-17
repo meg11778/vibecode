@@ -21,7 +21,7 @@
    prior: the bids made so far, in order. model: { bid, adj } from the bid model.
    Uses the engine's globals; touches nothing on the page. */
 /* "net": the bidding network models the other bidders where it covers the table; "formula": the bid formula does. */
-let SIMBID_MODEL="formula";
+let SIMBID_MODEL="net";      // since 17 Nov 2026: measured better at every table size tried (bid-network/bidder-test)
 function simulateBid(hand, trump, turned, n, P, pos, prior, model, seed, opt){
   opt = opt || {};
   const K = opt.samples || 150, WIN = opt.window == null ? 2 : opt.window, MAXDRAW = opt.maxDraws || 6000;

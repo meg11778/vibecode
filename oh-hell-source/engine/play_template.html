@@ -517,6 +517,7 @@ function bidAdvice(H, cards, pos, prior, seed, wantSim, mine){
   // your own hand is worked out once, after the hand, so it can afford four times the deals a bot uses
   const r=simulateBid(hand, H.trump, H.turned, H.n, P, pos, prior, formula, seed, mine==null ? null : { also:[mine], cmp:mine, samples:600, maxDraws:20000 });
   if(r.table){ out.sim=r.table; out.samples=r.samples; out.simBid=r.bid; }
+  else if(r.by==="bidding network") out.netBid=r.bid;      // nothing to simulate: the bidding network's own bid stands in
   if(r.cmp) out.cmp=r.cmp;
   if(r.why) out.why=r.why;
   return out;
@@ -530,9 +531,9 @@ function botBid(H, seat, pos){
   const sim=H.bidMode==="sim";
   const a=bidAdvice(H, H.hands[seat], pos, H.bidLog.map(b=>b.bid), bidSeed(seat), sim);
   if(!sim) return { bid:a.formula, info:{ by:"formula", est:a.est, adj:a.adj } };
-  const info=Object.assign({ by: a.simBid!=null ? "simulation" : "formula" }, a);
-  delete info.simBid;
-  return { bid: a.simBid!=null ? a.simBid : a.formula, info };
+  const info=Object.assign({ by: a.simBid!=null ? "simulation" : a.netBid!=null ? "network" : "formula" }, a);
+  delete info.simBid; delete info.netBid;
+  return { bid: a.simBid!=null ? a.simBid : a.netBid!=null ? a.netBid : a.formula, info };
 }
 
 /* ----- game state ----- */
@@ -908,7 +909,7 @@ function playOut(A, st, hands, first, useNet, me){
 
    S: { Pn, n, trump, turned, bids, order, hand, seen, voids, lens, won, turn,
         led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
-const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"soft", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1 };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
+const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1 };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
 function readBidLik(mu,n,banned,obs){ const sig=sigLik(n,PROFILE_DEFAULT)*READ.sig; let p=0;
   for(const bd of bands(n,banned)){ if(bd.bid!==obs) continue; p += Phi(bd.hi>=n ? Infinity : (bd.hi-mu)/sig) - Phi(bd.lo<=0 ? -Infinity : (bd.lo-mu)/sig); }
   return Math.max(p,1e-12); }   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
@@ -1338,6 +1339,7 @@ function bidWhy(b){
   }
   if(b.by==="set") return "bid "+b.bid+", as set up. T"+t.slice(1)+" and would have bid "+b.formula+".";
   if(b.by==="simulation") t+=" and would bid "+b.formula+". "+simText()+" Bid "+b.bid+".";
+  else if(b.by==="network") t+=" and would bid "+b.formula+"; bid "+b.bid+" from the bidding network because "+(b.why||"no simulation was run")+".";
   else if(b.formula!=null) t+="; bid "+b.bid+" from the formula because "+(b.why||"no simulation was run")+".";
   else t+="; bid "+b.bid+".";
   return t;
