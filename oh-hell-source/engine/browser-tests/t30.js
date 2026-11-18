@@ -9,7 +9,7 @@ const URL = process.argv[2] || 'file://' + path.resolve(__dirname, '../../../ohh
   await pg.goto(URL); const r = parse(fs.readFileSync(path.join(__dirname, 'hands/matt_5p4_book_hand1.txt'), 'utf8')); for (const t of r.tricks) for (const p of t.plays) if (p.seat === 0) p.by = 'you';
   const a = await pg.evaluate(r => new Promise(res => { window.__ohhell.READ.prec = 10; r.savedAt = 'big'; window.__ohhell.assessHand(r, () => {}, x => { window.__ohhell.READ.prec = 1; res(x); }); }), r), p = a.plays.find(x => x.trick === 2);
   const w = c => p.options.find(o => o.cards.includes(c)).worth;
-  ok(a.version === 6, 'new reports are version 6');
+  ok(a.version === 7, 'new reports are version 7');
   ok(w('2S') > w('KS'), 'the two is priced above the king (2♠ ' + w('2S') + ', K♠ ' + w('KS') + '; playing the king costs ' + p.cost + ')');
   const old = await pg.evaluate(() => { const O = window.__ohhell, k = O.READ; O.READ.deal = 'first'; O.READ.bid = 'soft'; return 1; });
   const a0 = await pg.evaluate(r => new Promise(res => { window.__ohhell.READ.prec = 10; r.savedAt = 'big'; window.__ohhell.assessHand(r, () => {}, x => { const R = window.__ohhell.READ; R.prec = 1; R.deal = 'fair'; R.bid = 'net'; res(x); }); }), r), p0 = a0.plays.find(x => x.trick === 2), w0 = c => p0.options.find(o => o.cards.includes(c)).worth;

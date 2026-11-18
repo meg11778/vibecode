@@ -923,6 +923,7 @@ function playOut(A, st, hands, first, useNet, me){
     if(++i===Pn){ won[winner]++; p=winner; i=0; led=-1; winCard=-1; trick=[]; } else p=(p+1)%Pn;
   }
   let tot=0; for(let s=0;s<Pn;s++) tot+=vienna(A.bids[s],won[s],A.n);
+  playOut.made = won[me]===A.bids[me] ? 1 : 0;               // did this seat make its bid? (read by the report straight after the call)
   return vienna(A.bids[me],won[me],A.n) - tot/Pn;            // dollars at $1 a point: my points less the table's average
 }
 /* ----- card-reading play -----
@@ -1264,7 +1265,7 @@ function assessHand(r, onProgress, onDone){
       if(di>=total){
         // the hand as the cards lay: after each card I played, my result if every seat then plays on as the bots do on the actual deal
         const lay=A.mine.map(m=>({ trick:m.trick, worth:+playOut(A,m.st,m.truth,m.card,useNet).toFixed(2) }));
-        const a={ version:6, prec:READ.prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
+        const a={ version:7, prec:READ.prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
         return onDone(a);
       }
       const D=A.decisions[di];
@@ -1281,10 +1282,10 @@ function assessHand(r, onProgress, onDone){
           // few layouts explain the play so far: draw up to four times as many to choose from, as far as about a second and a half allows
           if(L.ess<ASSESS.thin){ const f=Math.min(4, Math.floor(1500/Math.max(1,performance.now()-tr))); if(f>=2) L=readLayouts(S, A.rng, K*4*f, K); }
         } else L=assessLayouts(A,D.st,K);
-        cur={ single, groups, picks:L.picks, fit:L.fit, ess: L.ess==null ? K : Math.min(K,L.ess), k:0, vals:groups.map(()=>new Float32Array(K)) };
+        cur={ single, groups, picks:L.picks, fit:L.fit, ess: L.ess==null ? K : Math.min(K,L.ess), k:0, vals:groups.map(()=>new Float32Array(K)), made:groups.map(()=>0) };
       }
       const hands=cur.picks[cur.k].slice(); hands[0]=D.st.hand;
-      for(let g=0;g<cur.groups.length;g++) cur.vals[g][cur.k]=playOut(A,D.st,hands,cur.groups[g][0],useNet);
+      for(let g=0;g<cur.groups.length;g++){ cur.vals[g][cur.k]=playOut(A,D.st,hands,cur.groups[g][0],useNet); cur.made[g]+=playOut.made; }
       if(++cur.k===K){
         const mean=cur.vals.map(v=>{ let t=0; for(let k=0;k<K;k++) t+=v[k]; return t/K; });
         const gi=cur.groups.findIndex(g=>g.includes(D.card)); let bi=0;
@@ -1294,10 +1295,10 @@ function assessHand(r, onProgress, onDone){
         // the gap is measured on the same layouts for both cards; when the weight sits on few distinct layouts, that many is the real sample size
         const Ke=Math.max(2,cur.ess), se=Math.sqrt(d2/K/(Ke-1));
         const lvl=x=>{ let v=0; for(let k=0;k<K;k++){ const d=cur.vals[x][k]-mean[x]; v+=d*d; } return 2*Math.sqrt(v/K/(Ke-1)); };
-        if(cur.single) out.push({ trick:D.trick, played:cardStr(D.card), verdict:"ok", cost:0, same:true, why:cur.single, worth:+mean[0].toFixed(2), pm:+lvl(0).toFixed(2), layouts:Math.round(cur.ess), rough:cur.ess<ASSESS.thin });
+        if(cur.single) out.push({ trick:D.trick, played:cardStr(D.card), verdict:"ok", cost:0, same:true, why:cur.single, worth:+mean[0].toFixed(2), pm:+lvl(0).toFixed(2), make:Math.round(100*cur.made[0]/K), layouts:Math.round(cur.ess), rough:cur.ess<ASSESS.thin });
         else out.push({ trick:D.trick, played:cardStr(D.card), best:cardStr(gi===bi ? D.card : cur.groups[bi][0]),
           cost:+cost.toFixed(2), se:+se.toFixed(2), verdict:verdictOf(cost,se), fit:cur.fit, layouts:Math.round(cur.ess), rough:cur.ess<ASSESS.thin,
-          options:cur.groups.map((g,x)=>({ cards:g.map(cardStr), worth:+mean[x].toFixed(2), pm:+lvl(x).toFixed(2) })).sort((a,b)=>b.worth-a.worth) });
+          options:cur.groups.map((g,x)=>({ cards:g.map(cardStr), worth:+mean[x].toFixed(2), pm:+lvl(x).toFixed(2), make:Math.round(100*cur.made[x]/K) })).sort((a,b)=>b.worth-a.worth) });
         cur=null; di++;
       }
     }
@@ -1325,20 +1326,22 @@ function assessmentHtml(r){
   let h='<p class="verdict">'+bidLine+"Play: "+playLine+".</p>";
   const rows=a.plays.filter(p=>!p.same);
   if(r.tricks.length){
-    h+='<div class="scroll"><table><thead><tr><th>Trick</th><th>You played</th><th>Best</th><th class="num">Cost</th><th>Verdict</th><th class="num">Worth</th><th class="num">As the cards lay</th><th>Every choice</th></tr></thead><tbody>';
+    h+='<div class="scroll"><table><thead><tr><th>Trick</th><th>You played</th><th>Best</th><th class="num">Cost</th><th>Verdict</th><th class="num">Worth</th><th class="num">Makes</th><th class="num">As the cards lay</th><th>Every choice</th></tr></thead><tbody>';
     r.tricks.forEach((k,ti)=>{
       const p=a.plays.find(x=>x.trick===ti), ly=a.lay && a.lay.find(x=>x.trick===ti), layCell='<td class="num">'+(ly ? money$(ly.worth) : "\u2013")+"</td>";
       if(!p || p.same){                       // no real choice on this trick
         const c=k.plays.find(x=>x.seat===0).card;
         h+='<tr style="opacity:.55"><td>'+(ti+1)+"</td><td>"+showCard(c,"small")+'</td><td>\u2013</td><td class="num">\u2013</td><td>'+(p ? (p.why==="set"?"as set up":p.why==="only"?"only card":"all equivalent") : k.plays.find(x=>x.seat===0).by==="set"?"as set up":"only card")
-          +'</td><td class="num" style="white-space:nowrap">'+(p && p.worth!=null ? p.worth.toFixed(2)+' \u00b1'+p.pm.toFixed(2)+(p.rough?" rough":"") : "\u2013")+"</td>"+layCell+"<td></td></tr>";
+          +'</td><td class="num" style="white-space:nowrap">'+(p && p.worth!=null ? p.worth.toFixed(2)+' \u00b1'+p.pm.toFixed(2)+(p.rough?" rough":"") : "\u2013")+'</td><td class="num">'+(p && p.make!=null ? p.make+"%" : "\u2013")+"</td>"+layCell+"<td></td></tr>";
         return;
       }
       const mine=p.options.find(o=>o.cards.includes(p.played)), best=p.options[0];
+      // the choice that makes the bid most often, named when it is not the choice worth most (it matters at Bust Out)
+      const safe=p.options.reduce((x,o)=>o.make!=null && (x===null || o.make>x.make) ? o : x, null), safer = safe && best.make!=null && safe!==best && safe.make>=best.make+3;
       h+="<tr><td>"+(p.trick+1)+"</td><td>"+showCard(p.played,"small")+"</td><td>"+(p.cost>0?showCard(p.best,"small"):"same")
         +'</td><td class="num">'+(p.cost>0?p.cost.toFixed(2):"0")+'</td><td>'+(p.verdict==="minor"||p.verdict==="major"?'<b class="mk '+p.verdict+'" style="margin:0">'+word[p.verdict]+"</b>":word[p.verdict])
-        +'</td><td class="num" style="white-space:nowrap">'+mine.worth.toFixed(2)+(mine.pm!=null ? ' <span style="color:var(--dim)">\u00b1'+mine.pm.toFixed(2)+(p.rough?" rough":"")+"</span>" : "")+"</td>"+layCell
-        +'<td style="color:var(--dim)">'+p.options.map(o=>o.cards.map(t).join("=")+" "+o.worth.toFixed(2)).join(", ")+"</td></tr>";
+        +'</td><td class="num" style="white-space:nowrap">'+mine.worth.toFixed(2)+(mine.pm!=null ? ' <span style="color:var(--dim)">\u00b1'+mine.pm.toFixed(2)+(p.rough?" rough":"")+"</span>" : "")+'</td><td class="num">'+(mine.make!=null ? mine.make+"%" : "\u2013")+"</td>"+layCell
+        +'<td style="color:var(--dim)">'+p.options.map(o=>o.cards.map(t).join("=")+" "+o.worth.toFixed(2)+(o.make!=null ? " ("+o.make+"%"+(safer && o===safe ? ", safest" : "")+")" : "")).join(", ")+"</td></tr>";
     });
     h+="</tbody></table></div>";
   }
@@ -1347,6 +1350,7 @@ function assessmentHtml(r){
   h+='<div class="hint" style="margin:6px 0 0">'
     +'<p style="margin:0 0 6px"><b>Cost</b> answers \u201cwas this the right card?\u201d. Every card on a trick is played out on the same '+a.samples+' imagined layouts of the hidden cards, so the gap between two cards is steady. Under '+cur$+ASSESS.minor+' is fine, up to '+(money?"$1":ASSESS.major+" point")+' minor, more than that major; \u201ctoo close to call\u201d means the gap is within the sampling noise.</p>'
     +'<p style="margin:0 0 6px"><b>Worth</b> answers \u201chow was I doing, on what I could know?\u201d: '+(money?"your average result for the hand in dollars at $1 a point (your points less the table\u2019s average)":"your average points for the hand")+' after that card, with every seat playing on as the '+a.by+' does. It is given at every trick, including the greyed ones where you had no real choice. Each trick draws its own layouts, so read the \u00b1 before comparing one trick with the next; \u201crough\u201d means few layouts explained the play so far. To compare Worth across tricks, set Precision to High or Very high and assess again.</p>'
+    +(a.version>=7 ? '<p style="margin:0 0 6px"><b>Makes</b> is how often you make your own bid after that card, on the same layouts and the same play as Worth. Under \u201cEvery choice\u201d each card\u2019s figure follows its worth in brackets. Cost and the verdict go by money, where busting an opponent pays and a made bid is not everything; when making your bid matters more than the money on this hand (at Bust Out, where a bust sits you out of the next hand), compare these. \u201cSafest\u201d marks a card that makes at least 3 points more often than the one worth most.</p>' : "")
     +(a.lay ? '<p style="margin:0 0 6px"><b>As the cards lay</b> answers \u201cwhat actually decided the hand?\u201d: your result if, after the card you played, every seat played on as the '+a.by+' does with the cards really dealt. It uses the hidden cards, so it has no sampling noise, it moves only at a trick where a play changed the outcome, and it ends at your actual result. A mistake that left it unchanged cost nothing this time; a correct play after which it is still poor could not have saved the hand.</p>' : "")
     +'<p style="margin:0">The layouts fit the bids, the cards already played and the suits players had shown out of'+(a.reading?", favouring layouts that explain which cards the others chose to play":"")+'. Cards joined by = are equivalent. All of this is the bots\u2019 opinion: it assumes everyone plays on as the '+a.by+' would'+(a.reading?".":", and reads nothing into which cards the others chose.")
     +(a.bid && a.bid.cost!=null ? " The bid is judged from the simulation shown under Bidding (points against the table’s average)." : "")
@@ -1360,11 +1364,11 @@ function mountAssessment(r, opts){
   // Version 6 (18 Nov 2026): reports made before the hidden cards were dealt evenly and before the bidding network
   // became the picture of the bids can disagree with today's (Matt Glassman's book hand: an old report preferred the
   // king, today's the two). They are still shown, marked as old, with a button to do them again.
-  const old = r.assessment && r.assessment.version===5;
-  const stale = r.assessment && r.assessment.version>=5 && (old || (r.assessment.prec||1)<READ.prec);      // made by an older method, or at a lower Precision than is now set
+  const old = r.assessment && r.assessment.version===5, noMake = r.assessment && r.assessment.version===6;      // version 7 (18 Nov 2026) adds how often each choice makes your bid
+  const stale = r.assessment && r.assessment.version>=5 && (old || noMake || (r.assessment.prec||1)<READ.prec);      // made by an older method, or at a lower Precision than is now set
   if(r.assessment && r.assessment.version>=5 && !(stale && opts.assess===true && opts.again)){
     el.innerHTML=(old ? '<p class="hint" style="margin:0 0 8px">This report was made before 18 November 2026. The way hidden cards are imagined has been corrected since, and the verdicts can change.</p>' : "")
-      +assessmentHtml(r)+(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">'+(old ? "Assess again with the current method" : "Assess again at the current Precision")+'</button></p>' : "");
+      +assessmentHtml(r)+(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">'+(old ? "Assess again with the current method" : noMake ? "Assess again to add how often each choice makes your bid" : "Assess again at the current Precision")+'</button></p>' : "");
     if(stale) $("rvAssessAgain").onclick=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true }));
     return; }
   if(!r.tricks.some(k=>k.plays.some(p=>p.seat===0 && p.by==="you"))){ el.innerHTML='<p class="hint" style="margin:0">Nothing to assess: you had no choice of card in this hand.</p>'; return; }
