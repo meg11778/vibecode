@@ -1264,7 +1264,7 @@ function assessHand(r, onProgress, onDone){
       if(di>=total){
         // the hand as the cards lay: after each card I played, my result if every seat then plays on as the bots do on the actual deal
         const lay=A.mine.map(m=>({ trick:m.trick, worth:+playOut(A,m.st,m.truth,m.card,useNet).toFixed(2) }));
-        const a={ version:5, prec:READ.prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
+        const a={ version:6, prec:READ.prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
         return onDone(a);
       }
       const D=A.decisions[di];
@@ -1357,9 +1357,14 @@ let assessCancel=null;
 function mountAssessment(r, opts){
   const el=$("rvAssess"); if(!el) return;
   const key=r.id+r.savedAt; el.dataset.rec=key;
-  const stale = r.assessment && r.assessment.version>=5 && (r.assessment.prec||1)<READ.prec;      // assessed at a lower Precision than is now set
+  // Version 6 (18 Nov 2026): reports made before the hidden cards were dealt evenly and before the bidding network
+  // became the picture of the bids can disagree with today's (Matt Glassman's book hand: an old report preferred the
+  // king, today's the two). They are still shown, marked as old, with a button to do them again.
+  const old = r.assessment && r.assessment.version===5;
+  const stale = r.assessment && r.assessment.version>=5 && (old || (r.assessment.prec||1)<READ.prec);      // made by an older method, or at a lower Precision than is now set
   if(r.assessment && r.assessment.version>=5 && !(stale && opts.assess===true && opts.again)){
-    el.innerHTML=assessmentHtml(r)+(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">Assess again at the current Precision</button></p>' : "");
+    el.innerHTML=(old ? '<p class="hint" style="margin:0 0 8px">This report was made before 18 November 2026. The way hidden cards are imagined has been corrected since, and the verdicts can change.</p>' : "")
+      +assessmentHtml(r)+(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">'+(old ? "Assess again with the current method" : "Assess again at the current Precision")+'</button></p>' : "");
     if(stale) $("rvAssessAgain").onclick=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true }));
     return; }
   if(!r.tricks.some(k=>k.plays.some(p=>p.seat===0 && p.by==="you"))){ el.innerHTML='<p class="hint" style="margin:0">Nothing to assess: you had no choice of card in this hand.</p>'; return; }

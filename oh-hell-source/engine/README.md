@@ -679,3 +679,12 @@ Matt's choice, after the finding that a bot holding touching cards always played
 - Test `browser-tests/t29.js`; t19 to t28 and the two play-through tests pass.
 
 **Late seat against second seat** (Matt: at six players seat 5 should be better than seat 2). Pooling the two simulation runs: seat 5 minus seat 2 at six players is +$0.18, +0.17, +0.29, +0.21, +0.11, +0.05, +0.09, −0.00 from 1 to 8 cards (each about ±$0.07 to ±$0.14), +$0.16 ± 0.04 over all sizes. Five players, seat 4 minus seat 2: +$0.15 ± 0.04 over all sizes, positive at every size but 10 cards (−$0.03 ± 0.16). The squares in the 18 November layer that showed the reverse (six players, 7 and 8 cards) are inside its ±$0.20.
+
+## 18 November 2026: Matt's book hand 1, king or two; old reports marked
+
+5 players, 4 cards, spades trump (`hands/matt_5p4_book_hand1.txt`, `browser-tests/t30.js`, `read-calibration/k_or_2.js`). Trick 3: NW (bid 2, has 1) leads the 4♠, NE and East show out, You (bid 1, none) hold K♠ 2♠, West (bid 1, none) plays last with two cards. Matt played the king and lost it to West's lone ace; he remembered the analysis calling the king clearly right and doubted it.
+
+- **Today's method prefers the two**, by about $0.42: 2♠ +$0.94 ± 0.18, K♠ +$0.52 ± 0.21 at Very high precision (network alone: 2♠ −0.88, K♠ −1.19). The two loses only when NW holds the ace (13% in the reading); the king loses when West holds the ace alone (17%).
+- **The method before 17 November preferred the king by about $2** (K♠ +$1.71, 2♠ −$0.26 with the uneven deal and the formula picture; +$1.40 against +$0.65 with the uneven deal alone; +$1.35 against +$0.06 with the formula picture alone). With two seats out of spades the uneven deal gave West two spades 57% of the time (even deal: 19%) and the lone ace 9% (17%).
+- **At Normal precision the report cannot settle it**: five runs gave the two ahead by $0.40 to $0.68 four times and the king ahead by $0.70 once, each figure ±$0.6.
+- **Stored reports**: new reports are version 6. A stored version-5 report is still shown, with a line saying it predates the correction and a button "Assess again with the current method".
