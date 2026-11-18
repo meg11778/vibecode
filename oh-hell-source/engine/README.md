@@ -646,3 +646,25 @@ The card-reading bot priced every choice on one batch of layouts. When its two b
 | Precision x2 on every choice: saves | $0.018 ± 0.012, 546 ms | $0.034 ± 0.026, 875 ms |
 
 About half of all choices have their two best cards within 50 cents. Small samples: the saving is real at 4 cards and likely at 7; it is not shown to beat simply doubling the Precision for the same time. The reference is the bot's own pricing, so this says the bot follows its own sums better, not that it wins more money: **not measured against opponents** (a few cents a choice would need tens of thousands of deals). Switched on in the game (`READ.rounds=4`); the report's own pricing is unchanged. Phone speed not measured.
+
+## 18 November 2026: seat values with the new bidding; bidding network 2
+
+**Seat values again** (Matt's laptop, 8 hours, `seat-values-overnight-2/results-2026-11-18.jsonl`; 2,000 to 2,200 deals a square, each figure ±$0.15 to ±$0.23; table in `seat-values/posmap_sim2.json`, made by `seat-values/aggregate.js`). Every seat bids by the simulation with the bidding network as its picture. Against the 14 November run (formula picture, 7,100 deals a square):
+
+- The dealer is not lifted. Four players, 7 to 12 cards: −$0.16 a hand on average (squares from −$0.35 to +$0.15). The dealer is ahead of the first seat only at 8 cards (+$0.13, inside the margin).
+- Five and six players, big rounds: the dealer is worse. Five players, 7 to 10 cards: −$0.35 on average against −$0.20; six players, 6 to 8 cards: −$0.52 against −$0.39. Pooled over 5 players 9 and 10 cards and 6 players 8 cards the change is about −$0.34 ± 0.14.
+- The tables bid more in those rounds: bids add up to more than the tricks in 23% of hands at 5 players 10 cards (11% before), 24% at 6 players 8 cards (11%). Contracts made fall a point or two.
+- The first seat stays positive at almost every size.
+- Heat map artifact "Oh Hell Seat Values" has this as a third layer, shown first.
+
+**Bidding network 2** (`bid-network/bidnet2.json`; trained on Matt's laptop from 254,250 of the 282,500 bids of that run). Trainer's held-out figures: same bid as the simulation 86.2%, gives up $0.063 a bid (4 players 80.6% / $0.087; 5 players 87.2% / $0.056; 6 players 91.8% / $0.042; dealer 86.2% / $0.082).
+
+Both networks scored on 2,328 fresh bids made here by the game's simulation as published, ten table sizes (`bid-network/fresh-bids-2026-11-18.jsonl`, `bid-network/score_bids.py`):
+
+| | same bid as the simulation | gives up, a bid |
+|---|---|---|
+| network 1 (installed) | 81.1% | $0.125 |
+| network 2 | 85.4% | $0.063 |
+| formula | 64.2% | $0.498 |
+
+The two networks choose the same bid 85.1% of the time. So network 2 is the better description of how the bots bid now (the target moved when network 1 became the picture). Whether using it as the picture wins money is **not measured**: `bid-network/network-2-test/` (zip `ohhell-bid2` for Bagley's machine) runs the simulation in one seat with each network as its picture at a table bidding as published, and one card-reading seat with each picture. The same run compares one batch of layouts with up to four on close calls (17 November's change) against opponents. Network 2 is not installed.

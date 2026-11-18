@@ -1,0 +1,38 @@
+/* Bidding network 2 against bidding network 1, and extra layouts on close calls: the overnight run.
+ *
+ *   node overnight.js [hours]          (default 8)
+ *
+ * Test 1 (bids): every seat bids by the game's simulation as published (bidding network 1 as its picture of the
+ * other bidders). In one seat, on the same deals, the simulation also runs with bidding network 2 as its picture;
+ * where the bids differ the hand is finished both ways.
+ * Test 2 (card reading): one card-reading seat at a table of simulation bidders, on the same deals three ways:
+ * one batch of layouts per choice; up to four batches when the two best choices are close (the game since
+ * 17 November); one batch with bidding network 2 as the picture of the bids.
+ * Works through all of these in passes, on every processor core but four, until the time is up. Each finished batch
+ * is added to results.jsonl at once, so stopping early (Ctrl+C) loses only the batches in progress, and running it
+ * again carries on. Send back results.jsonl.   node summary.js prints the table so far.
+ */
+const { spawn } = require('child_process'), fs = require('fs'), path = require('path'), os = require('os');
+const HOURS = +(process.argv[2] || 8), BATCH = +(process.argv[3] || 100), WORKERS = +(process.argv[4] || process.env.WORKERS || Math.max(1, os.cpus().length - 4));
+const RES = path.join(__dirname, 'results.jsonl'), LOG = path.join(__dirname, 'log.txt'), end = Date.now() + HOURS * 3600e3;
+const cells = [[4, 3], [4, 5], [4, 7], [4, 9], [4, 11], [4, 13], [5, 4], [5, 7], [5, 10], [6, 4], [6, 8]].map(c => ['bid'].concat(c))
+  .concat([[4, 4], [4, 6], [4, 9], [5, 5], [5, 8], [6, 5]].map(c => ['read'].concat(c)));      // second test: card reading with each picture of the bids
+const READ_MODES = '[{"rounds":1},{"rounds":4},{"rounds":1,"net2":true}]';
+const done = {}; if (fs.existsSync(RES)) for (const l of fs.readFileSync(RES, 'utf8').split('\n')) { if (!l.trim()) continue; try { const r = JSON.parse(l), k = (r.kind || 'bid') + ':' + r.P + ':' + r.n; (done[k] = done[k] || []).push(r.seed); } catch (e) {} }
+const log = m => { const line = new Date().toLocaleString() + '  ' + m; console.log(line); fs.appendFileSync(LOG, line + '\n'); };
+let pass = 0, queue = [], running = 0, finished = 0, dealsDone = 0, stopping = false; const t0 = Date.now();
+function fill() { pass++; for (const [kind, P, n] of cells) { const seed = P * 1000000 + n * 10000 + pass; if (!(done[kind + ':' + P + ':' + n] || []).includes(seed)) queue.push([kind, P, n, seed]); } }
+function next() {
+  if (stopping || Date.now() >= end) { if (!running) finish(); return; }
+  while (running < WORKERS) {
+    if (!queue.length) { fill(); if (!queue.length) continue; log('pass ' + pass + ' started (' + dealsDone + ' deals so far, ' + ((end - Date.now()) / 3600e3).toFixed(1) + ' hours left)'); }
+    const [kind, P, n, seed] = queue.shift(); running++;
+    const ch = spawn(process.execPath, (kind === 'bid' ? [path.join(__dirname, 'netcmp.js'), P, n, BATCH, seed, 'raw'] : [path.join(__dirname, 'arena_net2.js'), P, n, Math.max(20, BATCH >> 1), seed, 1, READ_MODES, 'raw']).map(String), { stdio: ['ignore', 'pipe', 'inherit'] }); let out = '';
+    ch.stdout.on('data', d => out += d);
+    ch.on('close', code => { running--; if (code === 0 && out.trim()) { let r = null; try { r = JSON.parse(out); } catch (e) {} if (r) { r.kind = kind; fs.appendFileSync(RES, JSON.stringify(r) + '\n'); finished++; dealsDone += r.deals; } } else if (!stopping) log('a batch failed (' + P + ' players, ' + n + ' cards); carrying on'); next(); });
+  }
+}
+function finish() { log('stopped after ' + ((Date.now() - t0) / 3600e3).toFixed(2) + ' hours: ' + finished + ' batches, ' + dealsDone + ' deals this run. Results are in results.jsonl'); process.exit(0); }
+process.on('SIGINT', () => { if (stopping) process.exit(1); stopping = true; log('stopping: waiting for the batches in progress (press Ctrl+C again to stop at once)'); if (!running) finish(); });
+log('bidding network 2 and close calls: ' + HOURS + ' hours, ' + WORKERS + ' workers, batches of ' + BATCH + ' deals' + (Object.keys(done).length ? ', carrying on from an earlier run' : ''));
+next();
