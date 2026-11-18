@@ -668,3 +668,14 @@ Both networks scored on 2,328 fresh bids made here by the game's simulation as p
 | formula | 64.2% | $0.498 |
 
 The two networks choose the same bid 85.1% of the time. So network 2 is the better description of how the bots bid now (the target moved when network 1 became the picture). Whether using it as the picture wins money is **not measured**: `bid-network/network-2-test/` (zip `ohhell-bid2` for Bagley's machine) runs the simulation in one seat with each network as its picture at a table bidding as published, and one card-reading seat with each picture. The same run compares one batch of layouts with up to four on close calls (17 November's change) against opponents. Network 2 is not installed.
+
+## 18 November 2026 (later): cards that are the same play
+
+Matt's choice, after the finding that a bot holding touching cards always played the one the network preferred (holding 6♦ 5♦ it never played the 5, so a reader could rule the 6 out).
+
+- **Bots** (`botPlay`, both card-play settings): the chosen card's group of same-play cards (`equivGroups`, and twin suits under `mirrorGroups` for reading bots) is picked from at random. `READ.anyTouch=false` restores the old habit. By construction the cards in a group play the same, so this should cost a bot nothing; not measured.
+- **Card reading** (`readLayouts`): the chance of an opponent's play is now the chance of its group, shared evenly among the group's cards (`READ.touch`). On Matt's discard hand the picture of East's last card is unchanged (diamond 2.9%, club 74.7%). Effect on results not measured; the arenas' opponents play the plain network, which still plays one fixed card of a group, so only live play matches the new reading exactly.
+- Not done (Matt undecided): mixing between plays that are close but not the same.
+- Test `browser-tests/t29.js`; t19 to t28 and the two play-through tests pass.
+
+**Late seat against second seat** (Matt: at six players seat 5 should be better than seat 2). Pooling the two simulation runs: seat 5 minus seat 2 at six players is +$0.18, +0.17, +0.29, +0.21, +0.11, +0.05, +0.09, −0.00 from 1 to 8 cards (each about ±$0.07 to ±$0.14), +$0.16 ± 0.04 over all sizes. Five players, seat 4 minus seat 2: +$0.15 ± 0.04 over all sizes, positive at every size but 10 cards (−$0.03 ± 0.16). The squares in the 18 November layer that showed the reverse (six players, 7 and 8 cards) are inside its ±$0.20.

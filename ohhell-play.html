@@ -3369,12 +3369,17 @@ function botPlay(H, seat){
   const o=observe(H,seat), legal=legalCards(o.hand,o.led);
   if(legal.length===1) return { card:legal[0], by:"forced" };
   if(netCovers(P,H.n,H.trump)){
+    // Cards that are the same play (touching cards, counting cards already gone; twin suits) are chosen between at
+    // random, so which one a bot plays says nothing about the others it holds. Before 18 Nov 2026 a bot always played
+    // the one the network preferred: holding the 6 and 5 of a suit it never played the 5, and a reader could tell.
+    const rnd=mulberry32((G.seed ^ Math.imul(G.idx*4096+H.tricks.length*64+H.cur.plays.length*8+seat+1, 0x85ebca6b))>>>0);
+    const anyOf=g=>(READ.anyTouch && g && g.length>1) ? g[(rnd()*g.length)|0] : null;
     if(G.playMode==="read"){
-      const rnd=mulberry32((G.seed ^ Math.imul(G.idx*4096+H.tricks.length*64+H.cur.plays.length*8+seat+1, 0x85ebca6b))>>>0);
-      const r=readChoose(readState(H,seat), rnd);
-      return r.same ? { card:r.card, by:"forced" } : { card:r.card, by:"reading", alts:r.alts };
+      const r=readChoose(readState(H,seat), rnd), c=anyOf(r.group);
+      return r.same ? { card:c!=null?c:r.card, by:"forced" } : { card:c!=null?c:r.card, by:"reading", alts:r.alts };
     }
-    const r=netChoose(o); return { card:r.card, by:"network", alts:r.alts };
+    const r=netChoose(o), c=anyOf(equivGroups(legal,o.seen,o.trick||[],o.turned,o.winCard,o.trump).find(g=>g.includes(r.card)));
+    return { card:c!=null?c:r.card, by:"network", alts:r.alts };
   }
   return { card:rulesChoose(o), by:"rules" };
 }
@@ -3812,7 +3817,7 @@ function playOut(A, st, hands, first, useNet, me){
 
    S: { Pn, n, trump, turned, bids, order, hand, seen, voids, lens, won, turn,
         led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
-const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1, deal:"fair", rounds:4, z:2 };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
+const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1, deal:"fair", rounds:4, z:2, touch:true, anyTouch:true };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
 function readBidLik(mu,n,banned,obs){ const sig=sigLik(n,PROFILE_DEFAULT)*READ.sig; let p=0;
   for(const bd of bands(n,banned)){ if(bd.bid!==obs) continue; p += Phi(bd.hi>=n ? Infinity : (bd.hi-mu)/sig) - Phi(bd.lo<=0 ? -Infinity : (bd.lo-mu)/sig); }
   return Math.max(p,1e-12); }   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
@@ -3868,7 +3873,12 @@ function readLayouts(S, rand, M, K){
             const al=netChoose({ hand:h[q], seen, voids, lens:h.map(x=>x.length), bids:S.bids, won, turn:q, led, winCard, winner, playedInTrick:i, trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
             let mx=-Infinity, zc=0; for(const a of al){ if(a.score>mx) mx=a.score; if(a.card===c) zc=a.score; }
             let tot=0; for(const a of al) tot+=Math.exp(READ.beta*(a.score-mx));
-            ll+=Math.log((1-READ.eps)*Math.exp(READ.beta*(zc-mx))/tot + READ.eps/lg.length);
+            let pc=Math.exp(READ.beta*(zc-mx));
+            if(READ.touch){                       // cards that are the same play for that seat count as one choice, shared evenly (18 Nov 2026)
+              const g=equivGroups(lg,seen,trick,S.turned,winCard,S.trump).find(x=>x.includes(c));
+              if(g && g.length>1){ pc=0; for(const a of al) if(g.includes(a.card)) pc+=Math.exp(READ.beta*(a.score-mx)); pc/=g.length; }
+            }
+            ll+=Math.log((1-READ.eps)*pc/tot + READ.eps/lg.length);
           }
         }
         h[q].splice(h[q].indexOf(c),1); seen[c]=1; trick.push(c);
@@ -3894,7 +3904,7 @@ function readChoose(S, rand){
                         playedInTrick:S.playedInTrick, trick:S.trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
   const netScore=new Map(raw.map(a=>[a.card,a.score]));
   const repOf=g=>g.reduce((b,c)=>netScore.get(c)>netScore.get(b)?c:b, g[0]);     // within a group, the card the network likes best
-  if(groups.length===1) return { card:repOf(groups[0]), alts:legal.map(c=>({ card:c, score:0 })), same:true };
+  if(groups.length===1) return { card:repOf(groups[0]), alts:legal.map(c=>({ card:c, score:0 })), same:true, group:groups[0].slice() };
   // How many layouts to play out. 30 when the playouts are long; more when they are short (few cards left, few choices),
   // so that a rare holding still turns up: the work, layouts x choices x cards still to be played, is held near
   // READ.budget. The candidates drawn and weighed stay at 360, so this costs no extra reading. READ.prec (the
@@ -3926,7 +3936,7 @@ function readChoose(S, rand){
   const alts=[]; groups.forEach((g,x)=>{ for(const c of g) alts.push({ card:c, score:+(val[x]/N).toFixed(2) }); });
   const card=repOf(groups[best]);
   alts.sort((a,b)=>b.score-a.score || (b.card===card)-(a.card===card));
-  const out={ card, alts, ess:RL.ess, fit:RL.fit, rounds, layouts:N };
+  const out={ card, alts, ess:RL.ess, fit:RL.fit, rounds, layouts:N, group:groups[best].slice() };
   if(S.truth){                                   // test only: the share of hidden cards the layouts put in the right hand
     const score=set=>{ let ok=0, tot=0; for(const hs of set) for(let q=0;q<Pn;q++) if(q!==me) for(const c of hs[q]){ tot++; if(S.truth[q].includes(c)) ok++; } return tot ? ok/tot : 1; };
     out.hitRead=score(picks); out.hitPlain=score(cands);
