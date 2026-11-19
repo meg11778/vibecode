@@ -18,7 +18,7 @@ const URL = process.argv[2] || 'file://' + path.resolve(__dirname, '../../../ohh
     const bid = await pg.$$('#actions .bidbtn:not([disabled])'); if (bid.length) { await bid[Math.min(1, bid.length - 1)].click(); continue; }
     const cards = await pg.$$('#myhand button.card:not([disabled])'); if (cards.length) { await cards[0].click(); continue; } await pg.waitForTimeout(100); }
   await pg.waitForFunction(() => { const h = window.__ohhell.loadHands(); return h.length && h[0].assessment; }, null, { timeout: 60000 });
-  await pg.waitForTimeout(500); const txt = await pg.innerText('#rvAssess');
+  await pg.waitForTimeout(500); await pg.evaluate(() => { document.querySelector('#rvAssess details.explain').open = true; }); const txt = await pg.innerText('#rvAssess');
   ok(/Makes/.test(txt) && /how often you make your own bid/.test(txt), 'the report on screen has the Makes column and its note');
   ok(/\d+%/.test(txt), 'and shows percentages');
   if (process.argv[3]) await (await pg.$('#rvAssess')).screenshot({ path: process.argv[3] });

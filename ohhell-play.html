@@ -107,6 +107,28 @@ details.sec { border-top: 1px solid var(--border); }
 details.sec > summary { cursor: pointer; font-weight: 700; font-size: 1.15rem; color: #fff; padding: 10px 0; }
 details.sec > summary small { font-weight: 400; color: var(--dim); font-size: .85em; margin-left: 8px; }
 details.sec > .secbody { padding: 0 0 12px; }
+/* Menus and "explain" notes (19 Nov 2026, Matt Glassman: fewer loose buttons, explanations only on request) */
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; }
+details.menu { position: relative; display: inline-block; }
+details.menu > summary { list-style: none; cursor: pointer; display: inline-block; user-select: none; }
+details.menu > summary::-webkit-details-marker { display: none; }
+details.menu > summary::after { content: " \25BE"; }
+details.menu[open] > summary { border-color: var(--green); color: var(--green); }
+.menubody { position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; width: max-content; min-width: 250px; max-width: min(360px, 86vw); background: #0f2434; border: 1px solid #4a7896; border-radius: 4px; padding: 6px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+.menubody.right { left: auto; right: 0; }
+.menubody button, .menubody .mitem { text-align: left; background: transparent; border: 0; color: var(--text); padding: 8px 10px; border-radius: 3px; font: inherit; font-weight: 600; cursor: pointer; display: block; width: 100%; }
+.menubody button:hover, .menubody .mitem:hover { background: rgba(45,255,179,.14); color: var(--green); }
+.menubody button small { display: block; color: var(--faint); font-size: .86em; font-weight: 400; margin-top: 1px; }
+.menubody .mnote { color: #ffc24d; font-size: .9rem; padding: 6px 10px; }
+.menubody .mrow { color: var(--faint); font-size: .92rem; padding: 6px 10px 2px; display: flex; gap: 8px; align-items: center; }
+.menubody hr { border: 0; border-top: 1px solid rgba(255,255,255,.14); margin: 4px 0; width: 100%; }
+@media (max-width: 600px) { .menubody, .menubody.right { position: fixed; left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-width: none; max-height: 70vh; overflow: auto; } }
+details.explain { margin: 8px 0 0; }
+details.explain > summary { cursor: pointer; color: var(--faint); font-size: .92rem; display: inline-block; list-style: none; border-bottom: 1px dotted var(--faint); }
+details.explain > summary::-webkit-details-marker { display: none; }
+details.explain > summary::before { content: "? "; font-weight: 700; }
+details.explain[open] > summary { color: var(--text); }
+details.explain > .hint, details.explain > p.hint { margin-top: 6px; }
 .markbox { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-size: 1rem; cursor: pointer; white-space: nowrap; }
 .markbox input { width: 18px; height: 18px; accent-color: #ffc24d; }
 .star { color: #ffc24d; }
@@ -126,7 +148,7 @@ details.sec > .secbody { padding: 0 0 12px; }
 .dsCard.own { box-shadow: inset 0 -5px 0 var(--sc); } .dsCard.own i { color: #111; }
 #dsPlays { font-size: 1rem; color: var(--text); margin: 6px 0; }
 #dsPlays div { margin: 2px 0; }
-#deal summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; padding: 4px 0; }
+#deal > summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; padding: 4px 0; }
 #dsBids { display: flex; gap: 8px; flex-wrap: wrap; }
 #dsBids label { display: flex; flex-direction: column; font-size: .85rem; color: var(--dim); gap: 3px; }
 .tally { display: inline-block; font-weight: 700; font-size: 1.05rem; color: #fff; padding: 3px 12px; border-radius: 999px; background: rgba(255,255,255,.12); white-space: nowrap; }
@@ -153,7 +175,7 @@ details.sec > .secbody { padding: 0 0 12px; }
   background: rgba(255,255,255,.07); color: #dfe9f1; border: 1px solid rgba(255,255,255,.18); }
 .cuCard.red { color: #ff9a9a; }
 .cuCard.on { background: #ffffff; color: #111; border-color: #2ee6a6; box-shadow: 0 0 0 2px #2ee6a6; } .cuCard.on.red { color: #c8102e; }
-#custom summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; padding: 4px 0; }
+#custom > summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; padding: 4px 0; }
 #cuBids { display: flex; gap: 8px; flex-wrap: wrap; }
 #cuBids label { display: flex; flex-direction: column; font-size: .85rem; color: var(--dim); gap: 3px; }
 .mk { font-weight: 800; margin-left: 4px; cursor: help; }
@@ -220,7 +242,7 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
 <div class="page">
   <a class="back" href="index.html">&#8592; All tools</a>
   <h1>Oh <span>Hell</span> &middot; play the bots</h1>
-  <p class="tagline">You against three, four or five bots, Vienna scoring, dealer hooked. The bots choose each bid by a short simulation and play their cards with the neural network. Every hand is saved so you can go back through their bids and their play.</p>
+  <p class="tagline">You against three to five bots. Vienna scoring, dealer hooked. Every hand is saved for review.</p>
 
   <section class="panel" id="setup">
     <div class="eyebrow" style="margin-bottom:10px">New game</div>
@@ -233,12 +255,11 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
         <input type="number" id="toN" min="1" max="13" value="13" style="width:90px"></label>
       <label class="field">Rounds
         <select id="shape"><option value="once">Once through</option><option value="back">There and back</option></select></label>
-      <label class="field">Bot bidding
-        <select id="bidMode"><option value="sim" selected>Simulation</option><option value="formula">Formula</option></select></label>
-      <label class="field">Bot card play
-        <select id="playMode" title="Card reading: before each card a bot imagines where the hidden cards are, judging by the bids and by what everyone has played, and plays each choice out. Stronger, and a little slower."><option value="read" selected>Network + card reading</option><option value="net">Network only</option></select></label>
+      <!-- The bots always bid by simulation and play with card reading (19 Nov 2026: the two choices were removed from the page;
+           the engine still honours "formula" and "net" if these values are changed by hand). -->
+      <input type="hidden" id="bidMode" value="sim"><input type="hidden" id="playMode" value="read">
       <label class="field">Precision
-        <select id="precision" title="How many imagined layouts of the hidden cards the bots and the report play out. Normal: 30 or more for a bot's card (more when few cards are left), 160 for each of your plays in the report. High and Very high multiply those, for studying a hand; the bots and the report take that much longer."><option value="1" selected>Normal</option><option value="4">High (about 4× slower)</option><option value="10">Very high (about 10× slower)</option></select></label>
+        <select id="precision" title="How many imagined layouts of the hidden cards the bots and the report play out. Normal: 30 or more for a bot's card (more when few cards are left), 160 for each of your plays in the report. High and Very high multiply those, for studying a hand; the bots and the report take that much longer."><option value="1" selected>Normal: best for just playing</option><option value="4">High: about 4× slower</option><option value="10">Very high: 10× slower, best for study</option></select></label>
       <label class="field">Bot speed
         <select id="speed"><option value="250">Fast</option><option value="650" selected>Normal</option><option value="1300">Slow</option></select></label>
       <label class="field" style="flex-direction:row;align-items:center;gap:6px;padding-bottom:8px">
@@ -248,7 +269,7 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
     <p class="hint" id="setupHint" style="margin:10px 0 0"></p>
     <details id="custom" style="margin-top:14px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px">
       <summary>Set up a hand to study</summary>
-      <p class="hint" style="margin:6px 0 8px">Pick your cards; the round is as many cards as you pick. Players, bot bidding and speed come from the settings above. Everything below the cards is optional.</p>
+      <p class="hint" style="margin:6px 0 8px">Pick your cards. Everything below them is optional.</p>
       <div id="cuGrid"></div>
       <div class="row" style="margin-top:10px">
         <label class="field">Your place in the bidding <select id="cuPos"></select></label>
@@ -266,11 +287,11 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
         <button class="btn quiet" id="cuClear">Clear cards</button>
         <span class="hint" id="cuMsg"></span>
       </div>
-      <p class="hint" style="margin:8px 0 0">The other hands are dealt at random. A seat whose bid you set is given a hand on which the bid formula would make exactly that bid after the bids ahead of it. If you set the opening lead, the leader holds that card and the bots&rsquo; play engine would choose to lead it (or a card equivalent to it).</p>
+      <details class="explain"><summary>Explain this</summary><p class="hint">The round is as many cards as you pick; players and speed come from the settings above. The other hands are dealt at random. A seat whose bid you set is given a hand on which the bid formula would make exactly that bid after the bids ahead of it. If you set the opening lead, the leader holds that card and the bots&rsquo; play engine would choose to lead it (or a card equivalent to it).</p></details>
     </details>
     <details id="deal" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px">
       <summary>Set up an entire deal to study</summary>
-      <p class="hint" style="margin:6px 0 8px">Give every player their cards, then bid and play it. Each bot still sees only its own hand. You can also set some or all of the bids and play some cards in advance, and start from that point. Players, bot bidding and speed come from the settings above.</p>
+      <details class="explain" style="margin:6px 0 8px"><summary>Explain this</summary><p class="hint">Give every player their cards, then bid and play it. Each bot still sees only its own hand. You can also set some or all of the bids and play some cards in advance, and start from that point. To play cards in advance, choose &ldquo;Played cards&rdquo; and click the cards in the order they were played; every hand must be complete, every bid set and trump settled first. Players and speed come from the settings above.</p></details>
       <div class="row">
         <label class="field">Start from a saved hand <select id="dsLoad"></select></label>
         <label class="field">Cards each <input type="number" id="dsN" min="1" max="13" value="7" style="width:80px"></label>
@@ -287,7 +308,6 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
       <div class="eyebrow" style="margin:12px 0 6px">Bids, in bidding order (leave any at &ndash; to be bid at the table)</div>
       <div id="dsBids"></div>
       <div class="eyebrow" style="margin:12px 0 4px">Cards already played (optional)</div>
-      <p class="hint" style="margin:0 0 4px">Choose &ldquo;Played cards&rdquo; above and click the cards in the order they were played. Every hand must be complete, every bid set and trump settled first.</p>
       <div id="dsPlays"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn quiet" id="dsUndo">Undo last card</button>
@@ -326,9 +346,11 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
       <div class="eyebrow"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <label class="markbox"><input type="checkbox" id="onlyMarked"> Marked only</label>
-        <button class="btn quiet" id="dlAll">Download all</button>
-        <label class="btn quiet" style="display:inline-block">Open a saved file<input type="file" id="loadFile" accept=".json,application/json" hidden></label>
-        <button class="btn quiet" id="clearAll">Clear</button>
+        <details class="menu"><summary class="btn quiet">Files</summary><div class="menubody right">
+          <button type="button" id="dlAll">Download all<small>One file with every saved hand</small></button>
+          <label class="mitem">Open a saved file<input type="file" id="loadFile" accept=".json,application/json" hidden></label>
+          <hr><button type="button" id="clearAll">Clear the saved hands</button>
+        </div></details>
       </div>
     </div>
     <div class="scroll"><table><thead><tr>
@@ -4225,14 +4247,14 @@ function assessmentHtml(r){
   }
   const money=a.unit==="money";
   const cur$=money?"$":"";
-  h+='<div class="hint" style="margin:6px 0 0">'
+  h+='<details class="explain"><summary>Explain these columns</summary><div class="hint">'
     +'<p style="margin:0 0 6px"><b>Cost</b> answers \u201cwas this the right card?\u201d. Every card on a trick is played out on the same '+a.samples+' imagined layouts of the hidden cards, so the gap between two cards is steady. Under '+cur$+ASSESS.minor+' is fine, up to '+(money?"$1":ASSESS.major+" point")+' minor, more than that major; \u201ctoo close to call\u201d means the gap is within the sampling noise.</p>'
     +'<p style="margin:0 0 6px"><b>Worth</b> answers \u201chow was I doing, on what I could know?\u201d: '+(money?"your average result for the hand in dollars at $1 a point (your points less the table\u2019s average)":"your average points for the hand")+' after that card, with every seat playing on as the '+a.by+' does. It is given at every trick, including the greyed ones where you had no real choice. Each trick draws its own layouts, so read the \u00b1 before comparing one trick with the next; \u201crough\u201d means few layouts explained the play so far. To compare Worth across tricks, set Precision to High or Very high and assess again.</p>'
     +(a.version>=7 ? '<p style="margin:0 0 6px"><b>Makes</b> is how often you make your own bid after that card, on the same layouts and the same play as Worth. Under \u201cEvery choice\u201d each card\u2019s figure follows its worth in brackets. Cost and the verdict go by money, where busting an opponent pays and a made bid is not everything; when making your bid matters more than the money on this hand (at Bust Out, where a bust sits you out of the next hand), compare these. \u201cSafest\u201d marks a card that makes at least 3 points more often than the one worth most.</p>' : "")
     +(a.lay ? '<p style="margin:0 0 6px"><b>As the cards lay</b> answers \u201cwhat actually decided the hand?\u201d: your result if, after the card you played, every seat played on as the '+a.by+' does with the cards really dealt. It uses the hidden cards, so it has no sampling noise, it moves only at a trick where a play changed the outcome, and it ends at your actual result. A mistake that left it unchanged cost nothing this time; a correct play after which it is still poor could not have saved the hand.</p>' : "")
     +'<p style="margin:0">The layouts fit the bids, the cards already played and the suits players had shown out of'+(a.reading?", favouring layouts that explain which cards the others chose to play":"")+'. Cards joined by = are equivalent. All of this is the bots\u2019 opinion: it assumes everyone plays on as the '+a.by+' would'+(a.reading?".":", and reads nothing into which cards the others chose.")
     +(a.bid && a.bid.cost!=null ? " The bid is judged from the simulation shown under Bidding (points against the table’s average)." : "")
-    +(rows.some(p=>p.fit===false) ? " On this hand the bids did not fit the bid model, so some layouts ignore the bidding." : "")+"</p></div>";
+    +(rows.some(p=>p.fit===false) ? " On this hand the bids did not fit the bid model, so some layouts ignore the bidding." : "")+"</p></div></details>";
   return h;
 }
 let assessCancel=null;
@@ -4436,24 +4458,33 @@ function showReview(r, opts){
   opts=opts||{};
   const nm=r.players, el=$("review"); el.hidden=false; el.dataset.rec=r.id+r.savedAt;
   const bidOf=s=>r.bids.find(b=>b.seat===s);
+  const inGame=!!(opts.next||opts.back);                    // a game is going on behind this review
   let h='<div class="rvhead"><h2>Hand '+r.game.hand+" of "+r.game.of+" &middot; "+r.cards+" card"+(r.cards===1?"":"s")+" &middot; "
     +(r.trump?"trump "+trumpText(r)+" (turned "+showCard(r.turned,"small")+")":"no trump")+"</h2></div>"
     +scoreboardHtml(r, opts)
-    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px">'
+    +'<div class="toolbar">'
     +(opts.next?'<button class="btn" id="rvNext">Next hand</button>':"")
     +(opts.back?'<button class="btn" id="rvBack">Back to current game</button>':"")
     +(opts.final?'<button class="btn" id="rvNew">New game</button>':"")
-    +'<button class="btn quiet" id="rvSave" title="Everything about the hand, including how the network ranked each bot\u2019s cards">Save full record</button>'
-    +'<button class="btn quiet" id="rvDiag" title="A file the Oh Hell hand diagram maker opens with Load Hand">Save for diagram maker</button>'
-    +'<button class="btn quiet" id="rvCopy">Copy as text</button>'
-    +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvAgain" title="The same cards in every hand; bids set in the setup stay set">Play this deal again</button>':"")
-    +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvRedeal" title="Your cards, your seat, the trump card and any set bids and lead stay; the other hands are dealt afresh">Same hand, new opponents</button>':"")
-    +(!opts.next&&!opts.back?'<button class="btn quiet" id="rvEdit" title="Opens this hand in \u201cSet up an entire deal\u201d, where you can change cards, bids or the starting point">Edit this deal</button>':"")
+    // Everything you can do with this hand, in one place, on every review (before 19 Nov 2026 the three "play it again"
+    // actions were missing whenever a game was in progress). During a game they leave it, and say so.
+    +'<details class="menu" id="rvStudy"><summary class="btn quiet">Study this hand</summary><div class="menubody">'
+      +(inGame?'<div class="mnote">A game is in progress. The first three leave it; its finished hands stay saved.</div>':"")
+      +'<button type="button" id="rvEdit">Edit this deal<small>Change cards, bids or the starting point, then run it again</small></button>'
+      +'<button type="button" id="rvAgain">Play this deal again<small>The same cards in every hand</small></button>'
+      +'<button type="button" id="rvRedeal">Same hand, new opponents<small>Your cards and the trump stay; the other hands are dealt afresh</small></button>'
+      +'<hr><label class="mrow">From the seat of <select id="rvWatchSeat">'+nm.map((x,i)=>'<option value="'+i+'">'+x+"</option>").join("")+"</select></label>"
+      +'<button type="button" id="rvWatchGo">Watch the hand<small>Step through it seeing only what that seat could see</small></button>'
+      +'<button type="button" id="rvCalc">Open in bid calculator<small>That seat\u2019s cards and the bids ahead of it, in a new tab</small></button>'
+    +"</div></details>"
+    +'<details class="menu" id="rvFile"><summary class="btn quiet">Save or share</summary><div class="menubody">'
+      +'<button type="button" id="rvCopy">Copy as text<small>To paste into a message</small></button>'
+      +'<button type="button" id="rvSave">Save full record<small>Everything about the hand, including how each bot\u2019s cards were ranked</small></button>'
+      +'<button type="button" id="rvDiag">Save for diagram maker<small>A file the hand diagram maker opens with Load Hand</small></button>'
+    +"</div></details>"
     +(opts.close?'<button class="btn quiet" id="rvClose">Close</button>':"")
-    +'<label class="markbox" style="margin-left:4px"><input type="checkbox" id="rvMark"'+(r.marked?" checked":"")+"> Mark for review</label></div>";
-  h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px"><span class="hint">For</span><select id="rvWatchSeat">'
-    +nm.map((x,i)=>'<option value="'+i+'">'+x+"</option>").join("")+'</select><button class="btn quiet" id="rvWatchGo" title="Step through the hand seeing only what this seat could see">Watch the hand</button>'
-    +'<button class="btn quiet" id="rvCalc" title="Opens the bid calculator in a new tab on this seat\u2019s cards, the turned card and the bids ahead of it">Open in bid calculator</button></div><div id="rvWatch" hidden></div>';
+    +'<label class="markbox" style="margin-left:4px"><input type="checkbox" id="rvMark"'+(r.marked?" checked":"")+"> Mark for review</label></div>"
+    +'<div id="rvWatch" hidden></div>';
   const top=h; h="";
   h+='<p class="hint" style="margin:0 0 8px">Dealer '+nm[r.dealer]+". Bots bid by: "+r.botBidding+". Bots played by: "+r.botPlay+".</p>";
   h+='<div class="scroll"><table><thead><tr><th>Seat</th><th>Hand as dealt</th><th class="num">Bid</th><th class="num" title="What the bid formula would bid on this hand">Formula</th><th class="num" title="What the simulation would bid on this hand">Simulation</th><th class="num">Took</th><th class="num">Points</th><th class="num">Total</th></tr></thead><tbody>';
@@ -4466,7 +4497,7 @@ function showReview(r, opts){
   const secHands=h; h="";
   h+='<p class="hint" style="margin:0 0 4px">In order: '+r.bids.map(b=>nm[b.seat]+" "+b.bid).join(", ")+".</p>";
   h+='<div style="font-size:1rem;color:var(--dim)">'+r.bids.filter(hasWhy).map(b=>'<div'+(b.seat===0?' style="margin-bottom:4px"':"")+'><b style="color:var(--text)">'+nm[b.seat]+"</b>: "+bidWhy(b)+"</div>").join("")+"</div>";
-  if(r.bids.some(b=>b.sim)) h+='<p class="hint" style="margin:6px 0 0">Each simulated figure is that bid\u2019s points against the table\u2019s average on the deals the bot imagined, with how often it made the bid. Each bot saw only its own hand, the turned card and the bids ahead of it. The figures for your hand were worked out the same way, from what you could see when you bid, after the hand was over.</p>';
+  if(r.bids.some(b=>b.sim)) h+='<details class="explain"><summary>Explain these figures</summary><p class="hint">Each simulated figure is that bid\u2019s points against the table\u2019s average on the deals the bot imagined, with how often it made the bid. Each bot saw only its own hand, the turned card and the bids ahead of it. The figures for your hand were worked out the same way, from what you could see when you bid, after the hand was over.</p></details>';
   const secBid=h; h="";
   h+='<div class="scroll"><table><thead><tr><th>Trick</th>'+nm.map(x=>"<th>"+x+"</th>").join("")+"<th>Won by</th></tr></thead><tbody>";
   r.tricks.forEach((k,i)=>{
@@ -4489,7 +4520,7 @@ function showReview(r, opts){
     h+="<td>"+nm[k.winner]+"</td></tr>";
   });
   h+="</tbody></table></div>";
-  h+='<p class="hint" style="margin:6px 0 0">The arrow marks the lead; the outlined card won. Hover over any card to see how it was chosen. A bot playing with card reading shows the average result of each choice in dollars. Otherwise you see how the network ranked the legal cards at that point (higher is preferred; only the gaps matter, and a gap of 4 is roughly one point for the hand). Equivalent cards, such as a king and queen held together, share one figure. On your own cards, \u2260 marks a play where the network would have chosen differently, and ? or ?? a minor or major mistake by the assessment below.</p>';
+  h+='<p class="hint" style="margin:6px 0 0">The arrow marks the lead; the outlined card won. Hover over any card to see how it was chosen.</p><details class="explain"><summary>Explain the hover figures</summary><p class="hint"> A bot playing with card reading shows the average result of each choice in dollars. Otherwise you see how the network ranked the legal cards at that point (higher is preferred; only the gaps matter, and a gap of 4 is roughly one point for the hand). Equivalent cards, such as a king and queen held together, share one figure. On your own cards, \u2260 marks a play where the network would have chosen differently, and ? or ?? a minor or major mistake by the assessment below.</p></details>';
   const secPlay=h;
   h=top+sec("assess","Your play, assessed",'<div id="rvAssess"></div>')+sec("hands","Hands as dealt",secHands)+sec("play","Play",secPlay)+sec("bid","Bidding",secBid);
   el.innerHTML=h; wireSections(el);
@@ -4497,8 +4528,9 @@ function showReview(r, opts){
   $("rvDiag").onclick=()=>download("oh-hell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(diagramHand(r),null,2));
   $("rvCopy").onclick=()=>{ const t=handText(r); const done=()=>{ $("rvCopy").textContent="Copied"; setTimeout(()=>{ if($("rvCopy")) $("rvCopy").textContent="Copy as text"; },1500); };
     if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); };
-  if(!opts.next&&!opts.back) $("rvEdit").onclick=()=>{ el.hidden=true; $("table").hidden=true; $("setup").hidden=false; dsLoad(r); $("deal").open=true; $("deal").scrollIntoView({block:"start"}); };
-  if(!opts.next&&!opts.back){ $("rvAgain").onclick=()=>replayRecord(r,false); $("rvRedeal").onclick=()=>replayRecord(r,true); }
+  const leave=()=>{ if(inGame){ token++; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; document.body.classList.remove("playing"); } };
+  $("rvEdit").onclick=()=>{ leave(); el.hidden=true; $("table").hidden=true; $("setup").hidden=false; dsLoad(r); $("deal").open=true; $("deal").scrollIntoView({block:"start"}); };
+  $("rvAgain").onclick=()=>{ leave(); replayRecord(r,false); }; $("rvRedeal").onclick=()=>{ leave(); replayRecord(r,true); };
   if(opts.back) $("rvBack").onclick=()=>backToGame(opts.back);
   $("rvMark").onchange=()=>{ if($("rvMark").checked) r.marked=true; else delete r.marked; updateHand(r); renderHistory(); };
   $("rvWatchSeat").value = "0";
@@ -4868,6 +4900,8 @@ function cuSpec(){
 
 /* ----- wiring ----- */
 $("start").onclick=newGame;
+document.addEventListener("click", e=>{ for(const m of document.querySelectorAll("details.menu[open]")){ if(!m.contains(e.target) || (e.target.closest(".menubody") && e.target.closest("button"))) m.open=false; } });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") for(const m of document.querySelectorAll("details.menu[open]")) m.open=false; });
 $("quit").onclick=()=>{ token++; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; $("setup").hidden=false; document.body.classList.remove("playing"); };
 for(const id of ["fromN","toN","shape","nPlayers"]) $(id).oninput=()=>{ syncSetupHint(); cuSync(); if(id==="nPlayers"){ DS.plays=[]; dsSync(); } };
 $("dlAll").onclick=()=>{ const a=loadHands(); if(a.length) download("ohhell-hands-"+stamp(new Date().toISOString())+".json", JSON.stringify(a,null,1)); };

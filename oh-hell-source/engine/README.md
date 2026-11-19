@@ -704,3 +704,14 @@ Matt's laptop carried the 17 November run on for a second night: 2,236 batches, 
 - The dealer: four players 7 to 12 cards −$0.08 on average (earlier bidding −$0.06), best square +$0.06 at 8 cards; five players 7 to 10 cards −$0.35 (−$0.19); six players 6 to 8 cards −$0.49 (−$0.39). The dealer does not pass the first seat at any size.
 - With the new bidding the biggest five- and six-player rounds are over-bid about twice as often (23% against 11% at 5 players 10 cards and at 6 players 8 cards) and the dealer is $0.2 to $0.3 worse there (5 players 10 cards −$0.42 against −$0.08; 6 players 8 cards −$0.53 against −$0.31). Four-player rounds are unchanged. Not explained yet.
 - The heat map's first layer now uses this sample.
+
+## 19 November 2026: the game page tidied (no engine change)
+
+Asked for by Matt. Nothing under the hood changed; `browser-tests/t32.js` covers the layout.
+
+- **Explanations only on request.** The notes under the report, the bidding figures, the hover figures and the two study set-ups sit behind "Explain this" links (`details.explain`), closed by default.
+- **Two menus on every review** in place of nine loose buttons: "Study this hand" (Edit this deal, Play this deal again, Same hand new opponents, then Watch the hand and Open in bid calculator for a chosen seat) and "Save or share" (Copy as text, Save full record, Save for diagram maker). Saved hands has a "Files" menu. Menus close on a choice, a click elsewhere or Escape; on a phone they open as a sheet at the bottom.
+- **Edit this deal is always there.** Before, Edit / Play again / New opponents were left out whenever a game was in progress (between hands, or when a saved hand was opened during a game), which is why they came and went. Now they are always offered; during a game the menu says they leave it (finished hands stay saved) and they do.
+- **No choice of bot bidding or card play.** The bots always bid by simulation and play with card reading. `bidMode` and `playMode` are hidden inputs, so the engine paths for "formula" and "net" remain for tests.
+- **Precision labels**: "Normal: best for just playing", "High: about 4× slower", "Very high: 10× slower, best for study".
+- Shorter line under the title.
