@@ -123,6 +123,7 @@ details.menu[open] > summary { border-color: var(--green); color: var(--green); 
 .menubody .mrow { color: var(--faint); font-size: .92rem; padding: 6px 10px 2px; display: flex; gap: 8px; align-items: center; }
 .menubody hr { border: 0; border-top: 1px solid rgba(255,255,255,.14); margin: 4px 0; width: 100%; }
 @media (max-width: 600px) { .menubody, .menubody.right { position: fixed; left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-width: none; max-height: 70vh; overflow: auto; } }
+.resume { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; padding: 10px 12px; border: 1px solid #ffc24d; border-radius: 4px; background: rgba(255,194,77,.08); color: var(--text); }
 details.explain { margin: 8px 0 0; }
 details.explain > summary { cursor: pointer; color: var(--faint); font-size: .92rem; display: inline-block; list-style: none; border-bottom: 1px dotted var(--faint); }
 details.explain > summary::-webkit-details-marker { display: none; }
@@ -245,6 +246,7 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
   <p class="tagline">You against three to five bots. Vienna scoring, dealer hooked. Every hand is saved for review.</p>
 
   <section class="panel" id="setup">
+    <div id="resumeBar" class="resume" hidden><span id="resumeText"></span> <button class="btn" id="resumeGo">Back to your game</button> <button class="btn quiet" id="resumeDrop" title="Gives up the waiting game; its finished hands stay saved">End that game</button></div>
     <div class="eyebrow" style="margin-bottom:10px">New game</div>
     <div class="row">
       <label class="field">Players
@@ -334,6 +336,7 @@ footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spac
     <div id="tablefoot" style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px">
       <span class="hint" id="engineNote"></span>
       <label class="markbox" title="Marked hands are starred in the saved list, which can be narrowed to them"><input type="checkbox" id="markLive"> Mark this hand for review</label>
+      <button class="btn" id="resumeLive" hidden>Back to your game</button>
       <button class="btn quiet" id="quit">End this game</button>
     </div>
   </section>
@@ -564,10 +567,12 @@ function botBid(H, seat, pos){
 }
 
 /* ----- game state ----- */
-let G=null, H=null, token=0, lastRecord=null;
+let G=null, H=null, token=0, epoch=0, lastRecord=null;
+let parked=null;            // a game set aside while a hand is studied (19 Nov 2026): { G, H, current, P, NAMES, token, held, how }
 let paused=false, held=null, current=null;      // current: the review of the hand just finished, to come back to
 const delay = () => +$("speed").value;
-const later = (fn, ms) => { const t=token; setTimeout(()=>{ if(t!==token) return; if(paused) held=fn; else fn(); }, ms); };
+const later = (fn, ms) => { const t=token; setTimeout(()=>{ if(parked && t===parked.token){ parked.held=fn; return; }      // the parked game's next step waits with it
+  if(t!==token) return; if(paused) held=fn; else fn(); }, ms); };
 
 function roundList(){
   const top=MAX_CARDS[+$("nPlayers").value];
@@ -586,8 +591,36 @@ function syncSetupHint(){
     + (r.includes(1) ? " In a 1-card round there is nothing to choose in the play." : "");
 }
 
+/* Setting a game aside to study a hand, and coming back to it (19 Nov 2026, Matt Glassman: after studying a hand it
+   was not possible to return to the game). The whole game object is kept as it stands; its timers hand their next
+   step to the parked game instead of running. Tokens are never reused, so nothing from the study hand can fire later. */
+function parkGame(){
+  if(!G) return;
+  parked={ G, H, current, P, NAMES, token, held, how:(H && H.live) ? "table" : "review" };
+  token=++epoch; G=null; H=null; paused=false; held=null; current=null;
+  $("table").hidden=true; document.body.classList.remove("playing"); syncResume();
+}
+function resumeGame(){
+  if(!parked) return;
+  const p=parked; parked=null;
+  if(assessCancel){ assessCancel(); assessCancel=null; }
+  G=p.G; H=p.H; current=p.current; P=p.P; NAMES=p.NAMES; $("nPlayers").value=String(P); token=p.token; held=null; paused=false;
+  $("setup").hidden=true; $("review").hidden=true; syncResume();
+  if(p.how==="table" && H && H.live){
+    $("table").hidden=false; document.body.classList.add("playing"); $("table").scrollIntoView({block:"start"});
+    if(p.held){ render(); p.held(); }
+    else if(H.pendingNext){ render(); const f=H.pendingNext; $("actions").innerHTML='<button class="btn" id="cont">Continue</button>'; $("cont").onclick=()=>{ H.pendingNext=null; f(); }; }
+    else step();
+  } else if(current){ $("table").hidden=true; document.body.classList.remove("playing"); showReview(current.rec, current.opts); $("review").scrollIntoView({block:"start"}); }
+  else { $("setup").hidden=false; }
+}
+function syncResume(){
+  const bar=$("resumeBar"), live=$("resumeLive");
+  if(bar){ bar.hidden=!parked; if(parked) $("resumeText").textContent="Your game is waiting at hand "+(parked.G.idx+1)+" of "+parked.G.rounds.length+"."; }
+  if(live) live.hidden=!parked;
+}
 function newGame(){
-  token++; current=null;
+  token=++epoch; current=null;
   const seed=(Date.now() ^ (Math.random()*0x7fffffff))>>>0;
   P=+$("nPlayers").value; NAMES=SEAT_NAMES[P];
   G={ P, rounds:roundList(), idx:0, scores:new Array(P).fill(0), dealer:(seed%P), seed, rng:mulberry32(seed), id:"g"+seed.toString(36), bidMode:$("bidMode").value, playMode:$("playMode").value };
@@ -595,7 +628,7 @@ function newGame(){
   startHand();
 }
 function startHand(){
-  token++; paused=false; held=null; current=null;
+  token=++epoch; paused=false; held=null; current=null;
   const n=G.rounds[G.idx], deck=[...Array(52).keys()], pre=G.preset||null;
   for(let i=51;i>0;i--){ const j=(G.rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
   let hands=[]; for(let s=0;s<P;s++) hands.push(deck.slice(s*n,(s+1)*n));
@@ -700,7 +733,7 @@ function playCard(seat, d){
     if(H.tricks.length===H.n) return endHand();
     H.cur={ leader:w, plays:[], led:-1, winCard:-1, winner:w }; H.turn=w; step();
   };
-  if($("pause").checked){ $("actions").innerHTML='<button class="btn" id="cont">Continue</button>'; $("cont").onclick=next; $("cont").focus(); }
+  if($("pause").checked){ H.pendingNext=next; $("actions").innerHTML='<button class="btn" id="cont">Continue</button>'; $("cont").onclick=()=>{ H.pendingNext=null; next(); }; $("cont").focus(); }
   else later(next, Math.max(900,delay()*1.6));
 }
 
@@ -1276,7 +1309,7 @@ function assessBid(r){
 /* Run the assessment. onProgress(done, total); onDone(assessment). Returns a
    function that cancels it. */
 function assessHand(r, onProgress, onDone){
-  const A=assessSetup(r), K=Math.round(ASSESS.samples*READ.prec), useNet=netCovers(A.Pn,A.n,A.trump), out=[];
+  const prec=ASSESS.prec||READ.prec, A=assessSetup(r), K=Math.round(ASSESS.samples*prec), useNet=netCovers(A.Pn,A.n,A.trump), out=[];
   let di=0, cur=null, dead=false;
   const total=A.decisions.length;
   function slice(){
@@ -1287,7 +1320,7 @@ function assessHand(r, onProgress, onDone){
       if(di>=total){
         // the hand as the cards lay: after each card I played, my result if every seat then plays on as the bots do on the actual deal
         const lay=A.mine.map(m=>({ trick:m.trick, worth:+playOut(A,m.st,m.truth,m.card,useNet).toFixed(2) }));
-        const a={ version:7, prec:READ.prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
+        const a={ version:7, prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
         return onDone(a);
       }
       const D=A.decisions[di];
@@ -1388,21 +1421,28 @@ function mountAssessment(r, opts){
   // king, today's the two). They are still shown, marked as old, with a button to do them again.
   const old = r.assessment && r.assessment.version===5, noMake = r.assessment && r.assessment.version===6;      // version 7 (18 Nov 2026) adds how often each choice makes your bid
   const stale = r.assessment && r.assessment.version>=5 && (old || noMake || (r.assessment.prec||1)<READ.prec);      // made by an older method, or at a lower Precision than is now set
-  if(r.assessment && r.assessment.version>=5 && !(stale && opts.assess===true && opts.again)){
+  if(r.assessment && r.assessment.version>=5 && !((stale || opts.force) && opts.assess===true && opts.again)){
     el.innerHTML=(old ? '<p class="hint" style="margin:0 0 8px">This report was made before 18 November 2026. The way hidden cards are imagined has been corrected since, and the verdicts can change.</p>' : "")
-      +assessmentHtml(r)+(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">'+(old ? "Assess again with the current method" : noMake ? "Assess again to add how often each choice makes your bid" : "Assess again at the current Precision")+'</button></p>' : "");
+      +assessmentHtml(r)
+      // the report's own precision (19 Nov 2026): play at Normal, study a hand at Very high, without touching the game's setting
+      +'<p class="hint" style="margin:10px 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label for="rvPrec">Precision of this report</label><select id="rvPrec">'
+        +[[1,"Normal"],[4,"High: about 4\u00d7 slower"],[10,"Very high: 10\u00d7 slower, best for study"]].map(o=>'<option value="'+o[0]+'"'+((r.assessment.prec||1)===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></p>"
+      +(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">'+(old ? "Assess again with the current method" : noMake ? "Assess again to add how often each choice makes your bid" : "Assess again at the current Precision")+'</button></p>' : "");
     if(stale) $("rvAssessAgain").onclick=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true }));
+    $("rvPrec").onchange=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true, force:true, prec:+$("rvPrec").value }));
     return; }
   if(!r.tricks.some(k=>k.plays.some(p=>p.seat===0 && p.by==="you"))){ el.innerHTML='<p class="hint" style="margin:0">Nothing to assess: you had no choice of card in this hand.</p>'; return; }
   const run=()=>{
     if(assessCancel) assessCancel();
     el.innerHTML='<p class="hint" style="margin:0">Playing out your choices… <span id="rvAssessPct"></span></p><div class="bar"><i id="rvAssessBar"></i></div>';
+    ASSESS.prec=opts.prec||null;                             // read once, as the assessment starts
     assessCancel=assessHand(r, (done,total)=>{
         const b=$("rvAssessBar"); if(b && $("rvAssess").dataset.rec===key){ b.style.width=(100*done/total).toFixed(0)+"%"; $("rvAssessPct").textContent="decision "+Math.min(total,Math.floor(done)+1)+" of "+total; }
       }, a=>{
         assessCancel=null; r.assessment=a; updateHand(r);
-        if($("rvAssess") && $("rvAssess").dataset.rec===key && !$("review").hidden) showReview(r, Object.assign({},opts,{ assess:false, again:false, keepScroll:true }));
+        if($("rvAssess") && $("rvAssess").dataset.rec===key && !$("review").hidden) showReview(r, Object.assign({},opts,{ assess:false, again:false, force:false, prec:null, keepScroll:true }));
       });
+    ASSESS.prec=null;
   };
   if(opts.assess) run();
   else { el.innerHTML='<button class="btn quiet" id="rvAssessGo">Assess my play</button>'; $("rvAssessGo").onclick=run; }
@@ -1585,13 +1625,14 @@ function showReview(r, opts){
     +(r.trump?"trump "+trumpText(r)+" (turned "+showCard(r.turned,"small")+")":"no trump")+"</h2></div>"
     +scoreboardHtml(r, opts)
     +'<div class="toolbar">'
+    +(parked?'<button class="btn" id="rvResume">Back to your game</button>':"")
     +(opts.next?'<button class="btn" id="rvNext">Next hand</button>':"")
     +(opts.back?'<button class="btn" id="rvBack">Back to current game</button>':"")
     +(opts.final?'<button class="btn" id="rvNew">New game</button>':"")
     // Everything you can do with this hand, in one place, on every review (before 19 Nov 2026 the three "play it again"
     // actions were missing whenever a game was in progress). During a game they leave it, and say so.
     +'<details class="menu" id="rvStudy"><summary class="btn quiet">Study this hand</summary><div class="menubody">'
-      +(inGame?'<div class="mnote">A game is in progress. The first three leave it; its finished hands stay saved.</div>':"")
+      +(inGame?'<div class="mnote">Your game waits while you study. \u201cBack to your game\u201d returns to it.</div>':"")
       +'<button type="button" id="rvEdit">Edit this deal<small>Change cards, bids or the starting point, then run it again</small></button>'
       +'<button type="button" id="rvAgain">Play this deal again<small>The same cards in every hand</small></button>'
       +'<button type="button" id="rvRedeal">Same hand, new opponents<small>Your cards and the trump stay; the other hands are dealt afresh</small></button>'
@@ -1650,7 +1691,7 @@ function showReview(r, opts){
   $("rvDiag").onclick=()=>download("oh-hell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(diagramHand(r),null,2));
   $("rvCopy").onclick=()=>{ const t=handText(r); const done=()=>{ $("rvCopy").textContent="Copied"; setTimeout(()=>{ if($("rvCopy")) $("rvCopy").textContent="Copy as text"; },1500); };
     if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); };
-  const leave=()=>{ if(inGame){ token++; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; document.body.classList.remove("playing"); } };
+  const leave=()=>{ if(inGame) parkGame(); };                // the game is set aside, not ended
   $("rvEdit").onclick=()=>{ leave(); el.hidden=true; $("table").hidden=true; $("setup").hidden=false; dsLoad(r); $("deal").open=true; $("deal").scrollIntoView({block:"start"}); };
   $("rvAgain").onclick=()=>{ leave(); replayRecord(r,false); }; $("rvRedeal").onclick=()=>{ leave(); replayRecord(r,true); };
   if(opts.back) $("rvBack").onclick=()=>backToGame(opts.back);
@@ -1660,6 +1701,7 @@ function showReview(r, opts){
   $("rvWatchGo").onclick=()=>watchHand(r, +$("rvWatchSeat").value);
   if(watchState && watchState.key===r.id+r.savedAt && opts.keepScroll){ $("rvWatchSeat").value=String(watchState.v); watchHand(r, watchState.v, watchState.at, true); }
   else watchState=null;
+  if(parked) $("rvResume").onclick=resumeGame;
   if(opts.next) $("rvNext").onclick=opts.next;
   if(opts.final) $("rvNew").onclick=()=>{ el.hidden=true; $("setup").hidden=false; };
   if(opts.close) $("rvClose").onclick=()=>{ el.hidden=true; };
@@ -1772,7 +1814,7 @@ function buildDeal(spec){
   return { error: "No layout turned up "+what+" ("+tries.toLocaleString()+" tried). That part of the setup is the hardest to meet; change it, or leave it unset." };
 }
 function startSetup(spec, deal, replay){
-  token++;
+  token=++epoch;
   const seed=(Date.now() ^ (Math.random()*0x7fffffff))>>>0;
   P=spec.P; NAMES=SEAT_NAMES[P]; $("nPlayers").value=String(P);
   const first=(P-spec.pos)%P;
@@ -2024,7 +2066,9 @@ function cuSpec(){
 $("start").onclick=newGame;
 document.addEventListener("click", e=>{ for(const m of document.querySelectorAll("details.menu[open]")){ if(!m.contains(e.target) || (e.target.closest(".menubody") && e.target.closest("button"))) m.open=false; } });
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") for(const m of document.querySelectorAll("details.menu[open]")) m.open=false; });
-$("quit").onclick=()=>{ token++; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; $("setup").hidden=false; document.body.classList.remove("playing"); };
+$("resumeGo").onclick=resumeGame; $("resumeLive").onclick=resumeGame;
+$("resumeDrop").onclick=()=>{ parked=null; syncResume(); };
+$("quit").onclick=()=>{ token=++epoch; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; $("setup").hidden=false; document.body.classList.remove("playing"); };
 for(const id of ["fromN","toN","shape","nPlayers"]) $(id).oninput=()=>{ syncSetupHint(); cuSync(); if(id==="nPlayers"){ DS.plays=[]; dsSync(); } };
 $("dlAll").onclick=()=>{ const a=loadHands(); if(a.length) download("ohhell-hands-"+stamp(new Date().toISOString())+".json", JSON.stringify(a,null,1)); };
 { const PK="ohhell-play-precision"; let v="1"; try{ v=localStorage.getItem(PK)||"1"; }catch(e){}

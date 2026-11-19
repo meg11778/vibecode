@@ -24,7 +24,7 @@ const URL = process.argv[2] || 'file://' + path.resolve(__dirname, '../../../ohh
   await pg.click('#rvStudy > summary');
   const vis = []; for (const id of ['rvEdit', 'rvAgain', 'rvRedeal', 'rvWatchGo', 'rvCalc']) vis.push(await pg.isVisible('#' + id));
   ok(vis.every(Boolean), 'opened, it holds Edit, Play again, New opponents, Watch and Bid calculator, with a game in progress');
-  ok(/leave it/.test(await pg.innerText('#rvStudy .menubody')), 'and says the first three leave the game');
+  ok(/waits while you study/.test(await pg.innerText('#rvStudy .menubody')), 'and says the game waits while you study');
   await pg.click('#rvFile > summary'); ok(!(await pg.isVisible('#rvEdit')) && await pg.isVisible('#rvCopy'), 'opening Save or share closes the Study menu');
   await pg.keyboard.press('Escape'); ok(!(await pg.isVisible('#rvCopy')), 'Escape closes a menu');
   const before = await pg.evaluate(() => window.__ohhell.loadHands()[0]);

@@ -715,3 +715,10 @@ Asked for by Matt. Nothing under the hood changed; `browser-tests/t32.js` covers
 - **No choice of bot bidding or card play.** The bots always bid by simulation and play with card reading. `bidMode` and `playMode` are hidden inputs, so the engine paths for "formula" and "net" remain for tests.
 - **Precision labels**: "Normal: best for just playing", "High: about 4× slower", "Very high: 10× slower, best for study".
 - Shorter line under the title.
+
+## 19 November 2026 (later): back to your game after studying; a precision choice inside the report
+
+Both asked for by Matt after the tidy-up. No engine change. Test `browser-tests/t33.js`.
+
+- **A game is set aside, not ended, when you study a hand.** Choosing Edit this deal, Play this deal again or Same hand, new opponents during a game parks the whole game (`parkGame`), wherever it stands: between hands or in the middle of one. "Back to your game" then appears on the start screen (with "End that game"), beside the table while a study hand is played, and on every review. `resumeGame` puts back the review of the hand just finished, or the table with the same cards and whoever was to act. The parked game's timers hand their next step to it instead of running; tokens come from a counter that is never reused (`epoch`), so nothing from a study hand can fire into the game. Starting another game with Deal leaves the parked one waiting.
+- **"Precision of this report"** under each report (Normal / High / Very high) re-does that one report at the chosen level (`ASSESS.prec`) and leaves the game's Precision alone, so the bots can play at Normal while a hand is studied at Very high. The start-screen Precision still sets the bots' level and the level of new reports.
