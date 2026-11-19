@@ -694,3 +694,13 @@ Matt's choice, after the finding that a bot holding touching cards always played
 ## 18 November 2026: the report shows how often each choice makes your bid
 
 Asked for by Matt for Bust Out (a player who busts sits out the next hand, so the safest line can matter more than the dollars). The report (assessment version 7) has a **Makes** column: the share of the same playouts in which you make your own bid after the card you played. Under "Every choice" each card's make % follows its worth, and a card that makes at least 3 points more often than the card worth most is marked "safest". Cost and the verdict are unchanged (money). A stored version-6 report is shown as it is with a button to assess again and add the figures. `playOut` reports whether its seat made (`playOut.made`). Test `browser-tests/t31.js` (on the trump-lead hand: 3♦ 82%, 9♦ 82%, 2♣ 79% at High precision). Not done: a Bust Out setting that would price the missed hand into bids and plays.
+
+## 19 November 2026: seat values with the new bidding, full sample
+
+Matt's laptop carried the 17 November run on for a second night: 2,236 batches, about 7,200 deals a square (`seat-values-overnight-2/results-2026-11-19.jsonl`, which contains the 18 November file; `seat-values/posmap_sim2.json`). Each figure ±$0.08 to ±$0.13.
+
+- **Later seats do better among the seats that are not dealing** (Matt's point of 18 November). Averages over all sizes, six players: +0.22, +0.14, +0.15, +0.23, +0.32, dealer −1.06; five players: +0.18, +0.12, +0.21, +0.28, dealer −0.79; four players: +0.15, +0.10, +0.22, dealer −0.47. Seat 5 minus seat 2 at six players is positive at every size, +$0.20 ± 0.04 overall, falling from +0.38 at 3 cards to +0.01 ± 0.16 at 8 cards. Five players, seat 4 minus seat 2: +$0.17 ± 0.04, positive at every size. Four players, seat 3 minus seat 2: +$0.10 ± 0.04.
+- The first seat is above the second everywhere on average (it leads).
+- The dealer: four players 7 to 12 cards −$0.08 on average (earlier bidding −$0.06), best square +$0.06 at 8 cards; five players 7 to 10 cards −$0.35 (−$0.19); six players 6 to 8 cards −$0.49 (−$0.39). The dealer does not pass the first seat at any size.
+- With the new bidding the biggest five- and six-player rounds are over-bid about twice as often (23% against 11% at 5 players 10 cards and at 6 players 8 cards) and the dealer is $0.2 to $0.3 worse there (5 players 10 cards −$0.42 against −$0.08; 6 players 8 cards −$0.53 against −$0.31). Four-player rounds are unchanged. Not explained yet.
+- The heat map's first layer now uses this sample.
