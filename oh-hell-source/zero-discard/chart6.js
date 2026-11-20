@@ -3,12 +3,12 @@
 const fs = require('fs'), R = ['', '', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'], cell = {};
 for (const f of process.argv.slice(2)) for (const l of fs.readFileSync(f, 'utf8').trim().split('\n')) { const r = JSON.parse(l), k = r.h + '-' + r.l, c = cell[k] = cell[k] || { k: 0, d: 0, d2: 0, ms: 0, mh: 0 }; c.k += r.k; c.d += r.d; c.d2 += r.d2; c.ms += r.made[0]; c.mh += r.made[1]; var P = r.P, n = r.n, s = r.s; }
 const val = (h, l) => { const c = cell[h + '-' + l]; if (!c) return null; const d = c.d / c.k; return { d, ci: 1.96 * Math.sqrt((c.d2 / c.k - d * d) / c.k), ms: 100 * c.ms / c.k, mh: 100 * c.mh / c.k, k: c.k }; };
-const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t)), POS = [63, 134, 207], NEG = [217, 88, 76], MID = [240, 239, 236];
+const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t)), POS = [96, 158, 222], NEG = [226, 120, 108], MID = [240, 239, 236];
 const col = d => { const t = Math.min(1, Math.abs(d) / 1.0); return 'rgb(' + mix(MID, d >= 0 ? POS : NEG, Math.pow(t, 0.8)).join(',') + ')'; };
 let maxCi = 0, deals = 0, rows = '';
 for (let h = 14; h >= 3; h--) { rows += '<tr><th class="side">' + R[h] + '</th>';
   for (let l = 2; l <= 13; l++) { const v = l < h ? val(h, l) : null; if (!v) { rows += '<td class="none"></td>'; continue; } maxCi = Math.max(maxCi, v.ci); deals = v.k;
-    const txt = (v.d >= 0.005 ? '+' : v.d <= -0.005 ? '−' : '') + Math.abs(v.d).toFixed(2), dark = Math.abs(v.d) > 0.62;
+    const txt = (v.d >= 0.005 ? '+' : v.d <= -0.005 ? '−' : '') + Math.abs(v.d).toFixed(2), dark = false;      // one ink for every cell: a change of ink read as a second signal
     rows += '<td style="background:' + col(v.d) + ';color:' + (dark ? '#fff' : '#1b2420') + '"' + (h === 9 && l === 7 ? ' class="mark"' : '') + '><b>' + txt + '</b><span>' + v.ms.toFixed(0) + ' / ' + v.mh.toFixed(0) + '</span></td>'; }
   rows += '</tr>'; }
 const foot = '<tr><th></th>' + [2,3,4,5,6,7,8,9,10,11,12,13].map(l => '<th class="foot">' + R[l] + '</th>').join('') + '</tr>';
