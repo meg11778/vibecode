@@ -27,7 +27,10 @@ function playOut(hands0, bids, trump, turned, st, me, first) {
     h[turn].splice(h[turn].indexOf(c), 1); sn[c] = 1; trick.push(c); if (i === 0) led = M.suitOf(c); else if (M.suitOf(c) !== led) vd[turn][led] = true; if (M.beatsCard(c, winCard, trump)) { winCard = c; winner = turn; }
     if (++i === P) { won[winner]++; turn = winner; i = 0; led = -1; winCard = -1; trick = []; } else turn = (turn + 1) % P; }
   let tot = 0; for (let q = 0; q < P; q++) tot += M.vienna(bids[q], won[q], n); return { made: won[me] === 0 ? 1 : 0, money: M.vienna(bids[me], won[me], n) - tot / P }; }
+// CELLS=7-11-9,3-14-6 (singleton-top-low, jack 11 ... ace 14) runs only those holdings
+const CELLS = process.env.CELLS ? process.env.CELLS.split(',') : null;
 for (const s of sList) for (let hh = 3; hh <= 14; hh++) for (let l = 2; l < hh; l++) {
+  if (CELLS && !CELLS.includes(s + '-' + hh + '-' + l)) continue;
   const row = { P, n, s, h: hh, l, k: 0, made: [0, 0, 0], money: [0, 0, 0], d: 0, d2: 0, tries: 0 };
   while (row.k < DEALS && row.tries < DEALS * 30) { row.tries++;
     // suits: your singleton suit, your doubleton suit, a filler suit when n > 3; trump is one of the remaining suits
