@@ -1,0 +1,10 @@
+Matt's hand, 20 Nov 2026. 4 players, 7 cards, trump spades, turned 7S, dealer East.
+You   AS 2S AH 3H 2H 10C 2D      bid 2
+West  8S KH JH QC QD 10D 9D      bid 2
+North QS 6S 4S QH 5H 6C 2C       bid 1
+East  10S 10H KC KD JD 5D 4D     bid 1
+Tricks: 10C QC 6C KC (East) | 10S AS 8S 6S (You) | AH KH QH 10H (You) | 2S QD 4S JD (North) | 5H KD 3H JH (West) | 9D QS 5D 2D (North) | 2C 4D 2H 10D (North)
+Question: trick 4, North (bid 1, none taken, holding QS 4S 5H 2C) plays the 4S, not the QS, under You's 2S with East to come.
+Answer (read-calibration/north_t4.js): bot plays 4S 100% of 100 runs; 4S -$2.55, QS -$3.38. Bid made 10.7% with the 4S
+(needs East to hold one spade above the 4: 11%), 0.5% with the QS (after the queen wins, the 4S is a second winner unless
+East has the king or two spades). East void 79% (the real case): busted either way.
