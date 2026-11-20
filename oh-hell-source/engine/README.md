@@ -731,3 +731,26 @@ Both asked for by Matt after the tidy-up. No engine change. Test `browser-tests/
 - Six players, seat 5 minus seat 2: +0.18 +0.26 +0.33 +0.25 +0.22 +0.17 +0.12 +0.04 from 1 to 8 cards (±0.06 to ±0.13), +$0.21 ± 0.03 overall. Five players, seat 4 minus seat 2: positive at every size, +$0.18 ± 0.03. Four players, seat 3 minus seat 2: +$0.10 ± 0.03.
 - Dealer minus first seat is negative at every size: at four players −0.23 −0.16 −0.28 −0.30 −0.08 −0.35 from 7 to 12 cards (±0.14); at five players −0.44 to −0.65 from 7 to 10 cards; at six players −0.64 to −0.80 from 6 to 8 cards.
 - The dealer against the table: four players 7 to 12 cards −$0.07 on average (+$0.01 at 8 cards); five players 7 to 10 cards −$0.35 (earlier bidding −$0.19); six players 6 to 8 cards −$0.49 (−$0.39). Over-bid hands at 5 players 10 cards 24% (11%), at 6 players 8 cards 23% (11%); four-player rounds unchanged (22% against 23% at 10 cards).
+
+## 20 November 2026: zero bid, singleton or top of the doubleton? (`oh-hell-source/zero-discard/`)
+
+Matt's question from a hand (5 players, 4 cards; holding a lone 6♥ and ♣9-7 with a zero bid he threw the 6; `hands/matt_5p4_zero_discard.txt`): when is throwing the singleton right?
+
+**The test** (`discard.js`, summary `discard_sum.js`). A round of n cards; you hold a singleton of rank s in one side suit and a doubleton h, l in another, have bid 0, and the first trick is led in a suit you do not hold. All 1,014 holdings (13 singleton ranks x 78 doubletons), 400 deals each: other hands, trump, your seat and the other bids (drawn from the bidding network) at random; the seats before you play the network's card; deals led in one of your suits are thrown away. Each of your three throws is then played out on the real deal with the network in every seat. At n = 4 the fourth card is the 2 of a third side suit, so the lead is always a trump.
+
+**Results** (dollars gained by throwing the singleton rather than the top of the doubleton; each table 405,600 deals):
+
+| table | singleton makes 0 | top of doubleton | low card | singleton minus top |
+|---|---|---|---|---|
+| 4 players, 3 cards | 90.0% | 79.0% | 68.9% | +$0.69 |
+| 5 players, 3 cards | 92.4% | 84.2% | 75.3% | +$0.54 |
+| 4 players, 4 cards | 83.8% | 66.8% | 52.8% | +$1.20 |
+| 5 players, 4 cards | 88.3% | 75.8% | 62.7% | +$0.91 |
+
+- The singleton's rank decides almost everything. From a 6 up, throwing it is right against every doubleton at every table tested (a lone 6: +$0.0 to +$0.6; a lone 10: about +$1; a lone ace: +$1.5 to +$3.5).
+- Throwing the top of the doubleton is right only with a very small singleton and a high doubleton: at five players a lone 2, 3 or 4 against a doubleton headed by the 9 or better (lone 5 against the queen or better), at four players a lone 2 or 3 against the jack or better. The gain is never more than about $0.40.
+- The doubleton's low card hardly matters to the choice (touching +$0.49, wide +$0.56 at 5 players 3 cards), though a low second card makes every line safer. Throwing the low card is never right.
+- Matt's holding, lone 6 against 9-7: +$0.14 ± 0.20 (5 players, 3 cards), +$0.32 ± 0.19 (4 players, 3 cards), +$0.01 ± 0.21 (5 players, 4 cards), +$0.30 ± 0.27 (4 players, 4 cards); its neighbours in the grid put it at about +$0.2. On his actual hand at trick 2 (`make_path.js`): throw 6♥ 72%, 7♣ 68%, 9♣ 66%.
+- Not covered: a throw later than the first trick, rounds of five cards and more (the design wastes too many deals there), a card-reading bot in your seat, opponents other than these bots.
+
+**The Makes column on that hand** (`make_path.js`: the chance of making 0 from his seat after each card, 3,000 layouts, network in every seat): 93% after East's ♠9, 89% when NW won trick 1, 77% after NW led the ♦A, 72% after East threw the ♣10, 73% after his ♥6, 70% after West's ♥Q. The fall came from the lead and the other seats' throws, not from his card: the hand is under-bid by one, NW had its two tricks after the ace, and the unwanted trick then had to fall on one of four seats ducking.

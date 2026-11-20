@@ -1,0 +1,13 @@
+Oh Hell hand 2 of 8 | 5 players | 4 cards | trump ♦ (turned 6♦) | dealer NW | bots played by: neural network with card reading
+Hands:
+  You   6♠ 6♥ 9♣ 7♣
+  West  K♥ Q♥ 8♥ 8♣
+  NW    A♦ 10♠ J♥ 6♣
+  NE    Q♦ 8♦ 5♠ 3♣
+  East  9♠ 10♥ 2♥ 10♣
+Bids, in order: NE 1, East 0, You 0, West 0, NW 2
+Trick  1: NE leads 5♠, East 9♠, You 6♠, West 8♣, NW 10♠  -> NW
+Trick  2: NW leads A♦, NE 8♦, East 10♣, You 6♥, West Q♥  -> NW
+Trick  3: NW leads 6♣, NE 3♣, East 10♥, You 7♣, West K♥  -> You
+Trick  4: You lead 9♣, West 8♥, NW J♥, NE Q♦, East 2♥  -> NE
+Result: You bid 0 took 1 = 1; West bid 0 took 0 = 9; NW bid 2 took 2 = 12; NE bid 1 took 1 = 11; East bid 0 took 0 = 9
