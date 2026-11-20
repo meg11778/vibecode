@@ -722,3 +722,12 @@ Both asked for by Matt after the tidy-up. No engine change. Test `browser-tests/
 
 - **A game is set aside, not ended, when you study a hand.** Choosing Edit this deal, Play this deal again or Same hand, new opponents during a game parks the whole game (`parkGame`), wherever it stands: between hands or in the middle of one. "Back to your game" then appears on the start screen (with "End that game"), beside the table while a study hand is played, and on every review. `resumeGame` puts back the review of the hand just finished, or the table with the same cards and whoever was to act. The parked game's timers hand their next step to it instead of running; tokens come from a counter that is never reused (`epoch`), so nothing from a study hand can fire into the game. Starting another game with Deal leaves the parked one waiting.
 - **"Precision of this report"** under each report (Normal / High / Very high) re-does that one report at the chosen level (`ASSESS.prec`) and leaves the game's Precision alone, so the bots can play at Normal while a hand is studied at Very high. The start-screen Precision still sets the bots' level and the level of new reports.
+
+## 20 November 2026: seat values with the new bidding, three nights
+
+3,464 batches, about 11,200 deals a square (`seat-values-overnight-2/results-2026-11-20.jsonl`, which contains the earlier files). Each figure ±$0.06 to ±$0.10. The picture of 19 November holds and is smoother:
+
+- Seat averages over all sizes: four players +0.16 +0.10 +0.21, dealer −0.47; five players +0.17 +0.12 +0.21 +0.29, dealer −0.78; six players +0.22 +0.13 +0.15 +0.24 +0.33, dealer −1.07.
+- Six players, seat 5 minus seat 2: +0.18 +0.26 +0.33 +0.25 +0.22 +0.17 +0.12 +0.04 from 1 to 8 cards (±0.06 to ±0.13), +$0.21 ± 0.03 overall. Five players, seat 4 minus seat 2: positive at every size, +$0.18 ± 0.03. Four players, seat 3 minus seat 2: +$0.10 ± 0.03.
+- Dealer minus first seat is negative at every size: at four players −0.23 −0.16 −0.28 −0.30 −0.08 −0.35 from 7 to 12 cards (±0.14); at five players −0.44 to −0.65 from 7 to 10 cards; at six players −0.64 to −0.80 from 6 to 8 cards.
+- The dealer against the table: four players 7 to 12 cards −$0.07 on average (+$0.01 at 8 cards); five players 7 to 10 cards −$0.35 (earlier bidding −$0.19); six players 6 to 8 cards −$0.49 (−$0.39). Over-bid hands at 5 players 10 cards 24% (11%), at 6 players 8 cards 23% (11%); four-player rounds unchanged (22% against 23% at 10 cards).
