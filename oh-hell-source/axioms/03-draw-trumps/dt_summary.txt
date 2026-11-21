@@ -1,0 +1,53 @@
+hand 2♠ 3♠ 4♠ J♥ Q♥ A♥ 4♦ J♦ 2♣ A♣, bid 3, 80000 deals
+
+over by 2 or more (3582 deals)
+  open 2♠             $-0.71 ±0.17 | makes 46% | short 46% | heart tricks 1.43
+  open A♥             $-1.28 ±0.17 | makes 41% | short 52% | heart tricks 1.29
+  open Q♥             $-1.78 ±0.17 | makes 38% | short 57% | heart tricks 1.07
+  open A♣             $-1.39 ±0.16 | makes 40% | short 52% | heart tricks 1.19
+  open 2♣             $-2.26 ±0.17 | makes 34% | short 59% | heart tricks 1.24
+  open J♦             $-1.10 ±0.17 | makes 43% | short 51% | heart tricks 1.28
+  open 4♦             $-0.76 ±0.17 | makes 45% | short 45% | heart tricks 1.23
+  trump every time    $-0.82 ±0.17 | makes 45% | short 47% | heart tricks 1.44
+  trump twice         $-0.59 ±0.17 | makes 48% | short 44% | heart tricks 1.45
+  network throughout  $-1.05 ±0.17 | makes 43% | short 49% | heart tricks 1.33
+  network opens: A♥ 68%, J♦ 32%
+
+over by 1 (18210 deals)
+  open 2♠             $+0.03 ±0.07 | makes 57% | short 25% | heart tricks 1.67
+  open A♥             $-0.69 ±0.07 | makes 54% | short 35% | heart tricks 1.41
+  open Q♥             $-1.08 ±0.08 | makes 51% | short 40% | heart tricks 1.21
+  open A♣             $-1.17 ±0.07 | makes 50% | short 38% | heart tricks 1.31
+  open 2♣             $-1.35 ±0.07 | makes 48% | short 39% | heart tricks 1.50
+  open J♦             $-0.57 ±0.07 | makes 53% | short 34% | heart tricks 1.47
+  open 4♦             $-0.29 ±0.07 | makes 54% | short 27% | heart tricks 1.45
+  trump every time    $-0.21 ±0.07 | makes 54% | short 30% | heart tricks 1.69
+  trump twice         $+0.13 ±0.07 | makes 58% | short 25% | heart tricks 1.71
+  network throughout  $-0.58 ±0.07 | makes 54% | short 33% | heart tricks 1.46
+  network opens: A♥ 70%, J♦ 30%
+
+under by 1 (31841 deals)
+  open 2♠             $-0.29 ±0.05 | makes 53% | short 12% | heart tricks 1.82
+  open A♥             $-0.07 ±0.05 | makes 57% | short 14% | heart tricks 1.67
+  open Q♥             $+0.04 ±0.05 | makes 58% | short 18% | heart tricks 1.49
+  open A♣             $-0.53 ±0.05 | makes 53% | short 17% | heart tricks 1.57
+  open 2♣             $-0.63 ±0.05 | makes 51% | short 17% | heart tricks 1.75
+  open J♦             $-0.06 ±0.05 | makes 55% | short 15% | heart tricks 1.67
+  open 4♦             $-0.38 ±0.05 | makes 50% | short 12% | heart tricks 1.67
+  trump every time    $-0.56 ±0.05 | makes 51% | short 16% | heart tricks 1.91
+  trump twice         $-0.35 ±0.05 | makes 52% | short 11% | heart tricks 1.93
+  network throughout  $-0.07 ±0.05 | makes 57% | short 14% | heart tricks 1.67
+  network opens: A♥ 100%
+
+under by 2 or more (26367 deals)
+  open 2♠             $-0.61 ±0.05 | makes 36% | short 6% | heart tricks 1.99
+  open A♥             $-0.26 ±0.05 | makes 39% | short 6% | heart tricks 1.83
+  open Q♥             $+0.06 ±0.05 | makes 43% | short 8% | heart tricks 1.70
+  open A♣             $-0.55 ±0.05 | makes 37% | short 8% | heart tricks 1.80
+  open 2♣             $-0.56 ±0.05 | makes 37% | short 9% | heart tricks 1.93
+  open J♦             $-0.12 ±0.05 | makes 40% | short 8% | heart tricks 1.83
+  open 4♦             $-0.44 ±0.05 | makes 36% | short 7% | heart tricks 1.85
+  trump every time    $-0.63 ±0.05 | makes 42% | short 9% | heart tricks 2.02
+  trump twice         $-0.76 ±0.05 | makes 37% | short 6% | heart tricks 2.08
+  network throughout  $-0.25 ±0.05 | makes 40% | short 6% | heart tricks 1.82
+  network opens: A♥ 94%, 4♦ 5%, J♦ 0%

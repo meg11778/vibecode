@@ -48,3 +48,27 @@ seats: 150,000 deals at four players, 120,000 at five. Then 295 overbid deals pr
   other round sizes; a seat other than first.
 - Next (Matt): the long-suit case. 11-card round, several winners in one side suit and a bunch of small trumps,
   overbid: draw trumps first?
+
+## 3. Side-suit winners and small trumps, table overbid: lead trumps when you get in (21 Nov 2026): TRUE EARLY, NOT "EVERY TIME"
+
+Matt's hand: 4 players, 10 cards, spades trump (A♠ turned), first to bid and on lead with
+4♠ 3♠ 2♠ A♥ Q♥ J♥ A♣ 2♣ J♦ 4♦, bid 3 (the bidding network's own bid every time).
+
+Test (`03-draw-trumps/`): 80,000 random deals of the other cards, others bid as the bots do, plain network plays on.
+One line per opening lead, plus "a trump every time you are on lead while you need tricks" and "a trump on your first
+two leads".
+
+- Over by 1 (18,210 deals): open a trump $+0.03, A♥ -$0.69, J♦ -$0.57, 4♦ -$0.29, A♣ -$1.17, Q♥ -$1.08 (each +/-0.07).
+  So the trump opening beats the ace of hearts by about $0.72; short of the bid 25% against 35%; heart tricks 1.67
+  against 1.41. Over by 2 or more: trump -$0.71, 4♦ -$0.76, A♥ -$1.28 (+/-0.17).
+- Trump on the first two leads is best (+$0.13 over by 1); a trump EVERY time is worse (-$0.21): the third trump lead
+  spends your last one. So "draw early", not "always".
+- Underbid tables reverse it: opening a trump is worst-but-two (-$0.29, -$0.61); a heart honour or the J♦ is best.
+- BOT WEAKNESS FOUND: the plain network opens the A♥ 70% and J♦ 30% on the overbid deals, never a trump, giving up
+  $0.6 to $0.7. The card-reading bot (486 overbid deals, Normal precision) opens a trump about 40%, a diamond 35%,
+  A♥ 14%; its sums put the trump first by $0.2 to $0.3, inside its own noise.
+- TO CHECK: on these deals the reading bot's sums (+$1.71 for the trump opening) are far above what the same line
+  earns when played out on real deals (+$0.03). Likely the known problem that at 10 cards most imagined layouts fail
+  to fit three opponents' bids and are topped up with layouts that ignore the bids, which makes an overbid table look
+  softer than it is.
+- Limits: one hand; the network plays on after the scripted leads; four players only.
