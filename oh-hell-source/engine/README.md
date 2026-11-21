@@ -792,3 +792,21 @@ simulation bidders) takes about 5 seconds a deal at 7 cards, so it is packaged f
 (`node overnight.js 8`, send back `results.jsonl`). Publish only if not negative. The live `ohhell.html` and
 `ohhell-play.html` are unchanged; the engine folder's working `ohhell.html` is the candidate, the published one is
 `ohhell_before_bidnet.html` there.
+
+## 21 November 2026: most imagined layouts ignore the bids on big or overbid deals (found through Matt's axiom 3)
+
+`readLayouts` looks for layouts that fit the bids (each kept with the probability the bidding network gives every
+seat's bid) with a budget of `READ.tries`=30 tries a layout; when the budget runs out the rest are filled with layouts
+that ignore the bids. Measured share of the 360 candidates that fit (`layout-fit-test/fit_prev.js`, plain-network
+games, one seat's real choices): 4 players 7 cards 71% (first trick 53%, over by 2+ 40%); 4 players 10 cards 54%
+(first trick 28%, over by 2+ 18%); 5 players 8 cards 43% (first trick 13%); 6 players 6 cards 51% (first trick 19%).
+Effect on Matt's 10-card hand, table over by 1 (`fit_diag.js`): the bot prices the trump opening at +$1.39 to +$1.71
+and the A♥ at +$1.16 to +$1.49; with only fitted layouts (`READ.strict`, same time) -$0.32 to +$0.17 and -$0.93 to
+-$0.62; with ten times the tries +$0.14 to +$0.35 and -$0.73 (four times the time). Played out on real deals the
+truth is +$0.03 and -$0.69. So the fill-up layouts make an overbid table look about $1.50 softer than it is and
+shrink the gaps between plays.
+Candidate fix, NOT published: `play_template_candidate.html` adds `READ.minFit` and `READ.extra` (with `READ.strict`:
+use only fitted layouts; if fewer than minFit fit, keep searching to extra x the budget). Defaults leave play unchanged.
+Money test packaged (`layout-fit-test/`, `node overnight.js 8`): one reading seat, A today, B strict, C strict +
+minFit 60 + extra 10, D tries 300. Publish the best of B/C if it beats A. The report (`ASSESS`) uses the same layouts
+and will need the same setting.

@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oh Hell · Play the bots</title>
+<!--
+  Oh Hell - play against the bots
+  Copyright (C) 2026  Matt Glassman
+
+  The bidding model, the rules-based card play and the scoring in this file are
+  taken from the Oh Hell Monte Carlo bid calculator,
+  Copyright (C) 2026 Jim Agniel, as modified by Matt Glassman (ohhell.html in
+  the same repository). The neural-network card play was trained by Matt
+  Glassman with that calculator's engine. The table, the game flow and the
+  saved-hand review on this page are new (November 2026).
+  14 November 2026: the network for four players with trump is now one trained
+  on money ($1 a point, each seat paid its points less the table's average);
+  see the note in ohhell.html.
+
+  This program is free software: you can redistribute it and/or modify it under
+  the terms of the GNU General Public License as published by the Free Software
+  Foundation, either version 3 of the License, or (at your option) any later
+  version.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+  details: https://www.gnu.org/licenses/gpl-3.0.html
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+:root {
+  --bg: #0c1c2a; --panel: #12283a; --border: #2f5670;
+  --green: #2dffb3; --red: #ff8080; --text: #f2f7fb;
+  --dim: #cfe0ee; --faint: #a3bdd1;
+  --card: #ffffff; --ink: #111111; --cardred: #c8102e;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; font-size: 16px; line-height: 1.5; margin: 0; min-height: 100%; }
+.page { max-width: 1000px; margin: 0 auto; padding: 28px 16px 70px; }
+a.back { font-family: 'Share Tech Mono', monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); text-decoration: none; }
+h1 { font-size: 2.4rem; font-weight: 700; margin: 6px 0 2px; color: #ffffff; }
+h1 span { color: var(--green); }
+.tagline { color: var(--dim); margin: 0 0 22px; max-width: 640px; font-size: 1.08rem; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; margin-bottom: 18px; }
+.eyebrow { font-family: 'Share Tech Mono', monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+label.field { display: flex; flex-direction: column; gap: 4px; font-size: 1rem; color: var(--text); }
+select, input[type=number] { background: #0a1824; color: #ffffff; border: 1px solid #4a7896; border-radius: 3px; padding: 7px 9px; font: inherit; }
+button { font: inherit; cursor: pointer; }
+.btn { background: rgba(45,255,179,.16); color: var(--green); border: 1px solid rgba(45,255,179,.7); border-radius: 3px; padding: 8px 16px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: .9rem; }
+.btn:hover { background: rgba(45,255,179,.28); }
+.btn.quiet { background: transparent; color: var(--text); border-color: #4a7896; font-weight: 600; }
+.btn.quiet:hover { border-color: var(--green); color: var(--green); }
+.btn:disabled { opacity: .35; cursor: default; }
+.hint { color: var(--faint); font-size: .98rem; }
+
+/* table */
+.topline { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; margin-bottom: 12px; }
+.trumpbox { font-size: 1.05rem; }
+.felt { display: grid; grid-template-columns: 1fr 1.3fr 1fr; grid-template-rows: auto auto auto; gap: 10px; align-items: center; justify-items: center; margin: 6px 0 16px; }
+.seat { text-align: center; min-width: 150px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; }
+.seat.turn { border-color: var(--green); box-shadow: 0 0 0 1px rgba(45,255,179,.5) inset; background: rgba(45,255,179,.08); }
+.seat .nm { font-weight: 700; color: #ffffff; font-size: 1.05rem; }
+.seat .nm .d { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--ink); background: var(--green); border-radius: 2px; padding: 0 4px; margin-left: 5px; vertical-align: 2px; }
+.seat .nm .pts { color: var(--green); margin-left: 8px; }
+.seat .st { font-size: 1.2rem; color: #dbe6ee; font-weight: 600; white-space: nowrap; line-height: 1.25; }
+.seat .st b { color: #ffffff; font-weight: 800; font-size: 1.3em; }
+.sN { grid-column: 2; grid-row: 1; } .sW { grid-column: 1; grid-row: 2; } .sE { grid-column: 3; grid-row: 2; } .sS { grid-column: 2; grid-row: 3; }
+.mid { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(3, 90px); gap: 4px; align-items: center; justify-items: center; }
+.mid .pN { grid-column: 2; grid-row: 1; } .mid .pW { grid-column: 1; grid-row: 2; } .mid .pE { grid-column: 3; grid-row: 2; } .mid .pS { grid-column: 2; grid-row: 3; }
+/* Five and six players: the bots sit in a row in the order play passes (the
+   player on your left first), each with its card of the current trick beneath
+   it, and your card below that. */
+.arc { display: grid; gap: 8px; margin: 6px 0 2px; }
+.arc .col { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.arc .seat { width: 100%; min-width: 0; }
+.slot { height: 88px; display: flex; align-items: center; justify-content: center; }
+.slot.me { margin: 0 0 6px; }
+.seat.me { display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.card { display: inline-flex; align-items: center; justify-content: center; min-width: 62px; height: 84px; padding: 0 6px; background: var(--card); color: var(--ink); border: 1px solid #b8c4cc; border-radius: 7px; font-weight: 700; font-size: 1.8rem; line-height: 1; white-space: nowrap; }
+.card.red { color: var(--cardred); }
+.card.win { outline: 3px solid var(--green); }
+button.card:hover:not(:disabled) { transform: translateY(-4px); }
+button.card:disabled { opacity: .38; cursor: default; }
+/* not your turn: cards stay fully white, just not clickable */
+button.card.wait:disabled { opacity: 1; }
+.card.small { min-width: 40px; height: 36px; font-size: 1.1rem; border-radius: 4px; padding: 0 5px; }
+#msg { min-height: 28px; text-align: center; color: #ffffff; font-size: 1.15rem; font-weight: 600; margin-bottom: 10px; }
+#myhand { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; min-height: 90px; }
+#myhand .gap { width: 10px; }
+#actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 14px; min-height: 40px; }
+.bidbtn { min-width: 42px; padding: 8px 0; background: #0a1824; color: #ffffff; font-size: 1.1rem; border: 1px solid #4a7896; border-radius: 3px; font-weight: 700; }
+.bidbtn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+.bidbtn:disabled { opacity: .3; cursor: default; text-decoration: line-through; }
+table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+th { font-family: 'Share Tech Mono', monospace; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); text-align: left; font-weight: 400; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+td { padding: 6px 8px; border-bottom: 1px solid rgba(160,210,255,.14); vertical-align: middle; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.pos { color: var(--green); } .neg { color: var(--red); }
+.scroll { overflow-x: auto; }
+.field { max-width: 100%; min-width: 0; } .field select { max-width: 100%; }   /* a long option (the saved-hand list in the deal setup) must not widen the page on a phone */
+.ld { display: inline-block; width: 16px; color: var(--green); font-size: .85rem; }
+.diff { color: #ffc24d; font-weight: 700; margin-left: 4px; cursor: help; }
+details.sec { border-top: 1px solid var(--border); }
+details.sec > summary { cursor: pointer; font-weight: 700; font-size: 1.15rem; color: #fff; padding: 10px 0; }
+details.sec > summary small { font-weight: 400; color: var(--dim); font-size: .85em; margin-left: 8px; }
+details.sec > .secbody { padding: 0 0 12px; }
+/* Menus and "explain" notes (19 Nov 2026, Matt Glassman: fewer loose buttons, explanations only on request) */
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; }
+details.menu { position: relative; display: inline-block; }
+details.menu > summary { list-style: none; cursor: pointer; display: inline-block; user-select: none; }
+details.menu > summary::-webkit-details-marker { display: none; }
+details.menu > summary::after { content: " \25BE"; }
+details.menu[open] > summary { border-color: var(--green); color: var(--green); }
+.menubody { position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; width: max-content; min-width: 250px; max-width: min(360px, 86vw); background: #0f2434; border: 1px solid #4a7896; border-radius: 4px; padding: 6px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+.menubody.right { left: auto; right: 0; }
+.menubody button, .menubody .mitem { text-align: left; background: transparent; border: 0; color: var(--text); padding: 8px 10px; border-radius: 3px; font: inherit; font-weight: 600; cursor: pointer; display: block; width: 100%; }
+.menubody button:hover, .menubody .mitem:hover { background: rgba(45,255,179,.14); color: var(--green); }
+.menubody button small { display: block; color: var(--faint); font-size: .86em; font-weight: 400; margin-top: 1px; }
+.menubody .mnote { color: #ffc24d; font-size: .9rem; padding: 6px 10px; }
+.menubody .mrow { color: var(--faint); font-size: .92rem; padding: 6px 10px 2px; display: flex; gap: 8px; align-items: center; }
+.menubody hr { border: 0; border-top: 1px solid rgba(255,255,255,.14); margin: 4px 0; width: 100%; }
+@media (max-width: 600px) { .menubody, .menubody.right { position: fixed; left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-width: none; max-height: 70vh; overflow: auto; } }
+.resume { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; padding: 10px 12px; border: 1px solid #ffc24d; border-radius: 4px; background: rgba(255,194,77,.08); color: var(--text); }
+details.explain { margin: 8px 0 0; }
+details.explain > summary { cursor: pointer; color: var(--faint); font-size: .92rem; display: inline-block; list-style: none; border-bottom: 1px dotted var(--faint); }
+details.explain > summary::-webkit-details-marker { display: none; }
+details.explain > summary::before { content: "? "; font-weight: 700; }
+details.explain[open] > summary { color: var(--text); }
+details.explain > .hint, details.explain > p.hint { margin-top: 6px; }
+.markbox { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-size: 1rem; cursor: pointer; white-space: nowrap; }
+.markbox input { width: 18px; height: 18px; accent-color: #ffc24d; }
+.star { color: #ffc24d; }
+.dsTargets { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.dsT { font: inherit; font-weight: 700; padding: 6px 10px; border-radius: 6px; cursor: pointer; background: rgba(255,255,255,.06); color: #dfe9f1; border: 2px solid transparent; }
+.dsT.on { border-color: #fff; background: rgba(255,255,255,.14); }
+.dsT small { font-weight: 400; opacity: .85; margin-left: 5px; }
+.dsCard { flex: 1 1 0; min-width: 0; max-width: 46px; padding: 3px 0 2px; font: inherit; font-weight: 700; font-size: .95rem; border-radius: 5px; cursor: pointer; line-height: 1.1;
+  background: rgba(255,255,255,.07); color: #dfe9f1; border: 1px solid rgba(255,255,255,.18); display: flex; flex-direction: column; align-items: center; }
+.dsCard.red { color: #ff9a9a; }
+.dsCard i { font-style: normal; font-size: .62rem; font-weight: 700; height: .9rem; letter-spacing: .02em; }
+.dsCard.own { background: #fff; color: #111; } .dsCard.own.red { color: #c8102e; }
+.dsCard.gone { opacity: .45; }
+.dsCard.off { opacity: .2; } .dsCard.can { outline: 2px solid #ffffff; outline-offset: 1px; }
+.ds0 { --sc: #2ee6a6; } .ds1 { --sc: #5aa9ff; } .ds2 { --sc: #ffc24d; } .ds3 { --sc: #ff8a65; } .ds4 { --sc: #c792ea; } .ds5 { --sc: #f48fb1; } .ds9 { --sc: #9aa7b1; }
+.dsT[class*="ds"] { box-shadow: inset 0 -4px 0 var(--sc); }
+.dsCard.own { box-shadow: inset 0 -5px 0 var(--sc); } .dsCard.own i { color: #111; }
+#dsPlays { font-size: 1rem; color: var(--text); margin: 6px 0; }
+#dsPlays div { margin: 2px 0; }
+#deal > summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; padding: 4px 0; }
+#dsBids { display: flex; gap: 8px; flex-wrap: wrap; }
+#dsBids label { display: flex; flex-direction: column; font-size: .85rem; color: var(--dim); gap: 3px; }
+.tally { display: inline-block; font-weight: 700; font-size: 1.05rem; color: #fff; padding: 3px 12px; border-radius: 999px; background: rgba(255,255,255,.12); white-space: nowrap; }
+.tally small { font-weight: 400; font-size: .85em; opacity: .85; margin-left: 6px; }
+.tally.over { background: #a23b3b; } .tally.under { background: #1f6aa8; }
+.scoreboard { display: grid; gap: 8px; margin: 4px 0 14px; }
+.scoreboard .sc { text-align: center; padding: 8px 6px; border: 1px solid var(--border); border-radius: 6px; background: rgba(255,255,255,.04); min-width: 0; }
+.scoreboard .sc.me { border-color: rgba(45,255,179,.6); }
+.scoreboard .sc.lead { background: rgba(45,255,179,.12); }
+.scoreboard .scn { font-weight: 700; color: #fff; font-size: 1rem; }
+.scoreboard .sct { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.15; }
+.scoreboard .scd { font-family: 'Share Tech Mono', monospace; font-size: 12.5px; color: var(--dim); }
+.scoreboard .scd b { font-weight: 400; }
+.sbTitle { font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0 0 6px; }
+#rvWatch { margin: 0 0 14px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: rgba(0,0,0,.18); }
+#rvWatch .wmsg { text-align: center; color: #fff; font-size: 1.05rem; min-height: 3em; margin: 6px 0; }
+#rvWatch .wmsg small { display: block; color: var(--dim); font-size: .9rem; }
+#rvWatch .whand { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 40px; }
+#rvWatch .wctl { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+@media (max-width: 640px) { .tally { font-size: .95rem; padding: 2px 9px; } .scoreboard .sct { font-size: 1.35rem; } .scoreboard.many { grid-template-columns: repeat(3, minmax(0,1fr)) !important; } .scoreboard .scd { font-size: 11px; } .scoreboard { gap: 4px; } }
+.cuRow { display: flex; gap: 3px; align-items: center; margin-bottom: 3px; }
+.cuSuit { width: 1.3em; font-size: 1.25rem; text-align: center; color: #fff; } .cuSuit.red { color: var(--red); }
+.cuCard { flex: 1 1 0; min-width: 0; max-width: 44px; padding: 5px 0; font: inherit; font-weight: 700; font-size: .95rem; border-radius: 5px; cursor: pointer;
+  background: rgba(255,255,255,.07); color: #dfe9f1; border: 1px solid rgba(255,255,255,.18); }
+.cuCard.red { color: #ff9a9a; }
+.cuCard.on { background: #ffffff; color: #111; border-color: #2ee6a6; box-shadow: 0 0 0 2px #2ee6a6; } .cuCard.on.red { color: #c8102e; }
+#custom > summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; padding: 4px 0; }
+#cuBids { display: flex; gap: 8px; flex-wrap: wrap; }
+#cuBids label { display: flex; flex-direction: column; font-size: .85rem; color: var(--dim); gap: 3px; }
+.mk { font-weight: 800; margin-left: 4px; cursor: help; }
+.mk.minor { color: #ffc24d; } .mk.major { color: #ff7b7b; }
+.verdict { font-size: 1.1rem; margin: 0 0 8px; color: var(--text); }
+.verdict b.minor { color: #ffc24d; } .verdict b.major { color: #ff7b7b; } .verdict b.ok { color: var(--accent, #2ee6a6); }
+.bar { height: 6px; background: rgba(255,255,255,.12); border-radius: 3px; overflow: hidden; max-width: 320px; margin-top: 6px; }
+.bar > i { display: block; height: 100%; background: #2ee6a6; width: 0; }
+.rvhead { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; margin-bottom: 10px; }
+.rvhead h2 { margin: 0; font-size: 1.25rem; color: #ffffff; }
+h3 { font-size: 1.05rem; color: #ffffff; margin: 18px 0 6px; }
+.handrow { display: flex; gap: 4px; flex-wrap: wrap; }
+footer { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: .1em; color: var(--faint); text-align: center; margin-top: 30px; }
+[hidden] { display: none !important; }
+/* Phone. While a hand is in play the page title steps aside and the table is
+   drawn compactly, so all four seats, the trick, your hand and the bid buttons
+   fit on one screen without scrolling. */
+@media (max-width: 640px) {
+  .page { padding: 12px 8px 50px; }
+  h1 { font-size: 1.7rem; }
+  .tagline { font-size: 1rem; margin-bottom: 14px; }
+  body.playing h1, body.playing .tagline, body.playing a.back { display: none; }
+  .panel { padding: 10px; margin-bottom: 12px; }
+  .topline { margin-bottom: 6px; align-items: center; }
+  .felt { grid-template-columns: 82px 1fr 82px; gap: 5px; margin: 0 0 6px; }
+  .sN { grid-column: 1 / 4; grid-row: 1; } .sS { grid-column: 1 / 4; grid-row: 3; }
+  .sW { grid-column: 1; grid-row: 2; } .sE { grid-column: 3; grid-row: 2; }
+  .mid { grid-column: 2; grid-row: 2; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 62px); gap: 2px; }
+  .seat { min-width: 0; width: 100%; padding: 4px 6px; }
+  .seat .nm { font-size: 1rem; }
+  .sN, .sS { display: flex; justify-content: center; align-items: baseline; gap: 8px; }
+  .arc { gap: 4px; margin: 0 0 2px; } .arc .col { gap: 3px; }
+  .arc .seat { padding: 3px 2px; } .seat .st { font-size: 1.05rem; } .seat .nm .pts { margin-left: 5px; }
+  .arc .seat .nm { font-size: .9rem; white-space: nowrap; } .arc .seat .nm .pts { margin-left: 3px; } .arc .seat .nm .d { margin-left: 2px; padding: 0 3px; }
+  .arc .seat:not(.me) .st { font-size: 1rem; line-height: 1.1; } .arc .seat:not(.me) .st .w { display: block; font-size: .72em; font-weight: 400; color: var(--dim); }
+  .slot { height: 64px; } .slot.me { margin: 0 0 4px; }
+  .card { min-width: 44px; height: 62px; font-size: 1.35rem; padding: 0 3px; border-radius: 6px; }
+  .mid .card { min-width: 46px; height: 60px; }
+  .card.small { min-width: 32px; height: 30px; font-size: .95rem; }
+  #msg { font-size: 1.05rem; min-height: 24px; margin-bottom: 6px; }
+  #myhand { gap: 4px; min-height: 62px; } #myhand .gap { width: 4px; }
+  #actions { margin-top: 8px; gap: 5px; min-height: 38px; }
+  .bidbtn { min-width: 38px; padding: 7px 0; }
+  .btn { padding: 7px 12px; }
+  #tablefoot { margin-top: 8px !important; }
+}
+/* Small phones: everything a size down so a 13-card hand still fits. */
+@media (max-width: 640px) and (max-height: 600px) {
+  .page { padding-top: 6px; } .panel { padding: 7px 8px; }
+  .topline { margin-bottom: 3px; }
+  .mid { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(3, 50px); }
+  .mid .card { min-width: 40px; height: 48px; font-size: 1.15rem; }
+  .slot { height: 54px; } .arc .seat:not(.me) .st { font-size: .95rem; }
+  .card { min-width: 40px; height: 52px; font-size: 1.2rem; }
+  .seat { padding: 2px 6px; } .seat .st { font-size: 1rem; line-height: 1.15; }
+  #msg { min-height: 22px; margin-bottom: 3px; font-size: 1rem; }
+  #myhand { min-height: 52px; }
+  #actions { margin-top: 5px; min-height: 30px; }
+  .bidbtn { min-width: 36px; padding: 4px 0; font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="index.html">&#8592; All tools</a>
+  <h1>Oh <span>Hell</span> &middot; play the bots</h1>
+  <p class="tagline">You against three to five bots. Vienna scoring, dealer hooked. Every hand is saved for review.</p>
+
+  <section class="panel" id="setup">
+    <div id="resumeBar" class="resume" hidden><span id="resumeText"></span> <button class="btn" id="resumeGo">Back to your game</button> <button class="btn quiet" id="resumeDrop" title="Gives up the waiting game; its finished hands stay saved">End that game</button></div>
+    <div class="eyebrow" style="margin-bottom:10px">New game</div>
+    <div class="row">
+      <label class="field">Players
+        <select id="nPlayers"><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option></select></label>
+      <label class="field">First round, cards
+        <input type="number" id="fromN" min="1" max="13" value="3" style="width:90px"></label>
+      <label class="field">Last round, cards
+        <input type="number" id="toN" min="1" max="13" value="13" style="width:90px"></label>
+      <label class="field">Rounds
+        <select id="shape"><option value="once">Once through</option><option value="back">There and back</option></select></label>
+      <!-- The bots always bid by simulation and play with card reading (19 Nov 2026: the two choices were removed from the page;
+           the engine still honours "formula" and "net" if these values are changed by hand). -->
+      <input type="hidden" id="bidMode" value="sim"><input type="hidden" id="playMode" value="read">
+      <label class="field">Precision
+        <select id="precision" title="How many imagined layouts of the hidden cards the bots and the report play out. Normal: 30 or more for a bot's card (more when few cards are left), 160 for each of your plays in the report. High and Very high multiply those, for studying a hand; the bots and the report take that much longer."><option value="1" selected>Normal: best for just playing</option><option value="4">High: about 4× slower</option><option value="10">Very high: 10× slower, best for study</option></select></label>
+      <label class="field">Bot speed
+        <select id="speed"><option value="250">Fast</option><option value="650" selected>Normal</option><option value="1300">Slow</option></select></label>
+      <label class="field" style="flex-direction:row;align-items:center;gap:6px;padding-bottom:8px">
+        <input type="checkbox" id="pause" checked> Pause after each trick</label>
+      <button class="btn" id="start">Deal</button>
+    </div>
+    <p class="hint" id="setupHint" style="margin:10px 0 0"></p>
+    <details id="custom" style="margin-top:14px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px">
+      <summary>Set up a hand to study</summary>
+      <p class="hint" style="margin:6px 0 8px">Pick your cards. Everything below them is optional.</p>
+      <div id="cuGrid"></div>
+      <div class="row" style="margin-top:10px">
+        <label class="field">Your place in the bidding <select id="cuPos"></select></label>
+        <label class="field">Trump
+          <select id="cuTrump"><option value="rand">Random card</option><option value="0">&#9824; spades</option><option value="1">&#9829; hearts</option><option value="2">&#9830; diamonds</option><option value="3">&#9827; clubs</option><option value="nt">No trump</option></select></label>
+        <label class="field">Turned card <select id="cuRank"></select></label>
+        <label class="field">Opening lead, suit
+          <select id="cuLeadS"><option value="none">Not set</option><option value="0">&#9824;</option><option value="1">&#9829;</option><option value="2">&#9830;</option><option value="3">&#9827;</option></select></label>
+        <label class="field">Opening lead, rank <select id="cuLeadR"></select></label>
+      </div>
+      <div class="eyebrow" style="margin:10px 0 6px">Bids, in bidding order (leave any at &ndash; to be bid at the table)</div>
+      <div id="cuBids"></div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="cuDeal">Deal this hand</button>
+        <button class="btn quiet" id="cuClear">Clear cards</button>
+        <span class="hint" id="cuMsg"></span>
+      </div>
+      <details class="explain"><summary>Explain this</summary><p class="hint">The round is as many cards as you pick; players and speed come from the settings above. The other hands are dealt at random. A seat whose bid you set is given a hand on which the bid formula would make exactly that bid after the bids ahead of it. If you set the opening lead, the leader holds that card and the bots&rsquo; play engine would choose to lead it (or a card equivalent to it).</p></details>
+    </details>
+    <details id="deal" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px">
+      <summary>Set up an entire deal to study</summary>
+      <details class="explain" style="margin:6px 0 8px"><summary>Explain this</summary><p class="hint">Give every player their cards, then bid and play it. Each bot still sees only its own hand. You can also set some or all of the bids and play some cards in advance, and start from that point. To play cards in advance, choose &ldquo;Played cards&rdquo; and click the cards in the order they were played; every hand must be complete, every bid set and trump settled first. Players and speed come from the settings above.</p></details>
+      <div class="row">
+        <label class="field">Start from a saved hand <select id="dsLoad"></select></label>
+        <label class="field">Cards each <input type="number" id="dsN" min="1" max="13" value="7" style="width:80px"></label>
+        <label class="field">Your place in the bidding <select id="dsPos"></select></label>
+        <label class="field" style="flex-direction:row;align-items:center;gap:6px;padding-bottom:8px"><input type="checkbox" id="dsNT"> No trump</label>
+      </div>
+      <div class="eyebrow" style="margin:10px 0 0">Choose who you are giving cards to, then click the cards</div>
+      <div class="dsTargets" id="dsTargets"></div>
+      <div id="dsGrid"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn quiet" id="dsRandom" title="Deals the unassigned cards at random to every seat that is short, and turns a card if none is chosen">Deal the rest at random</button>
+        <button class="btn quiet" id="dsClear">Clear everything</button>
+      </div>
+      <div class="eyebrow" style="margin:12px 0 6px">Bids, in bidding order (leave any at &ndash; to be bid at the table)</div>
+      <div id="dsBids"></div>
+      <div class="eyebrow" style="margin:12px 0 4px">Cards already played (optional)</div>
+      <div id="dsPlays"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn quiet" id="dsUndo">Undo last card</button>
+        <button class="btn quiet" id="dsUnplay">Clear played cards</button>
+        <label class="field" id="dsUptoBox" style="display:none">Replay the saved hand&rsquo;s play through <select id="dsUpto"></select></label>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="dsStart">Start from here</button>
+        <span class="hint" id="dsMsg"></span>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel" id="table" hidden>
+    <div class="topline">
+      <div><span class="eyebrow" id="roundInfo"></span></div>
+      <div id="tally"></div>
+      <div class="trumpbox" id="trumpInfo"></div>
+    </div>
+    <div id="felt"></div>
+    <div id="msg"></div>
+    <div id="myhand"></div>
+    <div id="actions"></div>
+    <div id="tablefoot" style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px">
+      <span class="hint" id="engineNote"></span>
+      <label class="markbox" title="Marked hands are starred in the saved list, which can be narrowed to them"><input type="checkbox" id="markLive"> Mark this hand for review</label>
+      <button class="btn" id="resumeLive" hidden>Back to your game</button>
+      <button class="btn quiet" id="quit">End this game</button>
+    </div>
+  </section>
+
+  <section class="panel" id="review" hidden></section>
+
+  <section class="panel" id="history">
+    <details class="sec" data-sec="history" style="border-top:0"><summary>Saved hands in this browser<small id="histCount"></small></summary><div class="secbody">
+    <div class="rvhead">
+      <div class="eyebrow"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <label class="markbox"><input type="checkbox" id="onlyMarked"> Marked only</label>
+        <details class="menu"><summary class="btn quiet">Files</summary><div class="menubody right">
+          <button type="button" id="dlAll">Download all<small>One file with every saved hand</small></button>
+          <label class="mitem">Open a saved file<input type="file" id="loadFile" accept=".json,application/json" hidden></label>
+          <hr><button type="button" id="clearAll">Clear the saved hands</button>
+        </div></details>
+      </div>
+    </div>
+    <div class="scroll"><table><thead><tr>
+      <th title="Marked for review">&#9733;</th><th>When</th><th>Round</th><th>Trump</th><th class="num">Your bid</th><th class="num">Took</th><th class="num">Points</th><th></th>
+    </tr></thead><tbody id="histBody"></tbody></table></div>
+    <p class="hint" id="histHint" style="margin:8px 0 0"></p>
+    </div></details>
+  </section>
+
+  <footer>OH HELL &middot; PLAY THE BOTS &middot; &copy; 2026 MATT GLASSMAN &middot; ENGINE &copy; 2026 JIM AGNIEL, MODIFIED &middot; <a href="https://www.gnu.org/licenses/gpl-3.0.html" style="color:inherit">GNU GPL v3</a> &middot; <a href="https://github.com/meg11778/vibecode" style="color:inherit">SOURCE</a></footer>
+</div>
+
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+/*__SIMBID__*/
+</script>
+<script>
+/* ===== the game =====
+   Everything above this script is the calculator's engine, unchanged: the bid
+   model, the rules-based card play, Vienna scoring and the network with its
+   weights. This script is the table.
+
+   Seats: 0 is you, then the bots clockwise from your left. Play passes to the
+   left, so seat s is followed by seat (s+1)%P. The dealer bids last and is
+   hooked; the seat to the dealer's left bids first and leads the first trick. */
+(function(){
+"use strict";
+/* Seats: 0 is you, then the bots in the order play passes. */
+let P = 4, NAMES = ["You","West","North","East"];
+const SEAT_NAMES = { 4:["You","West","North","East"], 5:["You","West","NW","NE","East"], 6:["You","West","NW","North","NE","East"] };
+const MAX_CARDS = { 4:13, 5:10, 6:8 };                                 // the most cards a round can deal
+const seats = () => [...Array(P).keys()];
+const $ = id => document.getElementById(id);
+const cardStr  = c => RANKL[c%13] + "SHDC"[suitOf(c)];                 // for files: "10H"
+const cardText = c => RANKL[c%13] + GLYPH[suitOf(c)];                  // for people: "10♥"
+const cardEl = (c, cls) => '<span class="card '+(isRed(suitOf(c))?"red ":"")+(cls||"")+'">'+cardText(c)+"</span>";
+const SUIT_ORDER = [0,1,3,2];                                          // spades, hearts, clubs, diamonds
+function sortHand(h, trump){
+  const key = c => { const s=suitOf(c); return (s===trump ? -1 : SUIT_ORDER.indexOf(s))*20 - rankOf(c); };
+  return h.slice().sort((a,b)=>key(a)-key(b));
+}
+function beatsCard(c, w, trump){
+  if(w<0) return true;
+  const ct=suitOf(c)===trump, wt=suitOf(w)===trump;
+  if(ct&&!wt) return true; if(!ct&&wt) return false;
+  return suitOf(c)===suitOf(w) && rankOf(c)>rankOf(w);
+}
+const legalCards = (hand, led) => { if(led<0) return hand; const f=hand.filter(c=>suitOf(c)===led); return f.length?f:hand; };
+
+/* ----- what a seat can see, in the shape the engines expect ----- */
+function observe(H, seat){
+  return { hand:H.hands[seat], seen:H.seen, voids:H.voids, lens:H.hands.map(h=>h.length), bids:H.bids, won:H.won,
+           turn:seat, led:H.cur.led, winCard:H.cur.winCard, winner:H.cur.winner, playedInTrick:H.cur.plays.length,
+           trick:H.cur.plays.map(p=>p.card), turned:H.turned, trump:H.trump, n:H.n, P };
+}
+
+/* One decision by a network. Same inputs and weights as the calculator's
+   playHandNet, computed for a single position, and returning how the network
+   ranked every legal card so a saved hand can show what else it considered.
+   Which network depends on the game: see netFor in the engine. */
+/* Groups of equivalent cards among `cards` (one player's cards, any suits).
+   Two cards of a suit are equivalent when every rank between them is held by
+   the same player or already gone: played in an earlier trick, or the turned
+   card. A card in the current trick is not gone. */
+/* Two side suits are mirror images when nothing tells them apart: no card of either has been played or turned, nobody
+   has shown out of either, and you hold the same ranks in both. Then a card in one is worth exactly what its twin in
+   the other is, and their groups are joined. Found by Matt Glassman (16 Nov 2026): leading from J♠ and J♦ with no
+   spade or diamond yet played, the report priced the two jacks a few cents apart. */
+function mirrorGroups(groups, hand, seen, voids, trump, turned){
+  const ranks=[0,0,0,0]; for(const c of hand) ranks[suitOf(c)] |= 1<<(c%13);
+  const clean=s=>{ if(s===trump || !ranks[s]) return false; for(let r=0;r<13;r++) if(seen[s*13+r] || s*13+r===turned) return false; return true; };
+  let out=groups;
+  for(let a=0;a<4;a++) for(let b=a+1;b<4;b++){
+    if(!clean(a) || !clean(b) || ranks[a]!==ranks[b] || (voids && voids.some(v=>v[a]!==v[b]))) continue;
+    for(let r=0;r<13;r++){ if(!(ranks[a]>>r&1)) continue;
+      const ga=out.find(g=>g.includes(a*13+r)), gb=out.find(g=>g.includes(b*13+r));
+      if(ga && gb && ga!==gb) out=out.filter(g=>g!==ga && g!==gb).concat([ga.concat(gb)]); }
+  }
+  return out;
+}
+/* Two of your cards in one suit are the same play when every card between them is out of the way: played in an earlier
+   trick or turned. A card between them that lies in the CURRENT trick normally keeps them apart, since the higher of
+   your two might beat it and the lower not. It does not when neither of your two can win this trick anyway (the higher
+   one does not beat the card now winning): then both lose the trick, and once it is over the card between them is
+   gone. Found by Matt Glassman (16 Nov 2026): 5♦ led, the ace played, holding 6♦ and 4♦; the report priced them apart.
+   winCard and trump are needed for that case; without them the cards in the current trick always keep cards apart. */
+function equivGroups(cards, seen, trick, turned, winCard, trump){
+  const inTrick=new Set(trick), gone=c=>(seen[c] && !inTrick.has(c)) || c===turned;
+  const a=cards.slice().sort((x,y)=>x-y), out=[];
+  for(let i=0;i<a.length;){
+    let j=i;
+    while(j+1<a.length && suitOf(a[j+1])===suitOf(a[j])){
+      const bothLose = winCard!==undefined && winCard>=0 && trump!==undefined && !beatsCard(a[j+1],winCard,trump);
+      let ok=true; for(let c=a[j]+1;c<a[j+1];c++) if(!gone(c) && !(bothLose && inTrick.has(c))){ ok=false; break; }
+      if(!ok) break; j++;
+    }
+    out.push(a.slice(i,j+1)); i=j+1;
+  }
+  return out;
+}
+function netChoose(o, fast){
+  const P=o.P;
+  const R=netLoad(netFor(P,o.n,o.trump)), L=R.L, Hn=NET_H, W1=R.W1, W2=R.W2, W3=R.W3;
+  const hasTrump=o.trump>=0;
+  let m=[0,1,2,3];
+  if(hasTrump){ let k=1; for(let s=0;s<4;s++) m[s]=(s===o.trump)?0:k++; }
+  else m=ntMap(o.hand)||m;                 // at no trump a long spade suit is relabelled (see ntMap)
+  const cc=c=>m[suitOf(c)]*13+(c%13);
+  const legal=legalCards(o.hand,o.led);
+  const h1=Float32Array.from(R.b1), h2=Float32Array.from(R.b2);
+  for(const c of o.hand) netAdd(h1,W1,cc(c));
+  for(let c=0;c<52;c++) if(o.seen[c]) netAdd(h1,W1,52+cc(c));
+  if(o.turned>=0) netAdd(h1,W1,52+cc(o.turned));
+  for(const c of o.trick) netAdd(h1,W1,104+cc(c));
+  if(o.winCard>=0) netAdd(h1,W1,156+cc(o.winCard));
+  if(o.led>=0) netAdd(h1,W1,208+m[o.led]);
+  for(let r=0;r<P;r++){
+    const s=(o.turn+r)%P, b=212+r*10, need=o.bids[s]-o.won[s];
+    if(o.bids[s]) netAddV(h1,W1,b,o.bids[s]);
+    if(o.won[s]) netAddV(h1,W1,b+1,o.won[s]);
+    if(need>0) netAddV(h1,W1,b+2,need); else if(need<0) netAddV(h1,W1,b+3,-need);
+    if(o.lens[s]) netAddV(h1,W1,b+4,o.lens[s]);
+    if(r>0 && r>=P-o.playedInTrick) netAdd(h1,W1,b+5);
+    for(let u=0;u<4;u++) if(o.voids[s][u]) netAdd(h1,W1,b+6+m[u]);
+  }
+  netAddV(h1,W1,L.n,o.n); netAddV(h1,W1,L.n+1,o.hand.length);
+  netAdd(h1,W1,L.pos+o.playedInTrick);
+  if(o.playedInTrick>0) netAdd(h1,W1,L.win+((o.winner-o.turn+P)%P));
+  if(L.seats>=0) netAdd(h1,W1,L.seats+P-3);
+  if(L.nt>=0 && !hasTrump) netAdd(h1,W1,L.nt);
+  for(let j=0;j<Hn;j++){ const v=h1[j]; if(v>0){ const q=j*Hn; for(let t=0;t<Hn;t++) h2[t]+=v*W2[q+t]; } }
+  const alts=legal.map(c=>{ const q=cc(c)*Hn; let z=R.b3[cc(c)];
+    for(let j=0;j<Hn;j++){ const v=h2[j]; if(v>0) z+=v*W3[q+j]; } return {card:c, score:z}; });
+  if(fast===2) return { alts };            // raw scores, unsorted, one per legal card
+  if(fast){ let b=alts[0]; for(let k=1;k<alts.length;k++) if(alts[k].score>b.score) b=alts[k]; return { card:b.card }; }
+  alts.sort((a,b)=>b.score-a.score);
+  const card=alts[0].card;
+  /* Equivalent cards get one figure: the best in their group. The network
+     scores each card separately and its figures for such cards differ
+     slightly. The card played is unchanged: averaging the group instead was
+     tried and measured no better (-0.08 +/-0.05 points a round at 12 cards,
+     about zero elsewhere). */
+  const at=new Map(alts.map(a=>[a.card,a]));
+  for(const g of equivGroups(legal,o.seen,o.trick,o.turned,o.winCard,o.trump)){
+    let mx=-Infinity; for(const c of g) mx=Math.max(mx,at.get(c).score);
+    for(const c of g) at.get(c).score=mx;
+  }
+  alts.sort((a,b)=>b.score-a.score || (b.card===card)-(a.card===card));
+  return { card, alts };
+}
+function rulesChoose(o){
+  const mine=new Set(o.hand), nv=[false,false,false,false];
+  for(let q=0;q<o.P;q++){ if(q===o.turn || o.bids[q]-o.won[q]<=0) continue; for(let s=0;s<4;s++) if(o.voids[q][s]) nv[s]=true; }
+  return chooseCard(o.hand,o.led,o.winCard,o.trump,o.bids[o.turn]-o.won[o.turn],{seen:o.seen,mine,trump:o.trump,needyVoidIn:nv});
+}
+/* A bot's card, and which engine chose it. */
+function botPlay(H, seat){
+  const o=observe(H,seat), legal=legalCards(o.hand,o.led);
+  if(legal.length===1) return { card:legal[0], by:"forced" };
+  if(netCovers(P,H.n,H.trump)){
+    // Cards that are the same play (touching cards, counting cards already gone; twin suits) are chosen between at
+    // random, so which one a bot plays says nothing about the others it holds. Before 18 Nov 2026 a bot always played
+    // the one the network preferred: holding the 6 and 5 of a suit it never played the 5, and a reader could tell.
+    const rnd=mulberry32((G.seed ^ Math.imul(G.idx*4096+H.tricks.length*64+H.cur.plays.length*8+seat+1, 0x85ebca6b))>>>0);
+    const anyOf=g=>(READ.anyTouch && g && g.length>1) ? g[(rnd()*g.length)|0] : null;
+    if(G.playMode==="read"){
+      const r=readChoose(readState(H,seat), rnd), c=anyOf(r.group);
+      return r.same ? { card:c!=null?c:r.card, by:"forced" } : { card:c!=null?c:r.card, by:"reading", alts:r.alts };
+    }
+    const r=netChoose(o), c=anyOf(equivGroups(legal,o.seen,o.trick||[],o.turned,o.winCard,o.trump).find(g=>g.includes(r.card)));
+    return { card:c!=null?c:r.card, by:"network", alts:r.alts };
+  }
+  return { card:rulesChoose(o), by:"rules" };
+}
+/* What the formula, and optionally the simulation, would bid on a hand.
+   `cards` is the hand as dealt, `pos` its place in the bidding order (0 bids
+   first), `prior` the bids made ahead of it. The formula gives a bid at once;
+   the simulation tries the bids near it and takes whichever scores best when
+   played out (simulateBid). Used for the bots' bids, and after a hand to show
+   what each method would have bid on your cards. */
+function bidAdvice(H, cards, pos, prior, seed, wantSim, mine){
+  KNOWN = H.turned>=0 ? [H.turned] : [];
+  const hand=cards.slice().sort((a,b)=>a-b), claimed=prior.reduce((a,b)=>a+b,0);
+  const est=muFor(hand,H.trump,H.n,P,pos);
+  const adj=Math.max(0,Math.min(H.n,est*auctionFactor(H.n,P,claimed,P-pos)));
+  const formula={ bid:bidAt(adj,H.n,(pos===P-1)?H.n-claimed:-1), est:+est.toFixed(2), adj:+adj.toFixed(2) };
+  const out={ est:formula.est, adj:formula.adj, formula:formula.bid };
+  if(!wantSim) return out;
+  // your own hand is worked out once, after the hand, so it can afford four times the deals a bot uses
+  const r=simulateBid(hand, H.trump, H.turned, H.n, P, pos, prior, formula, seed, mine==null ? null : { also:[mine], cmp:mine, samples:600, maxDraws:20000 });
+  if(r.table){ out.sim=r.table; out.samples=r.samples; out.simBid=r.bid; }
+  else if(r.by==="bidding network") out.netBid=r.bid;      // nothing to simulate: the bidding network's own bid stands in
+  if(r.cmp) out.cmp=r.cmp;
+  if(r.why) out.why=r.why;
+  return out;
+}
+/* A different, repeatable seed for every bid of every hand. */
+const bidSeed = seat => (G.seed ^ Math.imul(G.idx*8+seat+1, 0x9e3779b1))>>>0;
+
+/* A bot's bid: the simulation's choice, or the formula's when the game is set
+   to formula bidding or the simulation had nothing to go on. */
+function botBid(H, seat, pos){
+  const sim=H.bidMode==="sim";
+  const a=bidAdvice(H, H.hands[seat], pos, H.bidLog.map(b=>b.bid), bidSeed(seat), sim);
+  if(!sim) return { bid:a.formula, info:{ by:"formula", est:a.est, adj:a.adj } };
+  const info=Object.assign({ by: a.simBid!=null ? "simulation" : a.netBid!=null ? "network" : "formula" }, a);
+  delete info.simBid; delete info.netBid;
+  return { bid: a.simBid!=null ? a.simBid : a.netBid!=null ? a.netBid : a.formula, info };
+}
+
+/* ----- game state ----- */
+let G=null, H=null, token=0, epoch=0, lastRecord=null;
+let parked=null;            // a game set aside while a hand is studied (19 Nov 2026): { G, H, current, P, NAMES, token, held, how }
+let paused=false, held=null, current=null;      // current: the review of the hand just finished, to come back to
+const delay = () => +$("speed").value;
+const later = (fn, ms) => { const t=token; setTimeout(()=>{ if(parked && t===parked.token){ parked.held=fn; return; }      // the parked game's next step waits with it
+  if(t!==token) return; if(paused) held=fn; else fn(); }, ms); };
+
+function roundList(){
+  const top=MAX_CARDS[+$("nPlayers").value];
+  let a=Math.max(1,Math.min(top,+$("fromN").value||1)), b=Math.max(1,Math.min(top,+$("toN").value||1));
+  const out=[]; const step=a<=b?1:-1;
+  for(let n=a; n!==b+step; n+=step) out.push(n);
+  if($("shape").value==="back") for(let i=out.length-2;i>=0;i--) out.push(out[i]);
+  return out;
+}
+function syncSetupHint(){
+  const np=+$("nPlayers").value, top=MAX_CARDS[np], r=roundList();
+  $("fromN").max=$("toN").max=top;
+  $("setupHint").textContent = r.length+" hand"+(r.length===1?"":"s")+": "+r.join(", ")+" cards."
+    + (np>4 ? " With "+np+" players a round can deal at most "+top+" cards." : "")
+    + (np===4 && r.includes(13) ? " The 13-card round deals the whole deck, so it is played at no trump." : "")
+    + (r.includes(1) ? " In a 1-card round there is nothing to choose in the play." : "");
+}
+
+/* Setting a game aside to study a hand, and coming back to it (19 Nov 2026, Matt Glassman: after studying a hand it
+   was not possible to return to the game). The whole game object is kept as it stands; its timers hand their next
+   step to the parked game instead of running. Tokens are never reused, so nothing from the study hand can fire later. */
+function parkGame(){
+  if(!G) return;
+  parked={ G, H, current, P, NAMES, token, held, how:(H && H.live) ? "table" : "review" };
+  token=++epoch; G=null; H=null; paused=false; held=null; current=null;
+  $("table").hidden=true; document.body.classList.remove("playing"); syncResume();
+}
+function resumeGame(){
+  if(!parked) return;
+  const p=parked; parked=null;
+  if(assessCancel){ assessCancel(); assessCancel=null; }
+  G=p.G; H=p.H; current=p.current; P=p.P; NAMES=p.NAMES; $("nPlayers").value=String(P); token=p.token; held=null; paused=false;
+  $("setup").hidden=true; $("review").hidden=true; syncResume();
+  if(p.how==="table" && H && H.live){
+    $("table").hidden=false; document.body.classList.add("playing"); $("table").scrollIntoView({block:"start"});
+    if(p.held){ render(); p.held(); }
+    else if(H.pendingNext){ render(); const f=H.pendingNext; $("actions").innerHTML='<button class="btn" id="cont">Continue</button>'; $("cont").onclick=()=>{ H.pendingNext=null; f(); }; }
+    else step();
+  } else if(current){ $("table").hidden=true; document.body.classList.remove("playing"); showReview(current.rec, current.opts); $("review").scrollIntoView({block:"start"}); }
+  else { $("setup").hidden=false; }
+}
+function syncResume(){
+  const bar=$("resumeBar"), live=$("resumeLive");
+  if(bar){ bar.hidden=!parked; if(parked) $("resumeText").textContent="Your game is waiting at hand "+(parked.G.idx+1)+" of "+parked.G.rounds.length+"."; }
+  if(live) live.hidden=!parked;
+}
+function newGame(){
+  token=++epoch; current=null;
+  const seed=(Date.now() ^ (Math.random()*0x7fffffff))>>>0;
+  P=+$("nPlayers").value; NAMES=SEAT_NAMES[P];
+  G={ P, rounds:roundList(), idx:0, scores:new Array(P).fill(0), dealer:(seed%P), seed, rng:mulberry32(seed), id:"g"+seed.toString(36), bidMode:$("bidMode").value, playMode:$("playMode").value };
+  $("review").hidden=true;
+  startHand();
+}
+function startHand(){
+  token=++epoch; paused=false; held=null; current=null;
+  const n=G.rounds[G.idx], deck=[...Array(52).keys()], pre=G.preset||null;
+  for(let i=51;i>0;i--){ const j=(G.rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+  let hands=[]; for(let s=0;s<P;s++) hands.push(deck.slice(s*n,(s+1)*n));
+  let turned = P*n<52 ? deck[P*n] : -1, trump = turned>=0 ? suitOf(turned) : -1;
+  if(pre){ hands=pre.hands.map(h=>h.slice()); turned=pre.turned; trump=pre.trump; }
+  const first=(G.dealer+1)%P, order=seats().map(i=>(first+i)%P);
+  H={ n, trump, turned, dealer:G.dealer, order, hands, hands0:hands.map(h=>h.slice()),
+      bids:new Array(P).fill(0), bidLog:[], bidCount:0, won:new Array(P).fill(0), seen:new Uint8Array(52),
+      voids:seats().map(()=>[false,false,false,false]), tricks:[],
+      cur:{ leader:first, plays:[], led:-1, winCard:-1, winner:first }, turn:first, phase:"bid", bidMode:G.bidMode,
+      live:true, startScores:G.scores.slice(), fixed: pre ? pre.fixed : null, lead: pre ? pre.lead : -1 };
+  $("setup").hidden=true; $("table").hidden=false; $("review").hidden=true;
+  document.body.classList.add("playing");
+  $("markLive").checked=false;
+  if(pre && pre.instant){
+    // bids set for the seats at the front of the queue go down at once, and so do any cards set as already played
+    while(H.bidCount<P && H.fixed && H.fixed[H.order[H.bidCount]]!=null){
+      const seat=H.order[H.bidCount], set=H.fixed[seat];
+      if(seat===0) placeBid(0,set,{ set:true });
+      else { const a=bidAdvice(H,H.hands[seat],H.bidCount,H.bidLog.map(b=>b.bid),bidSeed(seat),false); placeBid(seat,set,{ by:"set", est:a.est, adj:a.adj, formula:a.formula }); }
+    }
+    if(H.bidCount===P){
+      H.phase="play"; H.turn=H.order[0];
+      for(const c of (pre.pre||[])){
+        const seat=H.turn, cur=H.cur;
+        H.hands[seat].splice(H.hands[seat].indexOf(c),1); H.seen[c]=1;
+        if(cur.plays.length===0) cur.led=suitOf(c); else if(suitOf(c)!==cur.led) H.voids[seat][cur.led]=true;
+        if(beatsCard(c,cur.winCard,H.trump)){ cur.winCard=c; cur.winner=seat; }
+        cur.plays.push({ seat, card:c, by:"set" });
+        if(cur.plays.length<P) H.turn=(seat+1)%P;
+        else { H.won[cur.winner]++; H.tricks.push({ leader:cur.leader, plays:cur.plays, winner:cur.winner }); const w=cur.winner; H.cur={ leader:w, plays:[], led:-1, winCard:-1, winner:w }; H.turn=w; }
+      }
+    }
+  }
+  buildFelt();
+  $("table").scrollIntoView({block:"start"});
+  step();
+}
+
+/* The driver. Decides whose move it is and either waits for you or lets a bot act. */
+function step(){
+  render();
+  if(H.phase==="bid"){
+    if(H.bidCount===P){ H.phase="play"; H.turn=H.order[0]; return step(); }
+    const seat=H.order[H.bidCount], claimed=H.bidLog.reduce((a,b)=>a+b.bid,0);
+    const set = H.fixed ? H.fixed[seat] : null;
+    if(seat===0){ if(set!=null){ placeBid(0,set,{set:true}); return step(); } return showBidButtons(claimed); }
+    say(NAMES[seat]+" is bidding…");
+    if(set!=null) return later(()=>{
+      const a=bidAdvice(H,H.hands[seat],H.bidCount,H.bidLog.map(b=>b.bid),bidSeed(seat),false);
+      placeBid(seat,set,{ by:"set", est:a.est, adj:a.adj, formula:a.formula }); step(); }, delay());
+    return later(()=>{ const b=botBid(H,seat,H.bidCount), ban=hookBan();
+      if(b.bid===ban){                      // the seats still to bid are all set: this bid would make the total come out even
+        const up=b.bid<H.n && (b.info.adj==null || b.info.adj>=b.bid || b.bid===0);
+        b.bid += up ? 1 : -1; b.info.why="moved one off its choice so the bids set for later seats do not add up to "+H.n; b.info.by="formula"; delete b.info.sim; }
+      placeBid(seat,b.bid,b.info); step(); }, delay());
+  }
+  if(H.phase==="play"){
+    if(H.tricks.length===H.n) return endHand();              // every card was set as already played
+    if(H.cur.plays.length===P) return;                       // waiting on the end-of-trick pause
+    const seat=H.turn;
+    if(seat===0){
+      const legal=legalCards(H.hands[0],H.cur.led);
+      if(H.hands[0].length===1) return later(()=>{ playCard(0,{card:legal[0],by:"forced"}); }, Math.min(400,delay()));
+      say(H.cur.plays.length===0 ? "Your lead." : "Your turn.");
+      return showHand(legal);
+    }
+    if(H.lead>=0 && H.tricks.length===0 && H.cur.plays.length===0) return later(()=>{ playCard(seat,{ card:H.lead, by:"set" }); }, delay());
+    say(NAMES[seat]+" to play\u2026");
+    return later(()=>{ const t0=performance.now(), d=botPlay(H,seat); later(()=>{ playCard(seat,d); }, Math.max(0, delay()-40-(performance.now()-t0))); }, 40);
+  }
+}
+/* The bid the seat now bidding may not make: the dealer's hook, or the same
+   thing one step early when every later seat's bid has been set in advance. */
+function hookBan(){
+  const claimed=H.bidLog.reduce((a,b)=>a+b.bid,0), pos=H.bidCount;
+  if(pos===P-1) return H.n-claimed;
+  if(!H.fixed) return -1;
+  let rest=0; for(const s of H.order.slice(pos+1)){ if(H.fixed[s]==null) return -1; rest+=H.fixed[s]; }
+  const b=H.n-claimed-rest; return (b>=0 && b<=H.n) ? b : -1;
+}
+function placeBid(seat, bid, info){
+  H.bids[seat]=bid; H.bidLog.push(Object.assign({seat,bid},info||{})); H.bidCount++;
+}
+function playCard(seat, d){
+  const c=d.card, cur=H.cur;
+  H.hands[seat].splice(H.hands[seat].indexOf(c),1);
+  H.seen[c]=1;
+  if(cur.plays.length===0) cur.led=suitOf(c); else if(suitOf(c)!==cur.led) H.voids[seat][cur.led]=true;
+  if(beatsCard(c,cur.winCard,H.trump)){ cur.winCard=c; cur.winner=seat; }
+  const rec={ seat, card:c, by: seat===0 ? (d.by==="forced"?"forced":"you") : d.by };
+  if(d.alts) rec.alts=d.alts.map(a=>({card:a.card,score:+a.score.toFixed(2)}));
+  cur.plays.push(rec);
+  if(cur.plays.length<P){ H.turn=(seat+1)%P; return step(); }
+  // trick complete
+  H.won[cur.winner]++;
+  H.tricks.push({ leader:cur.leader, plays:cur.plays, winner:cur.winner });
+  render();
+  say(NAMES[cur.winner]+(cur.winner===0?" win":" wins")+" the trick.");
+  const next=()=>{
+    const w=cur.winner;
+    if(H.tricks.length===H.n) return endHand();
+    H.cur={ leader:w, plays:[], led:-1, winCard:-1, winner:w }; H.turn=w; step();
+  };
+  if($("pause").checked){ H.pendingNext=next; $("actions").innerHTML='<button class="btn" id="cont">Continue</button>'; $("cont").onclick=()=>{ H.pendingNext=null; next(); }; $("cont").focus(); }
+  else later(next, Math.max(900,delay()*1.6));
+}
+
+/* ----- drawing the table ----- */
+/* Four players sit around the trick: North across, West and East at the sides.
+   Five and six sit in a row above it, left to right in the order play passes. */
+function buildFelt(){
+  const f=$("felt");
+  if(P===4){
+    f.className="felt";
+    f.innerHTML='<div class="seat sN" id="s2"></div><div class="seat sW" id="s1"></div>'
+      +'<div class="mid"><div class="pN" id="p2"></div><div class="pW" id="p1"></div><div class="pE" id="p3"></div><div class="pS" id="p0"></div></div>'
+      +'<div class="seat sE" id="s3"></div><div class="seat sS" id="s0"></div>';
+    return;
+  }
+  f.className="";
+  let h='<div class="arc" style="grid-template-columns:repeat('+(P-1)+',minmax(0,1fr))">';
+  for(let s=1;s<P;s++) h+='<div class="col"><div class="seat" id="s'+s+'"></div><div class="slot" id="p'+s+'"></div></div>';
+  f.innerHTML=h+'</div><div class="slot me" id="p0"></div><div class="seat me" id="s0"></div>';
+}
+/* The running total of the bids against the tricks on offer; once everyone has
+   bid, how far the hand is overbid or underbid. */
+function tallyHtml(sum, made, Pn, n){
+  if(made<Pn) return '<span class="tally">Bid so far: '+sum+" of "+n+"</span>";
+  const d=sum-n;
+  return '<span class="tally '+(d>0?"over":"under")+'">'+(d>0?"Overbid":"Underbid")+" by "+Math.abs(d)+"<small>"+sum+" bid, "+n+" trick"+(n===1?"":"s")+"</small></span>";
+}
+/* What a seat's box says. Name with the running score beside it; under that
+   the bid while the bidding is going on, then tricks taken out of tricks bid. */
+function seatInner(name, dealer, score, bid, won, bidding, extra){
+  return '<div class="nm">'+name+(dealer?'<span class="d" title="Dealer: bids last and is hooked">D</span>':"")+'<span class="pts" title="Score so far">'+score+"</span>"+extra+"</div>"
+    +'<div class="st">'+(bidding ? '<span class="w">Bid</span> <b>'+(bid==null?"–":bid)+"</b>" : '<span class="w">Took</span> <b>'+won+"</b>/"+bid)+"</div>";
+}
+function say(t){ $("msg").textContent=t; }
+function render(){
+  const n=H.n;
+  $("roundInfo").textContent="Hand "+(G.idx+1)+" of "+G.rounds.length+"  ·  "+n+" card"+(n===1?"":"s");
+  $("trumpInfo").innerHTML = H.trump<0 ? "No trump"
+    : 'Trump <span style="color:'+(isRed(H.trump)?"var(--red)":"#ffffff")+';font-size:1.5rem;vertical-align:-2px">'+GLYPH[H.trump]+"</span> &nbsp; turned "+cardEl(H.turned,"small");
+  $("tally").innerHTML=tallyHtml(H.bidLog.reduce((a,b)=>a+b.bid,0), H.bidLog.length, P, n);
+  const bidding=H.phase==="bid";
+  const active = bidding ? (H.bidCount<P ? H.order[H.bidCount] : -1) : (H.cur.plays.length===P ? -1 : H.turn);
+  for(let s=0;s<P;s++){
+    const el=$("s"+s), hasBid=H.bidLog.some(b=>b.seat===s);
+    el.classList.toggle("turn", s===active);
+    el.innerHTML=seatInner(NAMES[s], s===H.dealer, G.scores[s], hasBid ? H.bids[s] : null, H.won[s], bidding, "");
+    const p=H.cur.plays.find(x=>x.seat===s);
+    $("p"+s).innerHTML = p ? cardEl(p.card, (H.cur.plays.length===P && H.cur.winner===s) ? "win" : "") : "";
+  }
+  showHand(null);
+  $("actions").innerHTML="";
+  $("engineNote").textContent = n===1 ? "One card each: nothing to choose in the play."
+    : netCovers(P,n,H.trump) ? "Bots are playing their cards with the neural network"+(H.trump<0?" (no trump).":".")
+    : "The bots are playing this hand with the rules engine.";
+}
+function showHand(legal){
+  const el=$("myhand"); el.innerHTML="";
+  const sorted=sortHand(H.hands[0],H.trump); let prev=-1;
+  for(const c of sorted){
+    if(prev>=0 && suitOf(c)!==prev){ const g=document.createElement("span"); g.className="gap"; el.appendChild(g); }
+    prev=suitOf(c);
+    const b=document.createElement("button");
+    b.className="card"+(isRed(suitOf(c))?" red":""); b.textContent=cardText(c);
+    b.disabled = !legal || !legal.includes(c);
+    if(!legal) b.classList.add("wait");
+    if(!b.disabled) b.onclick=()=>{
+      showHand(null);
+      // how the network ranks your legal cards here; kept for the review, never shown during play
+      const alts = netCovers(P,H.n,H.trump) ? netChoose(observe(H,0)).alts : null;
+      playCard(0,{card:c,by:"you",alts});
+    };
+    el.appendChild(b);
+  }
+}
+function showBidButtons(claimed){
+  const dealer = H.order[P-1]===0, banned = hookBan();
+  say(dealer ? "Your bid. You are the dealer, so the bids may not add up to "+H.n+"." : banned>=0 ? "Your bid. The bids set for the seats after you mean the total may not come to "+H.n+"." : "Your bid.");
+  const a=$("actions"); a.innerHTML="";
+  for(let b=0;b<=H.n;b++){
+    const btn=document.createElement("button"); btn.className="bidbtn"; btn.textContent=b;
+    if(b===banned){ btn.disabled=true; btn.title="Blocked by the hook"; }
+    else btn.onclick=()=>{ placeBid(0,b); step(); };
+    a.appendChild(btn);
+  }
+}
+
+/* ----- end of a hand: score it, save it, show it ----- */
+function endHand(){
+  { const mi=H.bidLog.findIndex(b=>b.seat===0);
+    Object.assign(H.bidLog[mi], { by:"you" }, bidAdvice(H, H.hands0[0], mi, H.bidLog.slice(0,mi).map(b=>b.bid), bidSeed(0), true, H.bidLog[mi].bid)); }
+  const pts=seats().map(s=>vienna(H.bids[s],H.won[s],H.n));
+  for(let s=0;s<P;s++) G.scores[s]+=pts[s];
+  const rec={
+    format:"ohhell-hand", version:1, id:G.id+"-"+(G.idx+1), savedAt:new Date().toISOString(),
+    game:{ id:G.id, hand:G.idx+1, of:G.rounds.length, rounds:G.rounds },
+    players:NAMES.slice(), dealer:H.dealer, cards:H.n,
+    trump: H.trump<0 ? null : "SHDC"[H.trump], turned: H.turned<0 ? null : cardStr(H.turned),
+    botBidding: H.bidMode==="sim" ? "simulation" : "bid formula",
+    botPlay: H.n===1 ? "forced" : netCovers(P,H.n,H.trump) ? (G.playMode==="read" ? "neural network with card reading" : "neural network") : "rules engine",
+    hands:H.hands0.map(h=>sortHand(h,H.trump).map(cardStr)),
+    bids:H.bidLog.map(b=>Object.assign({},b)),
+    tricks:H.tricks.map(t=>({ leader:t.leader, winner:t.winner,
+      plays:t.plays.map(p=>{ const o={seat:p.seat,card:cardStr(p.card),by:p.by};
+        if(p.alts) o.considered=p.alts.map(a=>({card:cardStr(a.card),score:a.score})); return o; }) })),
+    won:H.won.slice(), points:pts, totalsBefore:H.startScores, totalsAfter:G.scores.slice()
+  };
+  if(G.preset) rec.setup={ bids:H.fixed ? H.fixed.slice() : null, lead:H.lead>=0 ? cardStr(H.lead) : null, replay:!!G.preset.replay,
+    deal:!!G.preset.instant, played:(G.preset.pre||[]).map(cardStr) };
+  H.live=false;
+  if($("markLive").checked) rec.marked=true;
+  lastRecord=rec; storeHand(rec);
+  $("table").hidden=true; document.body.classList.remove("playing");
+  const last = G.idx===G.rounds.length-1;
+  current={ rec, opts:{ assess:true, next: last ? null : ()=>{ G.idx++; G.dealer=(G.dealer+1)%P; startHand(); }, final: last } };
+  showReview(rec, current.opts);
+  renderHistory();
+}
+
+/* ----- assessing your play -----
+   For each card you chose: deal the hidden cards many ways that fit what you
+   could see (your hand, the cards played, who had shown out of which suit) and
+   the bids, then play every legal card out to the end of the hand on each of
+   those layouts with the network in every seat. A card's worth is your average
+   points for the hand. This is the same playout that taught the network; it is
+   the bots' opinion of your play, not the truth, and it does not read anything
+   into the cards the others chose to play.
+
+   Works from a saved record, so any saved hand can be assessed. Runs in short
+   slices so the page stays responsive. */
+const ASSESS = { thin:30, samples:160, minor:0.25, major:1.0 };
+function assessSetup(r){
+  const Pn=r.players.length, n=r.cards, trump=r.trump?"SHDC".indexOf(r.trump):-1, turned=r.turned?parseCard(r.turned):-1;
+  const hands=r.hands.map(h=>h.map(parseCard)), bids=new Array(Pn).fill(0), order=r.bids.map(b=>b.seat);
+  for(const b of r.bids) bids[b.seat]=b.bid;
+  const seen=new Uint8Array(52), voids=hands.map(()=>[false,false,false,false]), won=new Array(Pn).fill(0), playedBy=hands.map(()=>[]), hist=[];
+  const decisions=[], mine=[];
+  r.tricks.forEach((k,ti)=>{
+    let led=-1, winCard=-1, winner=k.leader; const trick=[];
+    k.plays.forEach((p,i)=>{
+      const c=parseCard(p.card);
+      const snap=()=>({ hand:hands[0].slice(), seen:seen.slice(), voids:voids.map(v=>v.slice()), lens:hands.map(h=>h.length), won:won.slice(), led, winCard, winner, playedInTrick:i, trick:trick.slice() });
+      if(p.seat===0) mine.push({ trick:ti, card:c, st:snap(), truth:hands.map(h=>h.slice()) });     // for the value of the hand as the cards lay
+      if(p.seat===0)
+        decisions.push({ trick:ti, card:c, noChoice: p.by==="set" ? "set" : legalCards(hands[0],led).length>1 ? null : "only", st:{ hand:hands[0].slice(), seen:seen.slice(), voids:voids.map(v=>v.slice()), lens:hands.map(h=>h.length),
+          won:won.slice(), led, winCard, winner, playedInTrick:i, trick:trick.slice(), playedBy:playedBy.map(x=>x.slice()), hist:hist.slice() } });
+      hands[p.seat].splice(hands[p.seat].indexOf(c),1); seen[c]=1; trick.push(c); playedBy[p.seat].push(c); hist.push({ seat:p.seat, card:c });
+      if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[p.seat][led]=true;
+      if(beatsCard(c,winCard,trump)){ winCard=c; winner=p.seat; }
+    });
+    won[k.winner]++;
+  });
+  let h=0; for(const ch of (r.id+r.savedAt)) h=(Math.imul(h,31)+ch.charCodeAt(0))>>>0;
+  return { Pn, n, trump, turned, bids, order, decisions, mine, rng:mulberry32(h||1) };
+}
+/* Hidden hands for the other seats: random, respecting the suits each has
+   shown out of (the sampler the self-play training used). */
+/* Deal the unseen cards to the other seats so that nobody gets a suit they have shown out of, every such deal being
+   equally likely. Cards left over stay undealt (in rounds that do not use the whole deck).
+   Until 17 Nov 2026 each seat in turn simply took the first cards it was allowed from one shuffled pile. That is not
+   an even deal: the cards an earlier seat had to skip pile up at the front for the next seat. Found by Matt Glassman
+   on a hand where West had shown out of spades: East was then given a spade as its last card about half the time,
+   and the report misjudged which of two discards was safer. Now: any legal deal to start from, then several hundred
+   random exchanges between two places (a seat's card or an undealt card), each made only if it breaks no void. Every
+   exchange is as likely as its reverse, so the result settles on an even draw from the legal deals. */
+function dealHidden(unseen, lens, voids, Pn, rand, me){
+  me=me||0;
+  const start=dealFirstFit(unseen, lens, voids, Pn, rand, me);
+  if(READ.deal==="first" || !start) return start;
+  const anyVoid=voids.some((v,p)=>p!==me && v.some(Boolean));
+  if(!anyVoid) return start;                                   // nothing to respect: the shuffled pile is already even
+  const card=[], owner=[]; for(let p=0;p<Pn;p++) if(p!==me) for(const c of start[p]){ card.push(c); owner.push(p); }
+  const dealt=new Set(card); for(const c of unseen) if(!dealt.has(c)){ card.push(c); owner.push(-1); }
+  const N=card.length, ok=(c,o)=> o<0 || !voids[o][suitOf(c)];
+  for(let step=0, steps=8*N; step<steps; step++){
+    const a=(rand()*N)|0, b=(rand()*N)|0; if(owner[a]===owner[b]) continue;
+    if(ok(card[a],owner[b]) && ok(card[b],owner[a])){ const t=card[a]; card[a]=card[b]; card[b]=t; }
+  }
+  const out=new Array(Pn); for(let p=0;p<Pn;p++) if(p!==me) out[p]=[];
+  for(let i=0;i<N;i++) if(owner[i]>=0) out[owner[i]].push(card[i]);
+  return out;
+}
+function dealFirstFit(unseen, lens, voids, Pn, rand, me){
+  me=me||0;
+  const order=[]; for(let p=0;p<Pn;p++) if(p!==me) order.push(p);
+  order.sort((a,b)=>voids[b].filter(Boolean).length-voids[a].filter(Boolean).length);
+  for(let attempt=0; attempt<13; attempt++){
+    const pool=unseen.slice();
+    for(let i=pool.length-1;i>0;i--){ const j=(rand()*(i+1))|0; const t=pool[i]; pool[i]=pool[j]; pool[j]=t; }
+    const out=new Array(Pn); let ok=true;
+    if(attempt===12){ let k=0; for(const p of order){ out[p]=pool.slice(k,k+lens[p]); k+=lens[p]; } return out; }
+    for(const p of order){
+      const take=[];
+      for(let i=0;i<pool.length && take.length<lens[p];i++) if(pool[i]>=0 && !voids[p][suitOf(pool[i])]){ take.push(pool[i]); pool[i]=-1; }
+      if(take.length<lens[p]){ ok=false; break; }
+      out[p]=take;
+    }
+    if(ok) return out;
+  }
+}
+/* The layouts one decision is judged on: drawn at random, weighed by how well
+   each other seat's whole hand explains its bid, then resampled by weight. */
+function assessLayouts(A, st, K){
+  const mine=new Set(st.hand), unseen=[];
+  for(let c=0;c<52;c++) if(!st.seen[c] && !mine.has(c) && c!==A.turned) unseen.push(c);
+  KNOWN = A.turned>=0 ? [A.turned] : [];
+  const before=new Array(A.Pn).fill(0), posOf=new Array(A.Pn).fill(0); { let B=0; A.order.forEach((s,i)=>{ before[s]=B; posOf[s]=i; B+=A.bids[s]; }); }
+  const deals=[], wts=[]; let wSum=0, wSum2=0;
+  for(let d=0; d<K*8; d++){
+    const hands=dealHidden(unseen, st.lens, st.voids, A.Pn, A.rng); let w=1;
+    for(let s=1;s<A.Pn;s++){
+      const full=hands[s].concat(st.playedBy[s]).sort((a,b)=>a-b), pos=posOf[s];
+      w*=bidLikelihood(muFor(full,A.trump,A.n,A.Pn,pos)*auctionFactor(A.n,A.Pn,before[s],A.Pn-pos), A.n, pos===A.Pn-1 ? A.n-before[s] : -1, A.bids[s], PROFILE_DEFAULT);
+    }
+    deals.push(hands); wts.push(w); wSum+=w; wSum2+=w*w;
+    if(d%100===99 && d+1>=K*2 && (wSum*wSum)/wSum2 >= 3*K) break;
+  }
+  const ess=(wSum*wSum)/wSum2;
+  if(ess<20){ return { picks:deals.slice(0,K), fit:false }; }          // the bids do not fit the bid model: use plain random layouts
+  const picks=[]; let acc=0, i=0; const stepW=wSum/K, u0=A.rng()*stepW;
+  for(let k=0;k<K;k++){ const x=u0+k*stepW; while(i<wts.length-1 && acc+wts[i]<x){ acc+=wts[i]; i++; } picks.push(deals[i]); }
+  return { picks, fit:true };
+}
+/* Play from the middle of a hand to its end: I play `first` now, then every
+   seat plays as the bots do. Returns my points for the hand. */
+function playOut(A, st, hands, first, useNet, me){
+  me=me||0;
+  const Pn=A.Pn, h=hands.map(x=>x.slice()), won=st.won.slice(), seen=st.seen.slice(), voids=st.voids.map(v=>v.slice());
+  let trick=st.trick.slice(), led=st.led, winCard=st.winCard, winner=st.winner, i=st.playedInTrick, p=me, forced=first, left=0;
+  for(const x of h) left+=x.length;
+  while(left>0){
+    let c;
+    if(forced>=0){ c=forced; forced=-1; }
+    else {
+      const legal=legalCards(h[p],led);
+      if(legal.length===1) c=legal[0];
+      else { const o={ hand:h[p], seen, voids, lens:h.map(x=>x.length), bids:A.bids, won, turn:p, led, winCard, winner, playedInTrick:i, trick, turned:A.turned, trump:A.trump, n:A.n, P:Pn };
+             c = useNet ? netChoose(o,true).card : rulesChoose(o); }
+    }
+    h[p].splice(h[p].indexOf(c),1); left--; seen[c]=1; trick.push(c);
+    if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[p][led]=true;
+    if(beatsCard(c,winCard,A.trump)){ winCard=c; winner=p; }
+    if(++i===Pn){ won[winner]++; p=winner; i=0; led=-1; winCard=-1; trick=[]; } else p=(p+1)%Pn;
+  }
+  let tot=0; for(let s=0;s<Pn;s++) tot+=vienna(A.bids[s],won[s],A.n);
+  playOut.made = won[me]===A.bids[me] ? 1 : 0;               // did this seat make its bid? (read by the report straight after the call)
+  return vienna(A.bids[me],won[me],A.n) - tot/Pn;            // dollars at $1 a point: my points less the table's average
+}
+/* ----- card-reading play -----
+   How the bots choose a card when "card reading" is on. For the seat to act:
+   deal the hidden cards many ways; weigh each layout by how well it explains
+   the bids (the bid model) and the cards the other seats have actually played
+   (how likely the network would have been to play each of them from that
+   hand); keep a sample in proportion; play every legal card out on each with
+   the network in every seat; choose the best average result in money.
+
+   This is the "teacher" from training, used directly. Against the network
+   alone in the same seat it gained $0.18 +/-0.08 a round at 6 cards and
+   $0.27 +/-0.24 at 10 (four players with trump, reference code, 13 Nov 2026).
+
+   S: { Pn, n, trump, turned, bids, order, hand, seen, voids, lens, won, turn,
+        led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
+const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:false, tries:30, tieNet:true, budget:2880, kMax:300, prec:1, deal:"fair", rounds:4, z:2, touch:true, anyTouch:true };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
+function readBidLik(mu,n,banned,obs){ const sig=sigLik(n,PROFILE_DEFAULT)*READ.sig; let p=0;
+  for(const bd of bands(n,banned)){ if(bd.bid!==obs) continue; p += Phi(bd.hi>=n ? Infinity : (bd.hi-mu)/sig) - Phi(bd.lo<=0 ? -Infinity : (bd.lo-mu)/sig); }
+  return Math.max(p,1e-12); }   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
+/* Layouts of the hidden cards for the seat to act, read from the bids and the
+   play so far: M drawn to fit the bids, K of them kept in proportion to how
+   well each explains the cards the other seats have played. */
+function readLayouts(S, rand, M, K){
+  const Pn=S.Pn, me=S.turn;
+  const mine=new Set(S.hand), unseen=[];
+  for(let c=0;c<52;c++) if(!S.seen[c] && !mine.has(c) && c!==S.turned) unseen.push(c);
+  const playedBy=[...Array(Pn)].map(()=>[]); for(const e of S.hist) playedBy[e.seat].push(e.card);
+  const before=new Array(Pn).fill(0), posOf=new Array(Pn).fill(0); { let B=0; S.order.forEach((q,i)=>{ before[q]=B; posOf[q]=i; B+=S.bids[q]; }); }
+  KNOWN = S.turned>=0 ? [S.turned] : [];
+  // READ.bid "net": the bidding network says how likely each seat's bid is on the hand a layout gives it (where it covers the table)
+  const netBids = READ.bid==="net" && typeof bidNetCovers==="function" && bidNetCovers(Pn,S.n), ahead=[];
+  if(netBids) S.order.forEach((q,i)=>{ ahead[q]=S.order.slice(0,i).map(x=>S.bids[x]); });
+  const cands=[], lw=[];
+  const others=!READ.noPlay && S.hist.some(e=>e.seat!==me);
+  // Layouts are first drawn to fit the bids: each is kept with probability
+  // equal to the likelihood of every other seat's bid on the hand it gives
+  // that seat (the hand as dealt: cards held now plus cards already played).
+  // Weighing the bids afterwards instead leaves only a handful of layouts
+  // carrying all the weight, and measured worse than no card reading at all.
+  let tries=0; const budget=M*READ.tries;
+  for(let m=0;m<M;m++){
+    // Out of tries. READ.strict: read from the layouts that do fit the bids rather than topping up with ones that
+    // do not; if fewer than READ.minFit fit, keep looking, up to READ.extra times the budget. (21 Nov 2026: on Matt
+    // Glassman's 10-card overbid hand three quarters of the layouts were top-ups, and they made the table look soft:
+    // the trump opening was priced at +$1.71 when it earns about nothing.)
+    const lim = (READ.strict && cands.length<(READ.minFit||0)) ? budget*(READ.extra||1) : budget;
+    if(READ.strict && tries>=lim && cands.length>0) break;
+    let hands;
+    for(;;){
+      hands=dealHidden(unseen,S.lens,S.voids,Pn,rand,me);
+      if(tries>=lim) break;
+      tries++;
+      let acc=1;
+      for(let q=0;q<Pn && acc>0;q++){ if(q===me) continue;
+        const full=hands[q].concat(playedBy[q]).sort((a,b)=>a-b), pos=posOf[q];
+        const mu=muFor(full,S.trump,S.n,Pn,pos)*auctionFactor(S.n,Pn,before[q],Pn-pos), ban = pos===Pn-1 ? S.n-before[q] : -1;
+        if(netBids) acc = bidNetProbs(Pn,S.n,S.turned,pos,full,ahead[q])[S.bids[q]] >= rand() ? 1 : 0;      // kept with the probability the bidding network gives that bid on that hand
+        else if(READ.bid==="exact") acc = bidAt(Math.max(0,Math.min(S.n,mu)),S.n,ban)===S.bids[q] ? 1 : 0;
+        else { acc=readBidLik(mu, S.n, ban, S.bids[q]); if(acc<1 && rand()>=acc) acc=0; else acc=1; }
+      }
+      if(acc>0) break;
+    }
+    hands[me]=S.hand;
+    let ll=0;
+    if(others){                                                                    // the cards played so far
+      const h=hands.map((x,q)=>x.concat(playedBy[q])), won=new Array(Pn).fill(0), seen=new Uint8Array(52), voids=h.map(()=>[false,false,false,false]);
+      let led=-1, winCard=-1, winner=0, i=0, trick=[];
+      for(const e of S.hist){
+        const q=e.seat, c=e.card;
+        if(i===0) winner=q;
+        if(q!==me){
+          const lg=legalCards(h[q],led);
+          if(lg.length>1){
+            const al=netChoose({ hand:h[q], seen, voids, lens:h.map(x=>x.length), bids:S.bids, won, turn:q, led, winCard, winner, playedInTrick:i, trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
+            let mx=-Infinity, zc=0; for(const a of al){ if(a.score>mx) mx=a.score; if(a.card===c) zc=a.score; }
+            let tot=0; for(const a of al) tot+=Math.exp(READ.beta*(a.score-mx));
+            let pc=Math.exp(READ.beta*(zc-mx));
+            if(READ.touch){                       // cards that are the same play for that seat count as one choice, shared evenly (18 Nov 2026)
+              const g=equivGroups(lg,seen,trick,S.turned,winCard,S.trump).find(x=>x.includes(c));
+              if(g && g.length>1){ pc=0; for(const a of al) if(g.includes(a.card)) pc+=Math.exp(READ.beta*(a.score-mx)); pc/=g.length; }
+            }
+            ll+=Math.log((1-READ.eps)*pc/tot + READ.eps/lg.length);
+          }
+        }
+        h[q].splice(h[q].indexOf(c),1); seen[c]=1; trick.push(c);
+        if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[q][led]=true;
+        if(beatsCard(c,winCard,S.trump)){ winCard=c; winner=q; }
+        if(++i===Pn){ won[winner]++; i=0; led=-1; winCard=-1; trick=[]; }
+      }
+    }
+    cands.push(hands); lw.push(ll);
+  }
+  let mxw=-Infinity; for(const v of lw) if(v>mxw) mxw=v;
+  const w=lw.map(v=>Math.exp(v-mxw)); let sum=0, sum2=0; for(const v of w){ sum+=v; sum2+=v*v; }
+  const picks=[]; { const stepW=sum/K; let x0=rand()*stepW, acc=0, i=0;
+    for(let k=0;k<K;k++){ const x=x0+k*stepW; while(i<cands.length-1 && acc+w[i]<x){ acc+=w[i]; i++; } picks.push(cands[i]); } }
+  return { picks, cands, ess:sum*sum/sum2, fit:tries<budget, fitted: tries<budget ? cands.length : (READ.strict ? cands.length : -1) };
+}
+function readChoose(S, rand){
+  const Pn=S.Pn, me=S.turn, legal=legalCards(S.hand,S.led);
+  const A={ Pn, n:S.n, trump:S.trump, turned:S.turned, bids:S.bids };
+  const st={ won:S.won, seen:S.seen, voids:S.voids, trick:S.trick, led:S.led, winCard:S.winCard, winner:S.winner, playedInTrick:S.playedInTrick };
+  const groups=mirrorGroups(equivGroups(legal,S.seen,S.trick,S.turned,S.winCard,S.trump), S.hand, S.seen, S.voids, S.trump, S.turned);
+  const raw=netChoose({ hand:S.hand, seen:S.seen, voids:S.voids, lens:S.lens, bids:S.bids, won:S.won, turn:me, led:S.led, winCard:S.winCard, winner:S.winner,
+                        playedInTrick:S.playedInTrick, trick:S.trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
+  const netScore=new Map(raw.map(a=>[a.card,a.score]));
+  const repOf=g=>g.reduce((b,c)=>netScore.get(c)>netScore.get(b)?c:b, g[0]);     // within a group, the card the network likes best
+  if(groups.length===1) return { card:repOf(groups[0]), alts:legal.map(c=>({ card:c, score:0 })), same:true, group:groups[0].slice() };
+  // How many layouts to play out. 30 when the playouts are long; more when they are short (few cards left, few choices),
+  // so that a rare holding still turns up: the work, layouts x choices x cards still to be played, is held near
+  // READ.budget. The candidates drawn and weighed stay at 360, so this costs no extra reading. READ.prec (the
+  // Precision setting) multiplies both.
+  const left=S.lens.reduce((a,b)=>a+b,0), M=Math.round(READ.K*READ.MF*READ.prec);
+  const K=Math.min(M, Math.round(READ.prec*(READ.budget>0 ? Math.max(READ.K, Math.min(READ.kMax, Math.floor(READ.budget/(groups.length*Math.max(1,left))))) : READ.K)));
+  // Close calls get more layouts (17 Nov 2026). A bot threw the 5 of diamonds from 10♠ 6♣ 5♦ about one time in four
+  // because the two best throws were 45 cents apart and each figure moved 40 cents from run to run (Matt Glassman's
+  // discard hand). After each batch the two best choices are compared layout by layout; while their gap is under
+  // READ.z standard errors, another batch is read and played, up to READ.rounds batches in all.
+  let RL=readLayouts(S,rand,M,K), picks=RL.picks; const cands=RL.cands;
+  const val=groups.map(()=>0), per=groups.map(()=>[]); let N=0, rounds=1;
+  for(;;){
+    for(const hands of picks){ for(let g=0;g<groups.length;g++){ const v=playOut(A,st,hands,groups[g][0],true,me); val[g]+=v; per[g].push(v); } N++; }
+    if(rounds>=READ.rounds) break;
+    let b1=0, b2=-1; for(let g=1;g<groups.length;g++) if(val[g]>val[b1]) b1=g;
+    for(let g=0;g<groups.length;g++) if(g!==b1 && (b2<0 || val[g]>val[b2])) b2=g;
+    let s=0, s2=0; for(let i=0;i<N;i++){ const d=per[b1][i]-per[b2][i]; s+=d; s2+=d*d; }
+    const mean=s/N, se=Math.sqrt(Math.max(0, s2/N-mean*mean)/N);
+    if(mean>READ.z*se) break;                       // clear enough (level choices, se 0, stop too: mean > 0 fails only on exact ties, which more layouts rarely break)
+    if(se===0) break;
+    rounds++; RL=readLayouts(S,rand,M,K); picks=RL.picks;
+  }
+  // Equal results (often a position that looks lost on every layout drawn) go to the card the network prefers, not to
+  // whichever card happens to come first. Found by Matt Glassman: a seat that had made its bid, holding the ace of
+  // spades and a low trump, led the ace because both leads came out the same on 30 layouts (14 Nov 2026).
+  const pref=g=>netScore.get(repOf(groups[g]));
+  let best=0; for(let g=1;g<groups.length;g++){ const d=val[g]-val[best]; if(d>1e-6 || (READ.tieNet && d>=-1e-6 && pref(g)>pref(best))) best=g; }
+  const alts=[]; groups.forEach((g,x)=>{ for(const c of g) alts.push({ card:c, score:+(val[x]/N).toFixed(2) }); });
+  const card=repOf(groups[best]);
+  alts.sort((a,b)=>b.score-a.score || (b.card===card)-(a.card===card));
+  const out={ card, alts, ess:RL.ess, fit:RL.fit, rounds, layouts:N, group:groups[best].slice() };
+  if(S.truth){                                   // test only: the share of hidden cards the layouts put in the right hand
+    const score=set=>{ let ok=0, tot=0; for(const hs of set) for(let q=0;q<Pn;q++) if(q!==me) for(const c of hs[q]){ tot++; if(S.truth[q].includes(c)) ok++; } return tot ? ok/tot : 1; };
+    out.hitRead=score(picks); out.hitPlain=score(cands);
+  }
+  return out;
+}
+/* The live hand, as readChoose wants it. */
+function readState(H, seat){
+  const hist=[]; for(const t of H.tricks) for(const p of t.plays) hist.push({ seat:p.seat, card:p.card });
+  for(const p of H.cur.plays) hist.push({ seat:p.seat, card:p.card });
+  return { Pn:P, n:H.n, trump:H.trump, turned:H.turned, bids:H.bids, order:H.order, hand:H.hands[seat], seen:H.seen, voids:H.voids, lens:H.hands.map(h=>h.length),
+           won:H.won, turn:seat, led:H.cur.led, winCard:H.cur.winCard, winner:H.cur.winner, playedInTrick:H.cur.plays.length, trick:H.cur.plays.map(p=>p.card), hist };
+}
+/* A paired test inside the page: the same deals with the test seat played by
+   card reading and by the network alone, the network in the other seats, bids
+   from the bid formula. Returns the reading seat's gain in dollars a round. */
+function readArena(Pn, n, deals, seed){
+  const rng=mulberry32(seed), prng=mulberry32(seed^0x51ed270b); let g=0, g2=0, ms=0, dec=0, hitR=0, hitP=0, ess=0, hn=0;
+  for(let d=0; d<deals; d++){
+    const deck=[...Array(52).keys()]; for(let i=51;i>0;i--){ const j=(rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+    const hands0=[]; for(let q=0;q<Pn;q++) hands0.push(deck.slice(q*n,(q+1)*n).sort((a,b)=>a-b));
+    const turned = Pn*n<52 ? deck[Pn*n] : -1, trump = turned>=0 ? suitOf(turned) : -1, order=[...Array(Pn).keys()], s=d%Pn;
+    KNOWN = turned>=0 ? [turned] : [];
+    const bids=[]; let B=0; for(let q=0;q<Pn;q++){ const mu=muFor(hands0[q],trump,n,Pn,q)*auctionFactor(n,Pn,B,Pn-q); const b=bidAt(Math.max(0,Math.min(n,mu)),n,q===Pn-1?n-B:-1); bids.push(b); B+=b; }
+    const play=reading=>{
+      const h=hands0.map(x=>x.slice()), won=new Array(Pn).fill(0), seen=new Uint8Array(52), voids=h.map(()=>[false,false,false,false]), hist=[];
+      let turn=0, led=-1, winCard=-1, winner=0, i=0, trick=[];
+      for(let left=Pn*n; left>0; left--){
+        const lg=legalCards(h[turn],led); let c;
+        if(lg.length===1) c=lg[0];
+        else if(reading && turn===s){ const t0=performance.now();
+          const rr=readChoose({ Pn, n, trump, turned, bids, order, hand:h[turn], seen, voids, lens:h.map(x=>x.length), won, turn, led, winCard, winner, playedInTrick:i, trick, hist, truth:h }, prng);
+          c=rr.card; ms+=performance.now()-t0; dec++; if(rr.hitRead!=null && hist.length>=2*Pn){ hitR+=rr.hitRead; hitP+=rr.hitPlain; ess+=rr.ess; hn++; } }
+        else c=netChoose({ hand:h[turn], seen, voids, lens:h.map(x=>x.length), bids, won, turn, led, winCard, winner, playedInTrick:i, trick, turned, trump, n, P:Pn }, true).card;
+        h[turn].splice(h[turn].indexOf(c),1); seen[c]=1; trick.push(c); hist.push({ seat:turn, card:c });
+        if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[turn][led]=true;
+        if(beatsCard(c,winCard,trump)){ winCard=c; winner=turn; }
+        if(++i===Pn){ won[winner]++; turn=winner; i=0; led=-1; winCard=-1; trick=[]; } else turn=(turn+1)%Pn;
+      }
+      let tot=0; for(let q=0;q<Pn;q++) tot+=vienna(bids[q],won[q],n);
+      return vienna(bids[s],won[s],n)-tot/Pn;
+    };
+    const diff=play(true)-play(false); g+=diff; g2+=diff*diff;
+  }
+  return { Pn, n, deals, g, g2, msPerDecision: dec ? ms/dec : 0, decisions:dec, hitRead: hn?hitR/hn:0, hitPlain: hn?hitP/hn:0, ess: hn?ess/hn:0 };
+}
+/* What does a seat that has gone over its bid do next? (Test harness.)
+   Deals are played by the network in every seat. At each real choice the seat
+   to act is classed by its own position and by the spare tricks: tricks still
+   to play less the tricks needed by the seats that can still make their bids.
+     overSpare  over its bid, spare tricks remain: taking more only lets the others off
+     overTight  over its bid, no spare tricks: one more trick must break someone
+     made       has exactly its bid
+     needs      still needs tricks
+   For each class it counts, for the network's card and for the card-reading
+   choice in the same position, how often the card played is the taking one:
+     lead   leads a boss card (highest unplayed of its suit) when it also holds a non-boss
+     over   plays a card that takes the lead in the trick when it could have played under
+     dump   when it cannot win the trick, throws the highest-ranked card it legally can */
+/* Test only: several settings of the card reading on the same deals, each
+   against the network alone. simBids: every seat bids by simulation, as the
+   bots do in a game, instead of by the bid formula. Returns, per deal, each
+   setting's gain over the network for the one seat that reads. */
+function readArena2(Pn, n, deals, seed, modes, simBids){
+  const firstBids=[];
+  const rng=mulberry32(seed), out=modes.map(()=>[]), keep=Object.assign({},READ); let off=0, tot=0, unfit=modes.map(()=>0), decs=modes.map(()=>0);
+  for(let d=0; d<deals; d++){
+    const deck=[...Array(52).keys()]; for(let i=51;i>0;i--){ const j=(rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+    const hands0=[]; for(let q=0;q<Pn;q++) hands0.push(deck.slice(q*n,(q+1)*n).sort((a,b)=>a-b));
+    const turned = Pn*n<52 ? deck[Pn*n] : -1, trump = turned>=0 ? suitOf(turned) : -1, order=[...Array(Pn).keys()], s=d%Pn;
+    KNOWN = turned>=0 ? [turned] : [];
+    const bids=[]; let B=0;
+    for(let q=0;q<Pn;q++){ KNOWN = turned>=0 ? [turned] : [];
+      const est=muFor(hands0[q],trump,n,Pn,q), adj=Math.max(0,Math.min(n,est*auctionFactor(n,Pn,B,Pn-q))), f=bidAt(adj,n,q===Pn-1?n-B:-1); let b=f;
+      if(simBids===2 && bidNetCovers(Pn,n)){ const pb=bidNetProbs(Pn,n,turned,q,hands0[q],bids), u=rng(); let acc=0; b=n; for(let x=0;x<=n;x++){ acc+=pb[x]; if(u<acc){ b=x; break; } } if(q===Pn-1 && b===n-B){ let bp=-1; for(let x=0;x<=n;x++) if(x!==n-B && pb[x]>bp){ bp=pb[x]; b=x; } } }      // bids drawn from the bidding network: a fast stand-in for simulation bidders
+      else if(simBids){ const r=simulateBid(hands0[q],trump,turned,n,Pn,q,bids.slice(),{ bid:f, adj },(seed*7919+d*31+q)>>>0,null); if(r.bid!=null) b=r.bid; }
+      tot++; if(b!==f) off++; bids.push(b); B+=b; }
+    if(d<8) firstBids.push(bids.join(""));
+    KNOWN = turned>=0 ? [turned] : [];
+    const play=mi=>{
+      const prng=mulberry32((seed^0x51ed270b)+d);
+      if(mi>=0) Object.assign(READ,keep,modes[mi]);
+      const h=hands0.map(x=>x.slice()), won=new Array(Pn).fill(0), seen=new Uint8Array(52), voids=h.map(()=>[false,false,false,false]), hist=[];
+      let turn=0, led=-1, winCard=-1, winner=0, i=0, trick=[];
+      for(let left=Pn*n; left>0; left--){
+        const lg=legalCards(h[turn],led); let c;
+        if(lg.length===1) c=lg[0];
+        else if(mi>=0 && turn===s){ const rr=readChoose({ Pn, n, trump, turned, bids, order, hand:h[turn], seen, voids, lens:h.map(x=>x.length), won, turn, led, winCard, winner, playedInTrick:i, trick, hist }, prng); c=rr.card; if(!rr.same){ decs[mi]++; if(rr.fit===false) unfit[mi]++; } }
+        else c=netChoose({ hand:h[turn], seen, voids, lens:h.map(x=>x.length), bids, won, turn, led, winCard, winner, playedInTrick:i, trick, turned, trump, n, P:Pn }, true).card;
+        h[turn].splice(h[turn].indexOf(c),1); seen[c]=1; trick.push(c); hist.push({ seat:turn, card:c });
+        if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[turn][led]=true;
+        if(beatsCard(c,winCard,trump)){ winCard=c; winner=turn; }
+        if(++i===Pn){ won[winner]++; turn=winner; i=0; led=-1; winCard=-1; trick=[]; } else turn=(turn+1)%Pn;
+      }
+      let t=0; for(let q=0;q<Pn;q++) t+=vienna(bids[q],won[q],n);
+      return vienna(bids[s],won[s],n)-t/Pn;
+    };
+    const base=play(-1);
+    for(let mi=0;mi<modes.length;mi++) out[mi].push(+(play(mi)-base).toFixed(4));
+  }
+  Object.assign(READ,keep);
+  return { firstBids, Pn, n, deals, diffs:out, bidsOffFormula: off/tot, unfit:unfit.map((u,i)=>decs[i]?u/decs[i]:0) };
+}
+/* Test hook: how well does the reading model predict what card-reading bots actually play? Every seat plays by card
+   reading (bids drawn from the bidding network). For each choice between unlike cards it records the plain network's
+   score for every legal card and which one the reading bot played. The sharpness (READ.beta) and floor (READ.eps)
+   that make those plays most likely are then fitted outside. `who`: "read" (default) or "net" (the plain network plays,
+   for comparison: the model should then be sharpest). */
+function readCalib(Pn, n, deals, seed, who){
+  const rng=mulberry32(seed), rows=[];
+  for(let d=0; d<deals; d++){
+    const deck=[...Array(52).keys()]; for(let i=51;i>0;i--){ const j=(rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+    const h=[]; for(let q=0;q<Pn;q++) h.push(deck.slice(q*n,(q+1)*n).sort((a,b)=>a-b));
+    const turned = Pn*n<52 ? deck[Pn*n] : -1, trump = turned>=0 ? suitOf(turned) : -1, order=[...Array(Pn).keys()];
+    KNOWN = turned>=0 ? [turned] : [];
+    const bids=[]; let B=0;
+    for(let q=0;q<Pn;q++){ let b;
+      if(bidNetCovers(Pn,n)){ const pb=bidNetProbs(Pn,n,turned,q,h[q],bids), u=rng(); let acc=0; b=n; for(let x=0;x<=n;x++){ acc+=pb[x]; if(u<acc){ b=x; break; } } if(q===Pn-1 && b===n-B){ let bp=-1; for(let x=0;x<=n;x++) if(x!==n-B && pb[x]>bp){ bp=pb[x]; b=x; } } }
+      else b=bidAt(Math.max(0,Math.min(n,muFor(h[q],trump,n,Pn,q)*auctionFactor(n,Pn,B,Pn-q))),n,q===Pn-1?n-B:-1);
+      bids.push(b); B+=b; }
+    KNOWN = turned>=0 ? [turned] : [];
+    const prng=mulberry32((seed*7919+d*104729)>>>0), won=new Array(Pn).fill(0), seen=new Uint8Array(52), voids=h.map(()=>[false,false,false,false]), hist=[];
+    let turn=0, led=-1, winCard=-1, winner=0, i=0, trick=[];
+    for(let left=Pn*n; left>0; left--){
+      const lg=legalCards(h[turn],led); let c;
+      if(lg.length===1) c=lg[0];
+      else {
+        const st={ hand:h[turn], seen, voids, lens:h.map(x=>x.length), bids, won, turn, led, winCard, winner, playedInTrick:i, trick, turned, trump, n, P:Pn };
+        const al=netChoose(st,2).alts;
+        if(who==="net") c=netChoose(st,true).card;
+        else c=readChoose({ Pn, n, trump, turned, bids, order, hand:h[turn], seen, voids, lens:h.map(x=>x.length), won, turn, led, winCard, winner, playedInTrick:i, trick, hist }, prng).card;
+        if(equivGroups(lg,seen,trick,turned,winCard,trump).length>1) rows.push({ left:h[turn].length, s:al.map(a=>+a.score.toFixed(3)), k:al.findIndex(a=>a.card===c) });
+      }
+      h[turn].splice(h[turn].indexOf(c),1); seen[c]=1; trick.push(c); hist.push({ seat:turn, card:c });
+      if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[turn][led]=true;
+      if(beatsCard(c,winCard,trump)){ winCard=c; winner=turn; }
+      if(++i===Pn){ won[winner]++; turn=winner; i=0; led=-1; winCard=-1; trick=[]; } else turn=(turn+1)%Pn;
+    }
+  }
+  return rows;
+}
+function bustStudy(Pn, n, deals, seed){
+  const rng=mulberry32(seed), prng=mulberry32(seed^0x51ed270b);
+  const C={}; const bump=(cls,kind,who,yes)=>{ const k=cls+"."+kind+"."+who; (C[k]=C[k]||[0,0])[1]++; if(yes) C[k][0]++; };
+  for(let d=0; d<deals; d++){
+    const deck=[...Array(52).keys()]; for(let i=51;i>0;i--){ const j=(rng()*(i+1))|0; const t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+    const h=[]; for(let q=0;q<Pn;q++) h.push(deck.slice(q*n,(q+1)*n).sort((a,b)=>a-b));
+    const turned = Pn*n<52 ? deck[Pn*n] : -1, trump = turned>=0 ? suitOf(turned) : -1, order=[...Array(Pn).keys()];
+    KNOWN = turned>=0 ? [turned] : [];
+    const bids=[]; let B=0; for(let q=0;q<Pn;q++){ const mu=muFor(h[q],trump,n,Pn,q)*auctionFactor(n,Pn,B,Pn-q); const b=bidAt(Math.max(0,Math.min(n,mu)),n,q===Pn-1?n-B:-1); bids.push(b); B+=b; }
+    const won=new Array(Pn).fill(0), seen=new Uint8Array(52), voids=h.map(()=>[false,false,false,false]), hist=[];
+    let turn=0, led=-1, winCard=-1, winner=0, i=0, trick=[];
+    for(let left=Pn*n; left>0; left--){
+      const lg=legalCards(h[turn],led); let c;
+      if(lg.length===1) c=lg[0];
+      else {
+        c=netChoose({ hand:h[turn], seen, voids, lens:h.map(x=>x.length), bids, won, turn, led, winCard, winner, playedInTrick:i, trick, turned, trump, n, P:Pn }, true).card;
+        const tricksLeft=h[turn].length;                                  // tricks still to be decided, this one included
+        let need=0; for(let q=0;q<Pn;q++){ const nd=bids[q]-won[q]; if(nd>=0 && nd<=tricksLeft) need+=nd; }   // seats that can still make
+        const spare=tricksLeft-need, mine=bids[turn]-won[turn];
+        const cls = mine<0 ? (spare>=1 ? "overSpare" : spare===0 ? "overTight" : null) : mine===0 ? "made" : "needs";
+        // what kind of choice is this?
+        const gone=x=>seen[x] || x===turned, boss=x=>{ for(let y=x+1; y<(suitOf(x)+1)*13; y++) if(!gone(y) && !h[turn].includes(y)) return false; return true; };
+        let kind=null, taking=null;
+        if(i===0){ const b1=lg.filter(boss); if(b1.length && b1.length<lg.length){ kind="lead"; taking=x=>boss(x); } }
+        else { const up=lg.filter(x=>beatsCard(x,winCard,trump));
+          if(up.length && up.length<lg.length){ kind="over"; taking=x=>beatsCard(x,winCard,trump); }
+          else if(!up.length && suitOf(lg[0])!==led){ const top=Math.max(...lg.map(x=>x%13)); if(lg.some(x=>x%13<top)){ kind="dump"; taking=x=>x%13===top; } } }
+        if(cls && kind && (cls!=="needs" && cls!=="made" || prng()<0.08)){
+          const rc=readChoose({ Pn, n, trump, turned, bids, order, hand:h[turn], seen, voids, lens:h.map(x=>x.length), won, turn, led, winCard, winner, playedInTrick:i, trick, hist }, prng).card;
+          bump(cls,kind,"net",taking(c)); bump(cls,kind,"read",taking(rc));
+        }
+      }
+      h[turn].splice(h[turn].indexOf(c),1); seen[c]=1; trick.push(c); hist.push({ seat:turn, card:c });
+      if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[turn][led]=true;
+      if(beatsCard(c,winCard,trump)){ winCard=c; winner=turn; }
+      if(++i===Pn){ won[winner]++; turn=winner; i=0; led=-1; winCard=-1; trick=[]; } else turn=(turn+1)%Pn;
+    }
+  }
+  return C;
+}
+const verdictOf = (cost, se) => cost<ASSESS.minor ? "ok" : cost<=2*se ? "close" : cost<ASSESS.major ? "minor" : "major";
+/* How the bid did, from the simulation run on your hand when the hand ended. */
+function assessBid(r){
+  const b=r.bids.find(x=>x.seat===0);
+  if(!b || !b.sim) return null;
+  const mine=b.sim.find(x=>x.bid===b.bid), best=b.sim.reduce((a,x)=>x.edge>a.edge?x:a, b.sim[0]);
+  if(!mine) return { bid:b.bid, best:best.bid, verdict:"unpriced" };
+  const cost=b.cmp ? b.cmp.cost : +(best.edge-mine.edge).toFixed(2), se=b.cmp ? b.cmp.se : 0.3;
+  return { bid:b.bid, best:best.bid, cost:Math.max(0,cost), se, verdict:verdictOf(Math.max(0,cost),se) };
+}
+/* Run the assessment. onProgress(done, total); onDone(assessment). Returns a
+   function that cancels it. */
+function assessHand(r, onProgress, onDone){
+  const prec=ASSESS.prec||READ.prec, A=assessSetup(r), K=Math.round(ASSESS.samples*prec), useNet=netCovers(A.Pn,A.n,A.trump), out=[];
+  let di=0, cur=null, dead=false;
+  const total=A.decisions.length;
+  function slice(){
+    if(dead) return;
+    const t0=performance.now();
+    KNOWN = A.turned>=0 ? [A.turned] : [];
+    while(performance.now()-t0<30){
+      if(di>=total){
+        // the hand as the cards lay: after each card I played, my result if every seat then plays on as the bots do on the actual deal
+        const lay=A.mine.map(m=>({ trick:m.trick, worth:+playOut(A,m.st,m.truth,m.card,useNet).toFixed(2) }));
+        const a={ version:7, prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
+        return onDone(a);
+      }
+      const D=A.decisions[di];
+      if(!cur){
+        const legal=legalCards(D.st.hand,D.st.led); let groups=mirrorGroups(equivGroups(legal,D.st.seen,D.st.trick,A.turned,D.st.winCard,A.trump), D.st.hand, D.st.seen, D.st.voids, A.trump, A.turned);
+        // no real choice (one legal card, cards all equivalent, or a card set in the setup): the card is still played out, so the hand's worth has a figure at every trick
+        const single = D.noChoice || groups.length<2 ? (D.noChoice || "same") : null;
+        if(single) groups=[[D.card]];
+        // with the network playing, the layouts are read from the play so far as well as from the bids
+        let L;
+        if(useNet){
+          const S={ Pn:A.Pn, n:A.n, trump:A.trump, turned:A.turned, bids:A.bids, order:A.order, hand:D.st.hand, seen:D.st.seen, voids:D.st.voids, lens:D.st.lens, turn:0, hist:D.st.hist };
+          const tr=performance.now(); L=readLayouts(S, A.rng, K*4, K);
+          // few layouts explain the play so far: draw up to four times as many to choose from, as far as about a second and a half allows
+          if(L.ess<ASSESS.thin){ const f=Math.min(4, Math.floor(1500/Math.max(1,performance.now()-tr))); if(f>=2) L=readLayouts(S, A.rng, K*4*f, K); }
+        } else L=assessLayouts(A,D.st,K);
+        cur={ single, groups, picks:L.picks, fit:L.fit, ess: L.ess==null ? K : Math.min(K,L.ess), k:0, vals:groups.map(()=>new Float32Array(K)), made:groups.map(()=>0) };
+      }
+      const hands=cur.picks[cur.k].slice(); hands[0]=D.st.hand;
+      for(let g=0;g<cur.groups.length;g++){ cur.vals[g][cur.k]=playOut(A,D.st,hands,cur.groups[g][0],useNet); cur.made[g]+=playOut.made; }
+      if(++cur.k===K){
+        const mean=cur.vals.map(v=>{ let t=0; for(let k=0;k<K;k++) t+=v[k]; return t/K; });
+        const gi=cur.groups.findIndex(g=>g.includes(D.card)); let bi=0;
+        for(let g=1;g<mean.length;g++) if(mean[g]>mean[bi]) bi=g;
+        let d2=0; const cost=mean[bi]-mean[gi];
+        for(let k=0;k<K;k++){ const d=cur.vals[bi][k]-cur.vals[gi][k]-cost; d2+=d*d; }
+        // the gap is measured on the same layouts for both cards; when the weight sits on few distinct layouts, that many is the real sample size
+        const Ke=Math.max(2,cur.ess), se=Math.sqrt(d2/K/(Ke-1));
+        const lvl=x=>{ let v=0; for(let k=0;k<K;k++){ const d=cur.vals[x][k]-mean[x]; v+=d*d; } return 2*Math.sqrt(v/K/(Ke-1)); };
+        if(cur.single) out.push({ trick:D.trick, played:cardStr(D.card), verdict:"ok", cost:0, same:true, why:cur.single, worth:+mean[0].toFixed(2), pm:+lvl(0).toFixed(2), make:Math.round(100*cur.made[0]/K), layouts:Math.round(cur.ess), rough:cur.ess<ASSESS.thin });
+        else out.push({ trick:D.trick, played:cardStr(D.card), best:cardStr(gi===bi ? D.card : cur.groups[bi][0]),
+          cost:+cost.toFixed(2), se:+se.toFixed(2), verdict:verdictOf(cost,se), fit:cur.fit, layouts:Math.round(cur.ess), rough:cur.ess<ASSESS.thin,
+          options:cur.groups.map((g,x)=>({ cards:g.map(cardStr), worth:+mean[x].toFixed(2), pm:+lvl(x).toFixed(2), make:Math.round(100*cur.made[x]/K) })).sort((a,b)=>b.worth-a.worth) });
+        cur=null; di++;
+      }
+    }
+    onProgress(di + (cur ? cur.k/K : 0), total);
+    setTimeout(slice,0);
+  }
+  setTimeout(slice,0);
+  return ()=>{ dead=true; };
+}
+/* The report, as HTML. */
+function assessmentHtml(r){
+  const money$=v=>(v<0?"\u2212":"+")+"$"+Math.abs(v).toFixed(2);
+  const a=r.assessment, t=c=>cardText(parseCard(c)), word={ ok:"fine", close:"too close to call", minor:"minor mistake", major:"major mistake", unpriced:"not priced" };
+  const flagged=a.plays.filter(p=>p.verdict==="minor"||p.verdict==="major");
+  const nMin=flagged.filter(p=>p.verdict==="minor").length, nMaj=flagged.length-nMin;
+  const lost=flagged.reduce((x,p)=>x+p.cost,0);
+  const count=(k,w)=>k+" "+w+" mistake"+(k===1?"":"s");
+  let playLine = !a.plays.some(p=>!p.same) ? "nothing to choose" : !flagged.length ? '<b class="ok">no mistakes</b>'
+    : [nMaj?'<b class="major">'+count(nMaj,"major")+"</b>":"", nMin?'<b class="minor">'+count(nMin,"minor")+"</b>":""].filter(Boolean).join(", ")+", about "+(a.unit==="money" ? "$"+lost.toFixed(2) : lost.toFixed(1)+" point"+(lost.toFixed(1)==="1.0"?"":"s"))+" given up";
+  let bidLine="";
+  if(a.bid){ const b=a.bid;
+    bidLine = "Bid: " + (b.verdict==="ok" ? '<b class="ok">fine</b>' : b.verdict==="close" ? "too close to call (simulation preferred "+b.best+")"
+      : b.verdict==="unpriced" ? "the simulation preferred "+b.best
+      : '<b class="'+b.verdict+'">'+word[b.verdict]+"</b>, about "+b.cost.toFixed(1)+" given up against bidding "+b.best) + ". "; }
+  let h='<p class="verdict">'+bidLine+"Play: "+playLine+".</p>";
+  const rows=a.plays.filter(p=>!p.same);
+  if(r.tricks.length){
+    h+='<div class="scroll"><table><thead><tr><th>Trick</th><th>You played</th><th>Best</th><th class="num">Cost</th><th>Verdict</th><th class="num">Worth</th><th class="num">Makes</th><th class="num">As the cards lay</th><th>Every choice</th></tr></thead><tbody>';
+    r.tricks.forEach((k,ti)=>{
+      const p=a.plays.find(x=>x.trick===ti), ly=a.lay && a.lay.find(x=>x.trick===ti), layCell='<td class="num">'+(ly ? money$(ly.worth) : "\u2013")+"</td>";
+      if(!p || p.same){                       // no real choice on this trick
+        const c=k.plays.find(x=>x.seat===0).card;
+        h+='<tr style="opacity:.55"><td>'+(ti+1)+"</td><td>"+showCard(c,"small")+'</td><td>\u2013</td><td class="num">\u2013</td><td>'+(p ? (p.why==="set"?"as set up":p.why==="only"?"only card":"all equivalent") : k.plays.find(x=>x.seat===0).by==="set"?"as set up":"only card")
+          +'</td><td class="num" style="white-space:nowrap">'+(p && p.worth!=null ? p.worth.toFixed(2)+' \u00b1'+p.pm.toFixed(2)+(p.rough?" rough":"") : "\u2013")+'</td><td class="num">'+(p && p.make!=null ? p.make+"%" : "\u2013")+"</td>"+layCell+"<td></td></tr>";
+        return;
+      }
+      const mine=p.options.find(o=>o.cards.includes(p.played)), best=p.options[0];
+      // the choice that makes the bid most often, named when it is not the choice worth most (it matters at Bust Out)
+      const safe=p.options.reduce((x,o)=>o.make!=null && (x===null || o.make>x.make) ? o : x, null), safer = safe && best.make!=null && safe!==best && safe.make>=best.make+3;
+      h+="<tr><td>"+(p.trick+1)+"</td><td>"+showCard(p.played,"small")+"</td><td>"+(p.cost>0?showCard(p.best,"small"):"same")
+        +'</td><td class="num">'+(p.cost>0?p.cost.toFixed(2):"0")+'</td><td>'+(p.verdict==="minor"||p.verdict==="major"?'<b class="mk '+p.verdict+'" style="margin:0">'+word[p.verdict]+"</b>":word[p.verdict])
+        +'</td><td class="num" style="white-space:nowrap">'+mine.worth.toFixed(2)+(mine.pm!=null ? ' <span style="color:var(--dim)">\u00b1'+mine.pm.toFixed(2)+(p.rough?" rough":"")+"</span>" : "")+'</td><td class="num">'+(mine.make!=null ? mine.make+"%" : "\u2013")+"</td>"+layCell
+        +'<td style="color:var(--dim)">'+p.options.map(o=>o.cards.map(t).join("=")+" "+o.worth.toFixed(2)+(o.make!=null ? " ("+o.make+"%"+(safer && o===safe ? ", safest" : "")+")" : "")).join(", ")+"</td></tr>";
+    });
+    h+="</tbody></table></div>";
+  }
+  const money=a.unit==="money";
+  const cur$=money?"$":"";
+  h+='<details class="explain"><summary>Explain these columns</summary><div class="hint">'
+    +'<p style="margin:0 0 6px"><b>Cost</b> answers \u201cwas this the right card?\u201d. Every card on a trick is played out on the same '+a.samples+' imagined layouts of the hidden cards, so the gap between two cards is steady. Under '+cur$+ASSESS.minor+' is fine, up to '+(money?"$1":ASSESS.major+" point")+' minor, more than that major; \u201ctoo close to call\u201d means the gap is within the sampling noise.</p>'
+    +'<p style="margin:0 0 6px"><b>Worth</b> answers \u201chow was I doing, on what I could know?\u201d: '+(money?"your average result for the hand in dollars at $1 a point (your points less the table\u2019s average)":"your average points for the hand")+' after that card, with every seat playing on as the '+a.by+' does. It is given at every trick, including the greyed ones where you had no real choice. Each trick draws its own layouts, so read the \u00b1 before comparing one trick with the next; \u201crough\u201d means few layouts explained the play so far. To compare Worth across tricks, set Precision to High or Very high and assess again.</p>'
+    +(a.version>=7 ? '<p style="margin:0 0 6px"><b>Makes</b> is how often you make your own bid after that card, on the same layouts and the same play as Worth. Under \u201cEvery choice\u201d each card\u2019s figure follows its worth in brackets. Cost and the verdict go by money, where busting an opponent pays and a made bid is not everything; when making your bid matters more than the money on this hand (at Bust Out, where a bust sits you out of the next hand), compare these. \u201cSafest\u201d marks a card that makes at least 3 points more often than the one worth most.</p>' : "")
+    +(a.lay ? '<p style="margin:0 0 6px"><b>As the cards lay</b> answers \u201cwhat actually decided the hand?\u201d: your result if, after the card you played, every seat played on as the '+a.by+' does with the cards really dealt. It uses the hidden cards, so it has no sampling noise, it moves only at a trick where a play changed the outcome, and it ends at your actual result. A mistake that left it unchanged cost nothing this time; a correct play after which it is still poor could not have saved the hand.</p>' : "")
+    +'<p style="margin:0">The layouts fit the bids, the cards already played and the suits players had shown out of'+(a.reading?", favouring layouts that explain which cards the others chose to play":"")+'. Cards joined by = are equivalent. All of this is the bots\u2019 opinion: it assumes everyone plays on as the '+a.by+' would'+(a.reading?".":", and reads nothing into which cards the others chose.")
+    +(a.bid && a.bid.cost!=null ? " The bid is judged from the simulation shown under Bidding (points against the table’s average)." : "")
+    +(rows.some(p=>p.fit===false) ? " On this hand the bids did not fit the bid model, so some layouts ignore the bidding." : "")+"</p></div></details>";
+  return h;
+}
+let assessCancel=null;
+function mountAssessment(r, opts){
+  const el=$("rvAssess"); if(!el) return;
+  const key=r.id+r.savedAt; el.dataset.rec=key;
+  // Version 6 (18 Nov 2026): reports made before the hidden cards were dealt evenly and before the bidding network
+  // became the picture of the bids can disagree with today's (Matt Glassman's book hand: an old report preferred the
+  // king, today's the two). They are still shown, marked as old, with a button to do them again.
+  const old = r.assessment && r.assessment.version===5, noMake = r.assessment && r.assessment.version===6;      // version 7 (18 Nov 2026) adds how often each choice makes your bid
+  const stale = r.assessment && r.assessment.version>=5 && (old || noMake || (r.assessment.prec||1)<READ.prec);      // made by an older method, or at a lower Precision than is now set
+  if(r.assessment && r.assessment.version>=5 && !((stale || opts.force) && opts.assess===true && opts.again)){
+    el.innerHTML=(old ? '<p class="hint" style="margin:0 0 8px">This report was made before 18 November 2026. The way hidden cards are imagined has been corrected since, and the verdicts can change.</p>' : "")
+      +assessmentHtml(r)
+      // the report's own precision (19 Nov 2026): play at Normal, study a hand at Very high, without touching the game's setting
+      +'<p class="hint" style="margin:10px 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label for="rvPrec">Precision of this report</label><select id="rvPrec">'
+        +[[1,"Normal"],[4,"High: about 4\u00d7 slower"],[10,"Very high: 10\u00d7 slower, best for study"]].map(o=>'<option value="'+o[0]+'"'+((r.assessment.prec||1)===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></p>"
+      +(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">'+(old ? "Assess again with the current method" : noMake ? "Assess again to add how often each choice makes your bid" : "Assess again at the current Precision")+'</button></p>' : "");
+    if(stale) $("rvAssessAgain").onclick=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true }));
+    $("rvPrec").onchange=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true, force:true, prec:+$("rvPrec").value }));
+    return; }
+  if(!r.tricks.some(k=>k.plays.some(p=>p.seat===0 && p.by==="you"))){ el.innerHTML='<p class="hint" style="margin:0">Nothing to assess: you had no choice of card in this hand.</p>'; return; }
+  const run=()=>{
+    if(assessCancel) assessCancel();
+    el.innerHTML='<p class="hint" style="margin:0">Playing out your choices… <span id="rvAssessPct"></span></p><div class="bar"><i id="rvAssessBar"></i></div>';
+    ASSESS.prec=opts.prec||null;                             // read once, as the assessment starts
+    assessCancel=assessHand(r, (done,total)=>{
+        const b=$("rvAssessBar"); if(b && $("rvAssess").dataset.rec===key){ b.style.width=(100*done/total).toFixed(0)+"%"; $("rvAssessPct").textContent="decision "+Math.min(total,Math.floor(done)+1)+" of "+total; }
+      }, a=>{
+        assessCancel=null; r.assessment=a; updateHand(r);
+        if($("rvAssess") && $("rvAssess").dataset.rec===key && !$("review").hidden) showReview(r, Object.assign({},opts,{ assess:false, again:false, force:false, prec:null, keepScroll:true }));
+      });
+    ASSESS.prec=null;
+  };
+  if(opts.assess) run();
+  else { el.innerHTML='<button class="btn quiet" id="rvAssessGo">Assess my play</button>'; $("rvAssessGo").onclick=run; }
+}
+
+/* ----- saved hands ----- */
+const KEY="ohhell-play-hands-v1", MAXKEEP=400;
+function loadHands(){ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } }
+function storeHand(rec){
+  try{ const a=loadHands(); a.push(rec); while(a.length>MAXKEEP) a.shift(); localStorage.setItem(KEY,JSON.stringify(a)); return true; }
+  catch(e){ return false; }
+}
+function updateHand(rec){
+  try{ const a=loadHands(), i=a.findIndex(x=>x.id===rec.id && x.savedAt===rec.savedAt); if(i<0) return false;
+       a[i]=rec; localStorage.setItem(KEY,JSON.stringify(a)); return true; }catch(e){ return false; }
+}
+function download(name, text){
+  const u=URL.createObjectURL(new Blob([text],{type:"application/json"}));
+  const a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),2000);
+}
+/* File-name time stamp in local time: 20261110-121530 */
+const stamp = iso => { const d=new Date(iso), z=v=>String(v).padStart(2,"0");
+  return d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+"-"+z(d.getHours())+z(d.getMinutes())+z(d.getSeconds()); };
+const parseCard = s => (RANKL.indexOf(s.slice(0,-1)))+13*"SHDC".indexOf(s.slice(-1));
+const showCard = (s,cls) => cardEl(parseCard(s),cls);
+const trumpText = r => r.trump ? GLYPH["SHDC".indexOf(r.trump)] : "none";
+
+/* A hand in the format the Oh Hell hand diagram maker loads ("oh-hell-hand",
+   version 1): suit symbol then rank with T for ten, every value a string, each
+   trick's cards listed by player. "score" is the points for this hand. */
+function diagramHand(r){
+  const dc = c => { const k=parseCard(c); return GLYPH[suitOf(k)]+"23456789TJQKA"[k%13]; };
+  const first=(r.dealer+1)%r.players.length;
+  return { format:"oh-hell-hand", version:1,
+    players:r.players.map((name,s)=>({ name, bid:String(r.bids.find(b=>b.seat===s).bid), taken:String(r.won[s]), score:String(r.points[s]) })),
+    hands:r.hands.map(h=>h.map(dc)),
+    tricks:r.tricks.map(t=>({ cards:r.players.map((_,s)=>dc(t.plays.find(p=>p.seat===s).card)), lead:t.leader, winner:t.winner })),
+    round:String(r.cards), trump:r.trump?GLYPH["SHDC".indexOf(r.trump)]:"",
+    firstBidder:first, firstLeader:r.tricks.length?r.tricks[0].leader:first, activePlayer:0 };
+}
+
+/* One line on how a bot arrived at its bid. */
+function bidWhy(b){
+  const sg=v=>(v>=0?"+":"\u2212")+Math.abs(v).toFixed(2);
+  const simText=()=>"Simulation over "+b.samples+" deals: "+b.sim.map(x=>"bid "+x.bid+" "+sg(x.edge)+" (makes "+x.makes+"%)").join(", ")+".";
+  let t="the formula expected "+b.est+" tricks"+(b.adj!==b.est?" ("+b.adj+" after the bids ahead)":"");
+  if(b.by==="you"){
+    t="you bid "+b.bid+". T"+t.slice(1)+" and would have bid "+b.formula+". ";
+    t+= b.sim ? simText()+" It would have bid "+b.simBid+"." : "No simulation: "+(b.why||"not run")+".";
+    return t;
+  }
+  if(b.by==="set") return "bid "+b.bid+", as set up. T"+t.slice(1)+" and would have bid "+b.formula+".";
+  if(b.by==="simulation") t+=" and would bid "+b.formula+". "+simText()+" Bid "+b.bid+".";
+  else if(b.by==="network") t+=" and would bid "+b.formula+"; bid "+b.bid+" from the bidding network because "+(b.why||"no simulation was run")+".";
+  else if(b.formula!=null) t+="; bid "+b.bid+" from the formula because "+(b.why||"no simulation was run")+".";
+  else t+="; bid "+b.bid+".";
+  return t;
+}
+/* Does this bid entry carry an explanation? Hands saved before the advice on
+   your own bid was added have none for your seat. */
+const hasWhy = b => b.est!=null;
+
+/* A hand as plain text, for pasting somewhere. */
+function handText(r){
+  const nm=r.players, L=[];
+  const t = c => { const k=parseCard(c); return cardText(k); };
+  L.push("Oh Hell hand "+r.game.hand+" of "+r.game.of+" | "+nm.length+" players | "+r.cards+" cards | trump "+(r.trump?trumpText(r)+" (turned "+t(r.turned)+")":"none")+" | dealer "+nm[r.dealer]+" | bots played by: "+r.botPlay);
+  L.push("Hands:");
+  r.hands.forEach((h,s)=>L.push("  "+nm[s].padEnd(6)+h.map(t).join(" ")));
+  L.push("Bids, in order: "+r.bids.map(b=>nm[b.seat]+" "+b.bid).join(", "));
+  for(const b of r.bids) if(hasWhy(b)) L.push("  "+nm[b.seat]+": "+bidWhy(b).replace(/\u2212/g,"-"));
+  r.tricks.forEach((k,i)=>L.push("Trick "+String(i+1).padStart(2)+": "+k.plays.map((p,j)=>nm[p.seat]+(j===0?(p.seat===0?" lead ":" leads "):" ")+t(p.card)).join(", ")+"  -> "+nm[k.winner]));
+  L.push("Result: "+nm.map((x,s)=>x+" bid "+r.bids.find(b=>b.seat===s).bid+" took "+r.won[s]+" = "+r.points[s]).join("; "));
+  L.push("Totals after: "+nm.map((x,s)=>x+" "+r.totalsAfter[s]).join(", "));
+  return L.join("\n");
+}
+
+/* Money: $1 a point, each player paid the difference between their points and
+   the table's average. */
+const dollars = v => (v<0 ? "\u2212$" : "+$")+(Math.abs(v)%1 ? Math.abs(v).toFixed(2) : Math.abs(v).toFixed(0));
+/* Collapsible sections of the review. Which ones are open is remembered in
+   this browser, so a section you open stays open for the next hand. */
+const SEC_KEY="ohhell-play-sections-v1", SEC_DEFAULT={ assess:true, hands:false, play:false, bid:false, history:false };
+function secState(){ try{ return Object.assign({}, SEC_DEFAULT, JSON.parse(localStorage.getItem(SEC_KEY)||"{}")); }catch(e){ return Object.assign({}, SEC_DEFAULT); } }
+const sec = (key, title, body) => '<details class="sec" data-sec="'+key+'"'+(secState()[key]?" open":"")+"><summary>"+title+'</summary><div class="secbody">'+body+"</div></details>";
+function wireSections(root){
+  for(const d of root.querySelectorAll("details.sec")) d.ontoggle=()=>{ const st=secState(); st[d.dataset.sec]=d.open; try{ localStorage.setItem(SEC_KEY,JSON.stringify(st)); }catch(e){} };
+}
+/* The standings, large, at the top of a hand's review. */
+function scoreboardHtml(r, opts){
+  const nm=r.players, top=Math.max(...r.totalsAfter), single=r.game.of===1;
+  const leaders=nm.filter((x,i)=>r.totalsAfter[i]===top);
+  const title = single ? "Scores for this hand"
+    : opts.final || r.game.hand===r.game.of ? "Final scores · "+(leaders.length>1 ? leaders.join(" and ")+" tie" : leaders[0]+(leaders[0]==="You"?" win":" wins"))
+    : "Scores after hand "+r.game.hand+" of "+r.game.of;
+  const avg=r.totalsAfter.reduce((a,b)=>a+b,0)/nm.length, havg=r.points.reduce((a,b)=>a+b,0)/nm.length;
+  let h='<div class="sbTitle">'+title+' <span style="font-weight:400;font-size:.8em;color:var(--dim)">\u00b7 $1 a point against the table\u2019s average</span></div><div class="scoreboard'+(nm.length>4?" many":"")+'" style="grid-template-columns:repeat('+nm.length+',minmax(0,1fr))">';
+  for(let s=0;s<nm.length;s++){
+    const b=r.bids.find(x=>x.seat===s), made=b.bid===r.won[s];
+    h+='<div class="sc'+(s===0?" me":"")+(r.totalsAfter[s]===top?" lead":"")+'"><div class="scn">'+nm[s]+'</div><div class="sct '+(r.totalsAfter[s]>=avg?"pos":"neg")+'">'+dollars(r.totalsAfter[s]-avg)+'</div>'
+      +'<div class="scd">'+r.totalsAfter[s]+' points<br><b class="'+(made?"pos":"neg")+'">bid '+b.bid+", took "+r.won[s]+"</b><br>this hand "+dollars(r.points[s]-havg)+"</div></div>";
+  }
+  return h+"</div>";
+}
+/* ----- watching a hand from one seat -----
+   Steps through a saved hand one bid or card at a time, showing only what the
+   chosen seat could see: its own cards, the bids as they were made and the
+   cards as they were played. */
+/* The bid calculator's address for one seat of a saved hand: its cards, the
+   table size, its place in the bidding, the bids ahead of it and the turned
+   card. The calculator reads these and runs at once. */
+function calcLink(r, seat){
+  const pos=r.bids.findIndex(b=>b.seat===seat), q=["h="+r.hands[seat].join("."), "p="+r.players.length, "s="+pos];
+  if(pos>0) q.push("b="+r.bids.slice(0,pos).map(b=>b.bid).join("."));
+  q.push(r.turned ? "tc="+r.turned : "t=N");
+  return "ohhell.html#"+q.join("&")+"&go=1";
+}
+let watchState=null;                            // { key, v, at }: survives a redraw of the review
+function watchHand(r, v, startAt, quiet){
+  const nm=r.players, Pn=nm.length, n=r.cards, box=$("rvWatch");
+  const trump=r.trump?"SHDC".indexOf(r.trump):-1;
+  const ev=[];                                                       // every bid, then every card, in order
+  r.bids.forEach(b=>ev.push({ t:"bid", seat:b.seat, b }));
+  r.tricks.forEach((k,ti)=>k.plays.forEach((p,i)=>ev.push({ t:"play", seat:p.seat, p, trick:ti, i, last:i===Pn-1, winner:k.winner })));
+  let at=startAt||0;
+  const seatBox=(s,cls,st)=>{
+    const active = at<ev.length && ev[at].seat===s;
+    return '<div class="seat '+cls+(active?" turn":"")+'">'+seatInner(nm[s], s===r.dealer, r.totalsBefore[s], st.bid[s], st.won[s], st.made<Pn,
+      s===v?' <span style="color:var(--green);font-size:.7em;font-weight:400">● watching</span>':"")+"</div>";
+  };
+  function draw(){
+    watchState={ key:r.id+r.savedAt, v, at };
+    const st={ bid:new Array(Pn).fill(null), won:new Array(Pn).fill(0), hand:r.hands[v].slice(), trick:new Array(Pn).fill(null), win:-1 };
+    let sum=0, made=0;
+    st.made=Math.min(at,Pn);
+    for(let k=0;k<at;k++){ const e=ev[k];
+      if(e.t==="bid"){ st.bid[e.seat]=e.b.bid; sum+=e.b.bid; made++; continue; }
+      if(e.i===0){ st.trick.fill(null); st.win=-1; }
+      st.trick[e.seat]=e.p.card; if(e.seat===v) st.hand.splice(st.hand.indexOf(e.p.card),1);
+      if(e.last){ st.won[e.winner]++; st.win=e.winner; }
+    }
+    const rel=j=>(v+j)%Pn, cardAt=s=>st.trick[s] ? showCard(st.trick[s], st.win===s ? "win" : "") : "";
+    let felt;
+    if(Pn===4) felt='<div class="felt">'+seatBox(rel(2),"sN",st)+seatBox(rel(1),"sW",st)
+      +'<div class="mid"><div class="pN">'+cardAt(rel(2))+'</div><div class="pW">'+cardAt(rel(1))+'</div><div class="pE">'+cardAt(rel(3))+'</div><div class="pS">'+cardAt(rel(0))+"</div></div>"
+      +seatBox(rel(3),"sE",st)+seatBox(rel(0),"sS",st)+"</div>";
+    else { felt='<div class="arc" style="grid-template-columns:repeat('+(Pn-1)+',minmax(0,1fr))">';
+      for(let j=1;j<Pn;j++) felt+='<div class="col">'+seatBox(rel(j),"",st)+'<div class="slot">'+cardAt(rel(j))+"</div></div>";
+      felt+='</div><div class="slot me">'+cardAt(v)+"</div>"+seatBox(v,"me",st); }
+    // what just happened, and who is next
+    let msg="The deal. "+nm[r.bids[0].seat]+(r.bids[0].seat===0?" bid":" bids")+" first.", sub="";
+    if(at>0){ const e=ev[at-1], who=nm[e.seat], verb=(a,b)=>e.seat===0?a:b;
+      if(e.t==="bid"){ msg=who+" bid "+e.b.bid+"."; if(e.seat===v && hasWhy(e.b)) sub=bidWhy(e.b).replace(/<[^>]+>/g,""); }
+      else { msg=who+" "+(e.i===0?verb("lead","leads"):verb("play","plays"))+" "+cardText(parseCard(e.p.card))+"."+(e.last?" "+nm[e.winner]+(e.winner===0?" win":" wins")+" trick "+(e.trick+1)+".":"");
+        if(e.seat===v) sub = e.p.considered ? (e.p.by==="you"?"The network ranked the choices: ":e.p.by==="reading"?"Card-reading playouts, dollars for each choice: ":"Network ranking: ")+e.p.considered.map(a=>cardText(parseCard(a.card))+" "+a.score.toFixed(2)).join(", ")
+          : e.p.by==="forced" ? "Only legal card." : e.p.by==="set" ? "As set up." : e.p.by==="rules" ? "Chosen by the rules engine." : ""; }
+    }
+    const nxt = at<ev.length ? nm[ev[at].seat]+(ev[at].t==="bid" ? " to bid" : " to play")+(ev[at].seat===v ? " — what would you do?" : "") : "End of the hand.";
+    box.innerHTML='<div class="topline"><div><span class="eyebrow">Watching as '+nm[v]+" · "+(at<Pn ? "bidding" : "trick "+(at>Pn ? ev[at-1].trick+1 : 1)+" of "+n)+"</span></div>"
+      +"<div>"+tallyHtml(sum,made,Pn,n)+'</div><div class="trumpbox">'+(r.trump?"Trump "+trumpText(r)+" &nbsp; turned "+showCard(r.turned,"small"):"No trump")+"</div></div>"
+      +felt+'<div class="wmsg">'+msg+" <b>"+nxt+"</b><small>"+sub+"</small></div>"
+      +'<div class="whand">'+sortHand(st.hand.map(parseCard),trump).map(c=>cardEl(c,"")).join("")+"</div>"
+      +'<div class="wctl"><button class="btn quiet" id="wStart" title="Back to the deal">⏮</button><button class="btn quiet" id="wPrev">◀ Back</button>'
+      +'<button class="btn" id="wNext">Next ▶</button><button class="btn quiet" id="wTrick" title="Forward to the end of this trick">Trick ⏭</button><button class="btn quiet" id="wClose">Close</button></div>';
+    $("wStart").onclick=()=>{ at=0; draw(); }; $("wPrev").onclick=()=>{ if(at>0){ at--; draw(); } };
+    $("wNext").onclick=()=>{ if(at<ev.length){ at++; draw(); } };
+    $("wTrick").onclick=()=>{ if(at>=ev.length) return; do{ at++; }while(at<ev.length && !(ev[at-1].t==="play" && ev[at-1].last) && !(ev[at-1].t==="bid" && at===Pn)); draw(); };
+    $("wClose").onclick=()=>{ box.hidden=true; box.innerHTML=""; watchState=null; };
+    $("wPrev").disabled=$("wStart").disabled=at===0; $("wNext").disabled=$("wTrick").disabled=at>=ev.length;
+  }
+  box.hidden=false; draw(); if(!quiet) box.scrollIntoView({block:"start"});
+}
+function showReview(r, opts){
+  opts=opts||{};
+  const nm=r.players, el=$("review"); el.hidden=false; el.dataset.rec=r.id+r.savedAt;
+  const bidOf=s=>r.bids.find(b=>b.seat===s);
+  const inGame=!!(opts.next||opts.back);                    // a game is going on behind this review
+  let h='<div class="rvhead"><h2>Hand '+r.game.hand+" of "+r.game.of+" &middot; "+r.cards+" card"+(r.cards===1?"":"s")+" &middot; "
+    +(r.trump?"trump "+trumpText(r)+" (turned "+showCard(r.turned,"small")+")":"no trump")+"</h2></div>"
+    +scoreboardHtml(r, opts)
+    +'<div class="toolbar">'
+    +(parked?'<button class="btn" id="rvResume">Back to your game</button>':"")
+    +(opts.next?'<button class="btn" id="rvNext">Next hand</button>':"")
+    +(opts.back?'<button class="btn" id="rvBack">Back to current game</button>':"")
+    +(opts.final?'<button class="btn" id="rvNew">New game</button>':"")
+    // Everything you can do with this hand, in one place, on every review (before 19 Nov 2026 the three "play it again"
+    // actions were missing whenever a game was in progress). During a game they leave it, and say so.
+    +'<details class="menu" id="rvStudy"><summary class="btn quiet">Study this hand</summary><div class="menubody">'
+      +(inGame?'<div class="mnote">Your game waits while you study. \u201cBack to your game\u201d returns to it.</div>':"")
+      +'<button type="button" id="rvEdit">Edit this deal<small>Change cards, bids or the starting point, then run it again</small></button>'
+      +'<button type="button" id="rvAgain">Play this deal again<small>The same cards in every hand</small></button>'
+      +'<button type="button" id="rvRedeal">Same hand, new opponents<small>Your cards and the trump stay; the other hands are dealt afresh</small></button>'
+      +'<hr><label class="mrow">From the seat of <select id="rvWatchSeat">'+nm.map((x,i)=>'<option value="'+i+'">'+x+"</option>").join("")+"</select></label>"
+      +'<button type="button" id="rvWatchGo">Watch the hand<small>Step through it seeing only what that seat could see</small></button>'
+      +'<button type="button" id="rvCalc">Open in bid calculator<small>That seat\u2019s cards and the bids ahead of it, in a new tab</small></button>'
+    +"</div></details>"
+    +'<details class="menu" id="rvFile"><summary class="btn quiet">Save or share</summary><div class="menubody">'
+      +'<button type="button" id="rvCopy">Copy as text<small>To paste into a message</small></button>'
+      +'<button type="button" id="rvSave">Save full record<small>Everything about the hand, including how each bot\u2019s cards were ranked</small></button>'
+      +'<button type="button" id="rvDiag">Save for diagram maker<small>A file the hand diagram maker opens with Load Hand</small></button>'
+    +"</div></details>"
+    +(opts.close?'<button class="btn quiet" id="rvClose">Close</button>':"")
+    +'<label class="markbox" style="margin-left:4px"><input type="checkbox" id="rvMark"'+(r.marked?" checked":"")+"> Mark for review</label></div>"
+    +'<div id="rvWatch" hidden></div>';
+  const top=h; h="";
+  h+='<p class="hint" style="margin:0 0 8px">Dealer '+nm[r.dealer]+". Bots bid by: "+r.botBidding+". Bots played by: "+r.botPlay+".</p>";
+  h+='<div class="scroll"><table><thead><tr><th>Seat</th><th>Hand as dealt</th><th class="num">Bid</th><th class="num" title="What the bid formula would bid on this hand">Formula</th><th class="num" title="What the simulation would bid on this hand">Simulation</th><th class="num">Took</th><th class="num">Points</th><th class="num">Total</th></tr></thead><tbody>';
+  for(let s=0;s<nm.length;s++){
+    const b=bidOf(s), made=b.bid===r.won[s];
+    h+="<tr><td>"+nm[s]+(s===r.dealer?" (D)":"")+'</td><td><div class="handrow">'+r.hands[s].map(c=>showCard(c,"small")).join("")+"</div></td>"
+      +'<td class="num">'+b.bid+'</td><td class="num">'+(b.formula!=null?b.formula:(s===0?"":b.bid))+'</td><td class="num">'+(b.by==="you"?(b.simBid!=null?b.simBid:""):(b.by==="simulation"?b.bid:""))+'</td><td class="num '+(made?"pos":"neg")+'">'+r.won[s]+'</td><td class="num">'+r.points[s]+'</td><td class="num">'+r.totalsAfter[s]+"</td></tr>";
+  }
+  h+="</tbody></table></div>";
+  const secHands=h; h="";
+  h+='<p class="hint" style="margin:0 0 4px">In order: '+r.bids.map(b=>nm[b.seat]+" "+b.bid).join(", ")+".</p>";
+  h+='<div style="font-size:1rem;color:var(--dim)">'+r.bids.filter(hasWhy).map(b=>'<div'+(b.seat===0?' style="margin-bottom:4px"':"")+'><b style="color:var(--text)">'+nm[b.seat]+"</b>: "+bidWhy(b)+"</div>").join("")+"</div>";
+  if(r.bids.some(b=>b.sim)) h+='<details class="explain"><summary>Explain these figures</summary><p class="hint">Each simulated figure is that bid\u2019s points against the table\u2019s average on the deals the bot imagined, with how often it made the bid. Each bot saw only its own hand, the turned card and the bids ahead of it. The figures for your hand were worked out the same way, from what you could see when you bid, after the hand was over.</p></details>';
+  const secBid=h; h="";
+  h+='<div class="scroll"><table><thead><tr><th>Trick</th>'+nm.map(x=>"<th>"+x+"</th>").join("")+"<th>Won by</th></tr></thead><tbody>";
+  r.tricks.forEach((k,i)=>{
+    h+="<tr><td>"+(i+1)+"</td>";
+    for(let s=0;s<nm.length;s++){
+      const p=k.plays.find(x=>x.seat===s);
+      const rank = p.considered ? p.considered.map(a=>cardText(parseCard(a.card))+" "+a.score.toFixed(2)).join(", ") : "";
+      // your own card: would the network have played something else?
+      const other = p.by==="you" && p.considered && p.considered[0].card!==p.card && ((p.considered.find(a=>a.card===p.card)||{}).score!==p.considered[0].score) ? p.considered[0].card : null;
+      let tip = p.by==="reading"&&p.considered ? "Chosen by card-reading playouts. Average result of each choice, in dollars: "+rank
+              : p.by==="network"&&p.considered ? "Network ranking: "+rank
+              : p.by==="you"&&p.considered ? "Your play. The network ranked your legal cards: "+rank+". "+(other?"It would have played "+cardText(parseCard(other))+".":"It would have played the same card.")
+              : p.by==="set" ? "Played as set up" : p.by==="rules" ? "Chosen by the rules engine" : p.by==="forced" ? "Only legal card" : "";
+      const av = s===0 && r.assessment ? r.assessment.plays.find(x=>x.trick===i && !x.same) : null;
+      if(av) tip+=" Played out: "+av.options.map(o=>o.cards.map(c=>cardText(parseCard(c))).join("=")+" "+o.worth.toFixed(2)).join(", ")+" points.";
+      const mk = av && (av.verdict==="minor"||av.verdict==="major") ? '<span class="mk '+av.verdict+'" aria-label="'+av.verdict+' mistake">'+(av.verdict==="major"?"??":"?")+"</span>" : "";
+      h+='<td title="'+tip+'"><span class="ld">'+(s===k.leader?"\u25b8":"")+"</span>"+showCard(p.card,"small"+(s===k.winner?" win":""))
+        +(other?'<span class="diff" aria-label="the network would have played a different card">\u2260</span>':"")+mk+"</td>";
+    }
+    h+="<td>"+nm[k.winner]+"</td></tr>";
+  });
+  h+="</tbody></table></div>";
+  h+='<p class="hint" style="margin:6px 0 0">The arrow marks the lead; the outlined card won. Hover over any card to see how it was chosen.</p><details class="explain"><summary>Explain the hover figures</summary><p class="hint"> A bot playing with card reading shows the average result of each choice in dollars. Otherwise you see how the network ranked the legal cards at that point (higher is preferred; only the gaps matter, and a gap of 4 is roughly one point for the hand). Equivalent cards, such as a king and queen held together, share one figure. On your own cards, \u2260 marks a play where the network would have chosen differently, and ? or ?? a minor or major mistake by the assessment below.</p></details>';
+  const secPlay=h;
+  h=top+sec("assess","Your play, assessed",'<div id="rvAssess"></div>')+sec("hands","Hands as dealt",secHands)+sec("play","Play",secPlay)+sec("bid","Bidding",secBid);
+  el.innerHTML=h; wireSections(el);
+  $("rvSave").onclick=()=>download("ohhell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(r,null,1));
+  $("rvDiag").onclick=()=>download("oh-hell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(diagramHand(r),null,2));
+  $("rvCopy").onclick=()=>{ const t=handText(r); const done=()=>{ $("rvCopy").textContent="Copied"; setTimeout(()=>{ if($("rvCopy")) $("rvCopy").textContent="Copy as text"; },1500); };
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done)); else fallbackCopy(t,done); };
+  const leave=()=>{ if(inGame) parkGame(); };                // the game is set aside, not ended
+  $("rvEdit").onclick=()=>{ leave(); el.hidden=true; $("table").hidden=true; $("setup").hidden=false; dsLoad(r); $("deal").open=true; $("deal").scrollIntoView({block:"start"}); };
+  $("rvAgain").onclick=()=>{ leave(); replayRecord(r,false); }; $("rvRedeal").onclick=()=>{ leave(); replayRecord(r,true); };
+  if(opts.back) $("rvBack").onclick=()=>backToGame(opts.back);
+  $("rvMark").onchange=()=>{ if($("rvMark").checked) r.marked=true; else delete r.marked; updateHand(r); renderHistory(); };
+  $("rvWatchSeat").value = "0";
+  $("rvCalc").onclick=()=>window.open(calcLink(r, +$("rvWatchSeat").value), "_blank");
+  $("rvWatchGo").onclick=()=>watchHand(r, +$("rvWatchSeat").value);
+  if(watchState && watchState.key===r.id+r.savedAt && opts.keepScroll){ $("rvWatchSeat").value=String(watchState.v); watchHand(r, watchState.v, watchState.at, true); }
+  else watchState=null;
+  if(parked) $("rvResume").onclick=resumeGame;
+  if(opts.next) $("rvNext").onclick=opts.next;
+  if(opts.final) $("rvNew").onclick=()=>{ el.hidden=true; $("setup").hidden=false; };
+  if(opts.close) $("rvClose").onclick=()=>{ el.hidden=true; };
+  mountAssessment(r, opts);
+  if(!opts.keepScroll) el.scrollIntoView({block:"start"});
+}
+/* Look at a saved hand. If a game is going on it waits: a hand in progress is
+   paused where it stands, and the review of the hand just finished is kept, so
+   "Back to current game" returns to exactly that. */
+function openSaved(rec){
+  const back = !G ? null : (H && H.live) ? "table" : current ? "review" : null;
+  if(back==="table"){ paused=true; $("table").hidden=true; document.body.classList.remove("playing"); }
+  showReview(rec, back ? { back } : { close:true });
+}
+function backToGame(how){
+  if(how==="table"){
+    $("review").hidden=true; $("table").hidden=false; document.body.classList.add("playing");
+    $("table").scrollIntoView({block:"start"});
+    paused=false; if(held){ const f=held; held=null; f(); }
+  } else if(current) showReview(current.rec, current.opts);
+}
+function fallbackCopy(t, done){
+  const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){} ta.remove();
+}
+function renderHistory(){
+  const a=loadHands(), tb=$("histBody"); tb.innerHTML="";
+  const only=$("onlyMarked").checked, nMarked=a.filter(r=>r.marked).length;
+  a.slice().reverse().forEach((r,i)=>{
+    if(only && !r.marked) return;
+    const idx=a.length-1-i, tr=document.createElement("tr"), b=r.bids.find(x=>x.seat===0);
+    tr.innerHTML='<td><input type="checkbox" class="mkrow" data-i="'+idx+'" aria-label="Mark for review"'+(r.marked?" checked":"")+' style="width:18px;height:18px;accent-color:#ffc24d"></td><td>'+new Date(r.savedAt).toLocaleString()+"</td><td>"+r.cards+" card"+(r.cards===1?"":"s")+(r.players.length!==4?", "+r.players.length+" players":"")+"</td><td>"+trumpText(r)+'</td><td class="num">'+b.bid
+      +'</td><td class="num '+(b.bid===r.won[0]?"pos":"neg")+'">'+r.won[0]+'</td><td class="num">'+r.points[0]+'</td><td style="text-align:right"><button class="btn quiet" data-i="'+idx+'">Review</button></td>';
+    tb.appendChild(tr);
+  });
+  for(const btn of tb.querySelectorAll("button")) btn.onclick=()=>openSaved(loadHands()[+btn.dataset.i]);
+  for(const cb of tb.querySelectorAll(".mkrow")) cb.onchange=()=>{
+    const all=loadHands(), r=all[+cb.dataset.i]; if(!r) return;
+    if(lastRecord && lastRecord.id===r.id && lastRecord.savedAt===r.savedAt){ if(cb.checked) lastRecord.marked=true; else delete lastRecord.marked; }
+    const m=$("rvMark");                     // the same hand is open in the review: let its own box do the saving
+    if(m && !$("review").hidden && $("review").dataset.rec===r.id+r.savedAt){ m.checked=cb.checked; return m.onchange(); }
+    if(cb.checked) r.marked=true; else delete r.marked; updateHand(r);
+    renderHistory();
+  };
+  $("histHint").textContent = a.length ? a.length+" hand"+(a.length===1?"":"s")+" kept in this browser on this computer"+(nMarked?", "+nMarked+" marked for review":"")+". Download them to keep a copy elsewhere."
+    : "No hands yet. Each hand is added here when it ends.";
+  if($("dsGrid") && $("dsGrid").children.length) dsSync();     // the deal editor lists the saved hands too
+  $("dlAll").disabled = $("clearAll").disabled = !a.length;
+  $("histCount").textContent = a.length ? a.length+" hand"+(a.length===1?"":"s")+(nMarked?", "+nMarked+" marked":"") : "none yet";
+}
+
+/* ----- setting up a hand -----
+   spec: { P, n, hand, pos (my place in the bidding, 0 first), turned (a card,
+   or -1), suit (trump suit when the card is left to chance, -1 any, -2 no
+   trump), fixed (bid per seat, null where not set), lead (a card or -1) }.
+   buildDeal deals the other hands at random and keeps the first layout in
+   which every seat with a set bid would make that bid by the bid formula, and
+   in which the leader would lead the set card. */
+function buildDeal(spec){
+  const { P:Pn, n, hand, pos, fixed, lead } = spec;
+  const first=(Pn-pos)%Pn, order=[...Array(Pn).keys()].map(i=>(first+i)%Pn), leader=order[0];
+  const mine=new Set(hand), rng=mulberry32((Date.now() ^ (Math.random()*0x7fffffff))>>>0);
+  const noTrump = Pn*n===52 || spec.suit===-2;
+  const fails=new Array(Pn).fill(0), reached=new Array(Pn).fill(0); let leadFails=0, leadReached=0, tries=0;
+  const t0=performance.now(), useNet=!noTrump || true;
+  while(tries<60000 && performance.now()-t0<4000){
+    tries++;
+    let turned=-1;
+    if(!noTrump){
+      if(spec.turned>=0) turned=spec.turned;
+      else { const opts=[]; for(let c=0;c<52;c++) if(!mine.has(c) && c!==lead && (spec.suit<0 || suitOf(c)===spec.suit)) opts.push(c); turned=opts[(rng()*opts.length)|0]; }
+    }
+    const trump = turned>=0 ? suitOf(turned) : -1, pool=[];
+    for(let c=0;c<52;c++) if(!mine.has(c) && c!==turned && c!==lead) pool.push(c);
+    for(let i=pool.length-1;i>0;i--){ const j=(rng()*(i+1))|0; const t=pool[i]; pool[i]=pool[j]; pool[j]=t; }
+    const hands=new Array(Pn); let k=0;
+    for(let s=0;s<Pn;s++){
+      if(s===0){ hands[0]=hand.slice(); continue; }
+      const take = (lead>=0 && s===leader) ? n-1 : n;
+      hands[s]=pool.slice(k,k+take); k+=take; if(lead>=0 && s===leader) hands[s].push(lead);
+    }
+    KNOWN = turned>=0 ? [turned] : [];
+    const bids=new Array(Pn).fill(0); let B=0, ok=true;
+    for(let i=0;i<Pn && ok;i++){
+      const s=order[i], ban = i===Pn-1 ? n-B : -1;
+      const mu=muFor(hands[s].slice().sort((a,b)=>a-b),trump,n,Pn,i)*auctionFactor(n,Pn,B,Pn-i);
+      const fb=bidAt(Math.max(0,Math.min(n,mu)),n,ban);
+      reached[s]++;
+      if(fixed[s]!=null){ if(fixed[s]===ban || (s!==0 && fb!==fixed[s])){ fails[s]++; ok=false; } bids[s]=fixed[s]; }
+      else bids[s]=fb;
+      B+=bids[s];
+    }
+    if(!ok) continue;
+    if(lead>=0 && n>1){
+      leadReached++;
+      const o={ hand:hands[leader], seen:new Uint8Array(52), voids:hands.map(()=>[false,false,false,false]), lens:hands.map(()=>n), bids, won:new Array(Pn).fill(0),
+                turn:leader, led:-1, winCard:-1, winner:leader, playedInTrick:0, trick:[], turned, trump, n, P:Pn };
+      const c = netCovers(Pn,n,trump) ? netChoose(o,true).card : rulesChoose(o);
+      if(!equivGroups(hands[leader],o.seen,[],turned).find(g=>g.includes(lead)).includes(c)){ leadFails++; continue; }
+    }
+    return { hands, turned, trump, tries };
+  }
+  // name the part of the setup that was hardest to satisfy once the parts before it were met
+  let worst=-1, wr=-1;
+  for(let s=0;s<Pn;s++) if(fails[s]){ const rate=fails[s]/reached[s]; if(rate>wr){ wr=rate; worst=s; } }
+  const leadRate = leadReached ? leadFails/leadReached : -1;
+  const what = leadRate>wr ? "from which "+SEAT_NAMES[Pn][leader]+" would lead "+cardText(lead)
+             : worst===0 ? "that leaves you a legal bid of "+fixed[0]+" as dealer"
+             : "on which "+SEAT_NAMES[Pn][worst]+" would bid "+fixed[worst]+" after the bids ahead";
+  return { error: "No layout turned up "+what+" ("+tries.toLocaleString()+" tried). That part of the setup is the hardest to meet; change it, or leave it unset." };
+}
+function startSetup(spec, deal, replay){
+  token=++epoch;
+  const seed=(Date.now() ^ (Math.random()*0x7fffffff))>>>0;
+  P=spec.P; NAMES=SEAT_NAMES[P]; $("nPlayers").value=String(P);
+  const first=(P-spec.pos)%P;
+  G={ P, rounds:[spec.n], idx:0, scores:new Array(P).fill(0), dealer:(first-1+P)%P, seed, rng:mulberry32(seed), id:"g"+seed.toString(36), bidMode:$("bidMode").value, playMode:$("playMode").value,
+      preset:{ hands:deal.hands, turned:deal.turned, trump:deal.trump, fixed:spec.fixed, lead:spec.lead, spec, replay:!!replay, instant:!!spec.instant, pre:deal.pre||[] } };
+  $("review").hidden=true;
+  startHand();
+}
+/* Play a saved hand again: the same cards all round, or the same seat, hand,
+   trump card and set bids against freshly dealt opponents. */
+function replayRecord(r, redeal){
+  if(G && H && H.live) return;
+  const Pn=r.players.length, hands=r.hands.map(h=>h.map(parseCard)), turned=r.turned?parseCard(r.turned):-1;
+  const pos=r.bids.findIndex(b=>b.seat===0);
+  const spec={ P:Pn, n:r.cards, hand:hands[0], pos, turned, suit: r.trump ? "SHDC".indexOf(r.trump) : -2,
+               fixed: r.setup && r.setup.bids ? r.setup.bids.slice() : new Array(Pn).fill(null), lead: r.setup && r.setup.lead ? parseCard(r.setup.lead) : -1 };
+  let deal={ hands, turned, trump: turned>=0 ? suitOf(turned) : -1, pre: r.setup && r.setup.played ? r.setup.played.map(parseCard) : [] };
+  if(r.setup && r.setup.deal) spec.instant=true;
+  if(redeal){ deal=buildDeal(spec); if(deal.error){ $("histHint").textContent=deal.error; return; } }
+  startSetup(spec, deal, true);
+}
+/* ----- setting up an entire deal -----
+   DS.owner[c] is the seat holding card c, 9 for the turned card, -1 for
+   nobody. DS.plays is the cards already played, in order. */
+const DS={ owner:new Int8Array(52).fill(-1), target:0, plays:[], source:null };
+const dsP = () => +$("nPlayers").value;
+const dsCount = s => { let k=0; for(let c=0;c<52;c++) if(DS.owner[c]===s) k++; return k; };
+const dsTurned = () => DS.owner.indexOf(9);
+const dsOrder = () => { const Pn=dsP(), pos=Math.min(Pn-1,+$("dsPos").value||0), first=(Pn-pos)%Pn; return [...Array(Pn).keys()].map(i=>(first+i)%Pn); };
+const dsTag = (s,Pn) => s===9 ? "turn" : SEAT_NAMES[Pn][s];
+/* Walk the played cards: who is to play next, what each seat still holds, the
+   tricks so far. */
+function dsWalk(){
+  const Pn=dsP(), order=dsOrder(), hands=[...Array(Pn)].map((_,s)=>{ const h=[]; for(let c=0;c<52;c++) if(DS.owner[c]===s) h.push(c); return h; });
+  const t=dsTurned(), trump = $("dsNT").checked || Pn*(+$("dsN").value)===52 ? -1 : t>=0 ? suitOf(t) : -2;
+  let turn=order[0], led=-1, winCard=-1, winner=turn; const tricks=[]; let cur=[];
+  for(const c of DS.plays){
+    hands[turn].splice(hands[turn].indexOf(c),1);
+    if(cur.length===0){ led=suitOf(c); winCard=-1; }
+    if(beatsCard(c,winCard,trump)){ winCard=c; winner=turn; }
+    cur.push({ seat:turn, card:c });
+    if(cur.length===Pn){ tricks.push({ plays:cur, winner }); cur=[]; turn=winner; led=-1; winCard=-1; } else turn=(turn+1)%Pn;
+  }
+  return { Pn, hands, trump, turn, led, tricks, cur };
+}
+function dsReady(){            // can cards be marked as played yet?
+  const Pn=dsP(), n=+$("dsN").value;
+  for(let s=0;s<Pn;s++) if(dsCount(s)!==n) return "Give every player "+n+" card"+(n===1?"":"s")+" first.";
+  if(Pn*n<52 && !$("dsNT").checked && dsTurned()<0) return "Choose the turned card, or tick No trump, first.";
+  if([...$("dsBids").querySelectorAll("select")].some(x=>x.value==="")) return "Set every bid first: cards are played only after the bidding.";
+  return "";
+}
+function dsClick(c){
+  const Pn=dsP(), n=+$("dsN").value, t=DS.target, msg=m=>{ $("dsMsg").textContent=m; };
+  if(t==="play"){
+    const why=dsReady(); if(why) return msg(why);
+    if(DS.plays.includes(c)) return msg(cardText(c)+" has already been played.");
+    const w=dsWalk(), o=DS.owner[c];
+    if(o<0 || o===9) return msg(cardText(c)+" is not in anyone’s hand.");
+    if(o!==w.turn) return msg("It is "+(w.turn===0?"your":SEAT_NAMES[Pn][w.turn]+"’s")+" turn; "+cardText(c)+" is in "+(o===0?"your":SEAT_NAMES[Pn][o]+"’s")+" hand.");
+    if(w.led>=0 && suitOf(c)!==w.led && w.hands[o].some(x=>suitOf(x)===w.led)) return msg(SEAT_NAMES[Pn][o]+" must follow suit: "+(o===0?"you hold":"that hand holds")+" a "+["spade","heart","diamond","club"][w.led]+".");
+    DS.plays.push(c); msg(""); return dsSync();
+  }
+  if(DS.plays.length) return msg("Clear the played cards before changing who holds what.");
+  if(DS.owner[c]===t){ DS.owner[c]=-1; msg(""); return dsSync(); }
+  if(t===9){ const old=dsTurned(); if(old>=0) DS.owner[old]=-1; DS.owner[c]=9; msg(""); return dsSync(); }
+  if(dsCount(t)>=n) return msg(SEAT_NAMES[Pn][t]+" already "+(t===0?"have ":"has ")+n+" card"+(n===1?"":"s")+". Raise “Cards each” or take one away.");
+  DS.owner[c]=t; msg(""); dsSync();
+}
+function dsBuild(){
+  let h="";
+  for(const s of SUIT_ORDER){
+    h+='<div class="cuRow"><span class="cuSuit'+(isRed(s)?" red":"")+'">'+GLYPH[s]+"</span>";
+    for(let r=12;r>=0;r--) h+='<button type="button" class="dsCard'+(isRed(s)?" red":"")+'" data-c="'+(s*13+r)+'" aria-label="'+RANKL[r]+GLYPH[s]+'">'+RANKL[r]+"<i></i></button>";
+    h+="</div>";
+  }
+  $("dsGrid").innerHTML=h;
+  for(const b of $("dsGrid").querySelectorAll("button")) b.onclick=()=>dsClick(+b.dataset.c);
+  const reset=()=>{ DS.plays=[]; dsSync(); };
+  $("dsN").oninput=reset; $("dsPos").oninput=reset; $("dsNT").oninput=reset;
+  $("dsUndo").onclick=()=>{ DS.plays.pop(); $("dsMsg").textContent=""; dsSync(); };
+  $("dsUnplay").onclick=()=>{ DS.plays=[]; $("dsMsg").textContent=""; dsSync(); };
+  $("dsClear").onclick=()=>{ DS.owner.fill(-1); DS.plays=[]; DS.source=null; for(const x of $("dsBids").querySelectorAll("select")) x.value=""; $("dsMsg").textContent=""; dsSync(); };
+  $("dsRandom").onclick=()=>{
+    if(DS.plays.length) return void ($("dsMsg").textContent="Clear the played cards first.");
+    const Pn=dsP(), n=+$("dsN").value, free=[]; for(let c=0;c<52;c++) if(DS.owner[c]<0) free.push(c);
+    for(let i=free.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const t=free[i]; free[i]=free[j]; free[j]=t; }
+    for(let s=0;s<Pn;s++) while(dsCount(s)<n && free.length) DS.owner[free.pop()]=s;
+    if(Pn*n<52 && !$("dsNT").checked && dsTurned()<0 && free.length) DS.owner[free.pop()]=9;
+    $("dsMsg").textContent=""; dsSync();
+  };
+  $("dsLoad").onchange=()=>{ const i=$("dsLoad").value; if(i!=="") dsLoad(loadHands()[+i]); $("dsLoad").value=""; };
+  $("dsUpto").onchange=()=>{
+    const r=DS.source, k=+$("dsUpto").value; if(!r) return;
+    const why=dsReady(); if(why){ $("dsUpto").value="0"; return void ($("dsMsg").textContent=why); }
+    DS.plays=[]; const seq=[]; r.tricks.slice(0,k).forEach(t=>t.plays.forEach(p=>seq.push(parseCard(p.card))));
+    const keepT=DS.target; DS.target="play"; $("dsMsg").textContent="";
+    for(const c of seq){ const before=DS.plays.length; dsClick(c); if(DS.plays.length===before) break; }   // stops where the changed deal no longer allows the saved play
+    DS.target=keepT; dsSync();
+  };
+  $("dsStart").onclick=()=>{
+    const sp=dsSpec(); if(sp.error) return void ($("dsMsg").textContent=sp.error);
+    $("dsMsg").textContent=""; startSetup(sp.spec, sp.deal, false);
+  };
+  dsSync();
+}
+/* Redraw the editor from DS and the controls. */
+function dsSync(){
+  const Pn=dsP(), nm=SEAT_NAMES[Pn], top=MAX_CARDS[Pn];
+  $("dsN").max=top; if(+$("dsN").value>top) $("dsN").value=top; if(+$("dsN").value<1) $("dsN").value=1;
+  const n=+$("dsN").value, whole=Pn*n===52;
+  for(let c=0;c<52;c++) if(DS.owner[c]>=Pn && DS.owner[c]!==9) DS.owner[c]=-1;          // fewer players than before
+  if(typeof DS.target==="number" && DS.target!==9 && DS.target>=Pn) DS.target=0;
+  $("dsNT").disabled=whole; if(whole){ $("dsNT").checked=true; const t=dsTurned(); if(t>=0) DS.owner[t]=-1; if(DS.target===9) DS.target=0; }
+  const noTurn = $("dsNT").checked; if(noTurn){ const t=dsTurned(); if(t>=0) DS.owner[t]=-1; if(DS.target===9) DS.target=0; }
+  // position and bids
+  const pos=Math.min(Pn-1, Math.max(0, +$("dsPos").value||0)), ord=["1st: you bid first and lead","2nd","3rd","4th","5th","6th"];
+  let h=""; for(let i=0;i<Pn;i++) h+='<option value="'+i+'">'+(i===Pn-1 ? ord[i].slice(0,3)+": you deal and bid last" : ord[i])+"</option>";
+  $("dsPos").innerHTML=h; $("dsPos").value=String(pos);
+  const oldB={}; for(const x of $("dsBids").querySelectorAll("select")) oldB[x.dataset.seat]=x.value;
+  h=""; for(const s of dsOrder()){ h+="<label>"+nm[s]+'<select data-seat="'+s+'"><option value="">&ndash;</option>'; for(let b=0;b<=n;b++) h+='<option value="'+b+'">'+b+"</option>"; h+="</select></label>"; }
+  $("dsBids").innerHTML=h;
+  for(const x of $("dsBids").querySelectorAll("select")){ const v=oldB[x.dataset.seat]; if(v!=null && v!=="" && +v<=n) x.value=v; x.onchange=()=>{ if(x.value==="" && DS.plays.length){ DS.plays=[]; } dsSync(); }; }
+  // who the next click gives a card to
+  h=""; for(let s=0;s<Pn;s++) h+='<button type="button" class="dsT ds'+s+(DS.target===s?" on":"")+'" data-t="'+s+'">'+nm[s]+"<small>"+dsCount(s)+"/"+n+"</small></button>";
+  if(!noTurn) h+='<button type="button" class="dsT ds9'+(DS.target===9?" on":"")+'" data-t="9">Turned card<small>'+(dsTurned()>=0?cardText(dsTurned()):"random")+"</small></button>";
+  h+='<button type="button" class="dsT'+(DS.target==="play"?" on":"")+'" data-t="play">Played cards<small>'+DS.plays.length+"</small></button>";
+  $("dsTargets").innerHTML=h;
+  for(const b of $("dsTargets").querySelectorAll("button")) b.onclick=()=>{ DS.target = b.dataset.t==="play" ? "play" : +b.dataset.t; $("dsMsg").textContent=""; dsSync(); };
+  // the cards. While cards are being marked as played, only the cards the
+  // player to act may legally play stay lit; everything else is greyed.
+  let can=null;
+  if(DS.target==="play" && !dsReady() && DS.plays.length<Pn*n){
+    const w0=dsWalk(), hand=w0.hands[w0.turn], follow=w0.led>=0 ? hand.filter(x=>suitOf(x)===w0.led) : [];
+    can=new Set(follow.length ? follow : hand);
+  }
+  for(const b of $("dsGrid").querySelectorAll("button")){
+    const c=+b.dataset.c, o=DS.owner[c], at=DS.plays.indexOf(c);
+    b.className="dsCard"+(isRed(suitOf(c))?" red":"")+(o>=0?" own ds"+o:"")+(at>=0?" gone":"")+(can ? (can.has(c)?" can":" off") : "");
+    b.querySelector("i").textContent = o<0 ? "" : (o===9 ? "turn" : nm[o])+(at>=0 ? " ✓" : "");
+  }
+  // played so far
+  const w=dsWalk(); h="";
+  w.tricks.forEach((t,i)=>{ h+="<div>Trick "+(i+1)+": "+t.plays.map(p=>nm[p.seat]+" "+cardText(p.card)).join(", ")+" → "+nm[t.winner]+"</div>"; });
+  if(w.cur.length) h+="<div>Trick "+(w.tricks.length+1)+": "+w.cur.map(p=>nm[p.seat]+" "+cardText(p.card)).join(", ")+" …</div>";
+  if(DS.plays.length || DS.target==="play") h+='<div class="hint">'+(DS.plays.length===Pn*n ? "Every card is played." : "Next to play: "+nm[w.turn]+".")+"</div>";
+  $("dsPlays").innerHTML=h;
+  // saved hands to start from
+  const a=loadHands(); h='<option value="">Choose…</option>';
+  a.slice().reverse().forEach((r,i)=>{ h+='<option value="'+(a.length-1-i)+'">'+(r.marked?"★ ":"")+new Date(r.savedAt).toLocaleString()+" · "+r.cards+" cards"+(r.players.length!==4?", "+r.players.length+" players":"")+" · "+(r.trump?"trump "+trumpText(r):"no trump")+"</option>"; });
+  $("dsLoad").innerHTML=h;
+  $("dsUptoBox").style.display = DS.source ? "" : "none";
+  if(DS.source){ h='<option value="0">nothing</option>'; DS.source.tricks.forEach((t,i)=>{ h+='<option value="'+(i+1)+'">trick '+(i+1)+"</option>"; }); const keep=$("dsUpto").value; $("dsUpto").innerHTML=h;
+    $("dsUpto").value = DS.plays.length%Pn===0 && DS.plays.length/Pn<=DS.source.tricks.length ? String(DS.plays.length/Pn) : "0"; }
+}
+/* Fill the editor from a saved hand: cards, turned card, seat and the bids as
+   they were made. Nothing is marked as played until asked. */
+function dsLoad(r){
+  if(!r) return;
+  $("nPlayers").value=String(r.players.length); syncSetupHint(); cuSync();
+  $("dsN").value=String(r.cards);
+  DS.owner.fill(-1); DS.plays=[]; DS.source=r; DS.target=0;
+  r.hands.forEach((h,s)=>h.forEach(c=>{ DS.owner[parseCard(c)]=s; }));
+  $("dsNT").checked=!r.turned; if(r.turned) DS.owner[parseCard(r.turned)]=9;
+  $("dsPos").innerHTML='<option value="'+r.bids.findIndex(b=>b.seat===0)+'"></option>'; $("dsPos").value=String(r.bids.findIndex(b=>b.seat===0));
+  dsSync();
+  for(const x of $("dsBids").querySelectorAll("select")){ const b=r.bids.find(y=>y.seat===+x.dataset.seat); x.value=String(b.bid); }
+  $("dsMsg").textContent="Loaded the hand of "+new Date(r.savedAt).toLocaleString()+". Change anything, then Start from here.";
+  dsSync();
+}
+function dsSpec(){
+  const Pn=dsP(), n=+$("dsN").value, nm=SEAT_NAMES[Pn], pos=+$("dsPos").value;
+  if(!(n>=1 && n<=MAX_CARDS[Pn])) return { error:"With "+Pn+" players a round deals 1 to "+MAX_CARDS[Pn]+" cards each." };
+  const hands=[...Array(Pn)].map((_,s)=>{ const h=[]; for(let c=0;c<52;c++) if(DS.owner[c]===s) h.push(c); return h; });
+  for(let s=0;s<Pn;s++) if(hands[s].length!==n) return { error:nm[s]+(s===0?" have ":" has ")+hands[s].length+" card"+(hands[s].length===1?"":"s")+"; each player needs "+n+". “Deal the rest at random” fills the gaps." };
+  let turned=-1;
+  if(Pn*n<52 && !$("dsNT").checked){
+    turned=dsTurned();
+    if(turned<0){ const free=[]; for(let c=0;c<52;c++) if(DS.owner[c]<0) free.push(c); turned=free[(Math.random()*free.length)|0]; }
+  }
+  const fixed=new Array(Pn).fill(null); for(const x of $("dsBids").querySelectorAll("select")) if(x.value!=="") fixed[+x.dataset.seat]=+x.value;
+  if(fixed.every(b=>b!=null) && fixed.reduce((a,b)=>a+b,0)===n) return { error:"Those bids add up to "+n+", which the dealer ("+nm[dsOrder()[Pn-1]]+") may not allow. Change one." };
+  if(DS.plays.length && fixed.some(b=>b==null)) return { error:"Cards have been played, so every bid must be set." };
+  if(DS.plays.length===Pn*n) return { error:"Every card has been played; undo at least one to leave something to play." };
+  return { spec:{ P:Pn, n, hand:hands[0], pos, turned, suit: turned>=0 ? suitOf(turned) : -2, fixed, lead:-1, instant:true },
+           deal:{ hands, turned, trump: turned>=0 ? suitOf(turned) : -1, pre:DS.plays.slice() } };
+}
+const CU={ hand:new Set() };
+function cuBuild(){
+  let h="";
+  for(const s of SUIT_ORDER){
+    h+='<div class="cuRow"><span class="cuSuit'+(isRed(s)?" red":"")+'">'+GLYPH[s]+"</span>";
+    for(let r=12;r>=0;r--) h+='<button type="button" class="cuCard'+(isRed(s)?" red":"")+'" data-c="'+(s*13+r)+'" aria-label="'+RANKL[r]+GLYPH[s]+'">'+RANKL[r]+"</button>";
+    h+="</div>";
+  }
+  $("cuGrid").innerHTML=h;
+  for(const b of $("cuGrid").querySelectorAll("button")) b.onclick=()=>{ const c=+b.dataset.c;
+    if(CU.hand.has(c)) CU.hand.delete(c); else CU.hand.add(c); b.classList.toggle("on",CU.hand.has(c)); cuSync(); };
+  let ro=""; for(let r=12;r>=0;r--) ro+='<option value="'+r+'">'+RANKL[r]+"</option>";
+  $("cuRank").innerHTML='<option value="any">Any</option>'+ro; $("cuLeadR").innerHTML=ro;
+  for(const id of ["cuPos","cuTrump","cuRank","cuLeadS","cuLeadR"]) $(id).oninput=cuSync;
+  $("cuClear").onclick=()=>{ CU.hand.clear(); for(const b of $("cuGrid").querySelectorAll(".on")) b.classList.remove("on"); cuSync(); };
+  $("cuDeal").onclick=()=>{
+    const spec=cuSpec(); if(spec.error){ $("cuMsg").textContent=spec.error; return; }
+    $("cuMsg").textContent="Dealing…";
+    setTimeout(()=>{ const deal=buildDeal(spec); if(deal.error){ $("cuMsg").textContent=deal.error; return; } $("cuMsg").textContent=""; startSetup(spec,deal,false); },20);
+  };
+  cuSync();
+}
+/* Keep the position and bid controls in step with the number of players and
+   the number of cards picked. */
+function cuSync(){
+  const Pn=+$("nPlayers").value, n=CU.hand.size, nm=SEAT_NAMES[Pn], ord=["1st: you bid first and lead","2nd","3rd","4th","5th","6th"];
+  const pos=Math.min(Pn-1, Math.max(0, +$("cuPos").value||0));
+  let h=""; for(let i=0;i<Pn;i++) h+='<option value="'+i+'">'+(i===Pn-1 ? ord[i].slice(0,3)+": you deal and bid last" : ord[i])+"</option>";
+  $("cuPos").innerHTML=h; $("cuPos").value=String(pos);
+  const old=[...$("cuBids").querySelectorAll("select")].map(x=>x.value), first=(Pn-pos)%Pn;
+  h=""; for(let i=0;i<Pn;i++){ const s=(first+i)%Pn;
+    h+="<label>"+nm[s]+'<select data-seat="'+s+'"><option value="">&ndash;</option>'; for(let b=0;b<=n;b++) h+='<option value="'+b+'">'+b+"</option>"; h+="</select></label>"; }
+  $("cuBids").innerHTML=h;
+  [...$("cuBids").querySelectorAll("select")].forEach((x,i)=>{ if(old[i]!=null && old[i]!=="" && +old[i]<=n) x.value=old[i]; });
+  const top=MAX_CARDS[Pn], whole=Pn*n===52;
+  $("cuTrump").disabled=whole; $("cuRank").disabled=whole || $("cuTrump").value==="rand" || $("cuTrump").value==="nt";
+  $("cuLeadS").disabled=$("cuLeadR").disabled=pos===0; $("cuLeadR").disabled=$("cuLeadR").disabled || $("cuLeadS").value==="none";
+  $("cuMsg").textContent = n===0 ? "No cards picked yet." : n>top ? n+" cards picked; with "+Pn+" players a round can deal at most "+top+"."
+    : n+" card"+(n===1?"":"s")+" picked: a "+n+"-card round"+(whole?", which deals the whole deck and is played at no trump.":".");
+}
+function cuSpec(){
+  const Pn=+$("nPlayers").value, n=CU.hand.size, pos=+$("cuPos").value, nm=SEAT_NAMES[Pn];
+  if(n<1) return { error:"Pick your cards first." };
+  if(n>MAX_CARDS[Pn]) return { error:"With "+Pn+" players a round can deal at most "+MAX_CARDS[Pn]+" cards; you have picked "+n+"." };
+  const hand=[...CU.hand].sort((a,b)=>a-b), whole=Pn*n===52, tv=$("cuTrump").value;
+  let suit = whole || tv==="nt" ? -2 : tv==="rand" ? -1 : +tv, turned=-1;
+  if(suit>=0 && $("cuRank").value!=="any"){ turned=suit*13 + +$("cuRank").value; if(CU.hand.has(turned)) return { error:"The turned card, "+cardText(turned)+", is in your hand." }; }
+  if(suit>=0 && turned<0 && hand.filter(c=>suitOf(c)===suit).length===13) return { error:"You hold every card of the trump suit, so none can be turned." };
+  let lead=-1;
+  if(pos>0 && $("cuLeadS").value!=="none"){ lead=+$("cuLeadS").value*13 + +$("cuLeadR").value;
+    if(CU.hand.has(lead)) return { error:"The opening lead, "+cardText(lead)+", is in your hand." };
+    if(lead===turned) return { error:"The opening lead and the turned card are the same card." }; }
+  const fixed=new Array(Pn).fill(null), sel=[...$("cuBids").querySelectorAll("select")];
+  sel.forEach(x=>{ if(x.value!=="") fixed[+x.dataset.seat]=+x.value; });
+  const order=sel.map(x=>+x.dataset.seat);
+  if(fixed[0]==null && order.slice(pos+1).some(s=>fixed[s]!=null)) return { error:"Bids after yours depend on what you bid: set your own bid too, or leave the later ones at –." };
+  if(fixed.every(b=>b!=null) && fixed.reduce((a,b)=>a+b,0)===n) return { error:"Those bids add up to "+n+", which the dealer ("+nm[order[Pn-1]]+") may not allow. Change one." };
+  return { P:Pn, n, hand, pos, turned, suit, fixed, lead };
+}
+
+/* ----- wiring ----- */
+$("start").onclick=newGame;
+document.addEventListener("click", e=>{ for(const m of document.querySelectorAll("details.menu[open]")){ if(!m.contains(e.target) || (e.target.closest(".menubody") && e.target.closest("button"))) m.open=false; } });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") for(const m of document.querySelectorAll("details.menu[open]")) m.open=false; });
+$("resumeGo").onclick=resumeGame; $("resumeLive").onclick=resumeGame;
+$("resumeDrop").onclick=()=>{ parked=null; syncResume(); };
+$("quit").onclick=()=>{ token=++epoch; G=null; H=null; paused=false; held=null; current=null; $("table").hidden=true; $("setup").hidden=false; document.body.classList.remove("playing"); };
+for(const id of ["fromN","toN","shape","nPlayers"]) $(id).oninput=()=>{ syncSetupHint(); cuSync(); if(id==="nPlayers"){ DS.plays=[]; dsSync(); } };
+$("dlAll").onclick=()=>{ const a=loadHands(); if(a.length) download("ohhell-hands-"+stamp(new Date().toISOString())+".json", JSON.stringify(a,null,1)); };
+{ const PK="ohhell-play-precision"; let v="1"; try{ v=localStorage.getItem(PK)||"1"; }catch(e){}
+  if(!["1","4","10"].includes(v)) v="1";
+  $("precision").value=v; READ.prec=+v;
+  $("precision").onchange=()=>{ READ.prec=+$("precision").value; try{ localStorage.setItem(PK,$("precision").value); }catch(e){} }; }
+$("clearAll").onclick=()=>{ if($("clearAll").dataset.sure){ try{ localStorage.removeItem(KEY); }catch(e){} delete $("clearAll").dataset.sure; $("clearAll").textContent="Clear"; renderHistory(); }
+  else { $("clearAll").dataset.sure="1"; $("clearAll").textContent="Click again to erase all"; setTimeout(()=>{ delete $("clearAll").dataset.sure; $("clearAll").textContent="Clear"; },4000); } };
+$("loadFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+      let d=JSON.parse(rd.result); if(!Array.isArray(d)) d=[d];
+      d=d.filter(x=>x&&x.format==="ohhell-hand"); if(!d.length) throw 0;
+      const have=new Set(loadHands().map(x=>x.id+x.savedAt)); let added=0;
+      for(const r of d) if(!have.has(r.id+r.savedAt)){ storeHand(r); added++; }
+      renderHistory(); openSaved(d[d.length-1]);
+      $("histHint").textContent="Opened "+d.length+" hand"+(d.length===1?"":"s")+" from the file; "+added+" new.";
+    }catch(err){ $("histHint").textContent="That file does not contain saved Oh Hell hands."; } };
+  rd.readAsText(f); e.target.value="";
+};
+document.addEventListener("keydown",e=>{
+  if((e.key==="Enter"||e.key===" ") && $("cont") && !$("table").hidden){ e.preventDefault(); $("cont").click(); }
+  else if($("wNext") && !$("review").hidden && !/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)){
+    if(e.key==="ArrowRight"){ e.preventDefault(); $("wNext").click(); } else if(e.key==="ArrowLeft"){ e.preventDefault(); $("wPrev").click(); } }
+});
+$("onlyMarked").onchange=renderHistory;
+{ const hd=document.querySelector('#history details.sec'); hd.open=secState().history; wireSections($("history")); }
+cuBuild(); dsBuild(); syncSetupHint(); renderHistory();
+
+/* hooks for automated checks */
+window.__ohhell={ READ, bustStudy, readArena, readArena2, readChoose, DS, dsSpec, dsLoad, calcLink, buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
+})();
+</script>
+</body>
+</html>
