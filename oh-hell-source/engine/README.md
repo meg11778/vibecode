@@ -763,3 +763,11 @@ Matt's question from a hand (5 players, 4 cards; holding a lone 6♥ and ♣9-7 
 - Six players, seat 5 minus seat 2: +0.18 +0.30 +0.30 +0.26 +0.21 +0.16 +0.09 +0.08 from 1 to 8 cards, +$0.21 ± 0.03 overall. Five players, seat 4 minus seat 2: +$0.18 ± 0.03, positive at every size. Four players, seat 3 minus seat 2: +$0.10 ± 0.03.
 - Four-player dealer from 7 to 13 cards: −0.09 −0.01 −0.11 −0.10 −0.03 −0.11 −0.23; second seat: −0.15 −0.16 −0.14 −0.05 −0.05 −0.11 −0.07. Dealer minus first seat is negative at every size (closest: −$0.07 ± 0.13 at 11 cards).
 - Five players 10 cards: dealer −$0.41 ± 0.08 (earlier bidding −$0.08), over-bid hands 24% (11%). Six players 8 cards: −$0.55 (−$0.31), 23% (11%).
+
+## 21 November 2026: Bagley's run on bidding network 2 and close calls
+
+240,800 deals on Bagley's desktop (`bid-network/network-2-test/results-bagley-2026-11-21.jsonl`).
+Up to four batches of layouts on close calls (`READ.rounds=4`) against one batch, one reading seat, same deals:
++$0.174 +/-0.026 a deal (51,600 deals), positive at every size, larger in longer rounds. Kept.
+Bidding network 2 against network 1: +$0.010 +/-0.011 as the simulation's picture (189,200 deals), +$0.027 +/-0.029
+as the reader's picture. No measurable difference; not installed. Opponents were the project's own engines.
