@@ -863,7 +863,7 @@ function endHand(){
 
    Works from a saved record, so any saved hand can be assessed. Runs in short
    slices so the page stays responsive. */
-const ASSESS = { thin:30, samples:160, minor:0.25, major:1.0 };
+const ASSESS = { thin:30, samples:160, minor:0.25, major:1.0, fitOnly:true };   // fitOnly (21 Nov 2026): price choices only on imagined layouts that fit the bids
 function assessSetup(r){
   const Pn=r.players.length, n=r.cards, trump=r.trump?"SHDC".indexOf(r.trump):-1, turned=r.turned?parseCard(r.turned):-1;
   const hands=r.hands.map(h=>h.map(parseCard)), bids=new Array(Pn).fill(0), order=r.bids.map(b=>b.seat);
@@ -1021,11 +1021,16 @@ function readLayouts(S, rand, M, K){
   // carrying all the weight, and measured worse than no card reading at all.
   let tries=0; const budget=M*READ.tries;
   for(let m=0;m<M;m++){
-    if(READ.strict && tries>=budget && cands.length>0) break;      // out of tries: read from the layouts that do fit, rather than topping up with ones that do not
+    // Out of tries. READ.strict: read from the layouts that do fit the bids rather than topping up with ones that
+    // do not; if fewer than READ.minFit fit, keep looking, up to READ.extra times the budget. (21 Nov 2026: on Matt
+    // Glassman's 10-card overbid hand three quarters of the layouts were top-ups, and they made the table look soft:
+    // the trump opening was priced at +$1.71 when it earns about nothing.)
+    const lim = (READ.strict && cands.length<(READ.minFit||0)) ? budget*(READ.extra||1) : budget;
+    if(READ.strict && tries>=lim && cands.length>0) break;
     let hands;
     for(;;){
       hands=dealHidden(unseen,S.lens,S.voids,Pn,rand,me);
-      if(tries>=budget) break;
+      if(tries>=lim) break;
       tries++;
       let acc=1;
       for(let q=0;q<Pn && acc>0;q++){ if(q===me) continue;
@@ -1320,7 +1325,7 @@ function assessHand(r, onProgress, onDone){
       if(di>=total){
         // the hand as the cards lay: after each card I played, my result if every seat then plays on as the bots do on the actual deal
         const lay=A.mine.map(m=>({ trick:m.trick, worth:+playOut(A,m.st,m.truth,m.card,useNet).toFixed(2) }));
-        const a={ version:7, prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
+        const a={ version:8, prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
         return onDone(a);
       }
       const D=A.decisions[di];
@@ -1333,9 +1338,14 @@ function assessHand(r, onProgress, onDone){
         let L;
         if(useNet){
           const S={ Pn:A.Pn, n:A.n, trump:A.trump, turned:A.turned, bids:A.bids, order:A.order, hand:D.st.hand, seen:D.st.seen, voids:D.st.voids, lens:D.st.lens, turn:0, hist:D.st.hist };
+          // Only layouts that fit the bids (21 Nov 2026). When the search ran out, the rest used to be filled with layouts
+          // that ignored the bids: three quarters of them on Matt Glassman's overbid 10-card hand, which priced a trump
+          // opening at +$1.72 and the ace of hearts at +$1.33 when real deals give +$0.03 and -$0.69. Fitted only: +$0.23, -$0.48.
+          const strictWas=READ.strict; READ.strict=!!ASSESS.fitOnly;
           const tr=performance.now(); L=readLayouts(S, A.rng, K*4, K);
           // few layouts explain the play so far: draw up to four times as many to choose from, as far as about a second and a half allows
           if(L.ess<ASSESS.thin){ const f=Math.min(4, Math.floor(1500/Math.max(1,performance.now()-tr))); if(f>=2) L=readLayouts(S, A.rng, K*4*f, K); }
+          READ.strict=strictWas;
         } else L=assessLayouts(A,D.st,K);
         cur={ single, groups, picks:L.picks, fit:L.fit, ess: L.ess==null ? K : Math.min(K,L.ess), k:0, vals:groups.map(()=>new Float32Array(K)), made:groups.map(()=>0) };
       }
@@ -1419,15 +1429,15 @@ function mountAssessment(r, opts){
   // Version 6 (18 Nov 2026): reports made before the hidden cards were dealt evenly and before the bidding network
   // became the picture of the bids can disagree with today's (Matt Glassman's book hand: an old report preferred the
   // king, today's the two). They are still shown, marked as old, with a button to do them again.
-  const old = r.assessment && r.assessment.version===5, noMake = r.assessment && r.assessment.version===6;      // version 7 (18 Nov 2026) adds how often each choice makes your bid
-  const stale = r.assessment && r.assessment.version>=5 && (old || noMake || (r.assessment.prec||1)<READ.prec);      // made by an older method, or at a lower Precision than is now set
+  const old = r.assessment && r.assessment.version>=5 && r.assessment.version<8;      // version 7 (18 Nov 2026) added how often each choice makes your bid; version 8 (21 Nov) prices only on layouts that fit the bids
+  const stale = r.assessment && r.assessment.version>=5 && (old || (r.assessment.prec||1)<READ.prec);      // made by an older method, or at a lower Precision than is now set
   if(r.assessment && r.assessment.version>=5 && !((stale || opts.force) && opts.assess===true && opts.again)){
-    el.innerHTML=(old ? '<p class="hint" style="margin:0 0 8px">This report was made before 18 November 2026. The way hidden cards are imagined has been corrected since, and the verdicts can change.</p>' : "")
+    el.innerHTML=(old ? '<p class="hint" style="margin:0 0 8px">This report was made before 21 November 2026. The way hidden cards are imagined has been corrected since, and the figures can change.</p>' : "")
       +assessmentHtml(r)
       // the report's own precision (19 Nov 2026): play at Normal, study a hand at Very high, without touching the game's setting
       +'<p class="hint" style="margin:10px 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label for="rvPrec">Precision of this report</label><select id="rvPrec">'
         +[[1,"Normal"],[4,"High: about 4\u00d7 slower"],[10,"Very high: 10\u00d7 slower, best for study"]].map(o=>'<option value="'+o[0]+'"'+((r.assessment.prec||1)===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></p>"
-      +(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">'+(old ? "Assess again with the current method" : noMake ? "Assess again to add how often each choice makes your bid" : "Assess again at the current Precision")+'</button></p>' : "");
+      +(stale ? '<p style="margin:8px 0 0"><button class="btn quiet" id="rvAssessAgain">'+(old ? "Assess again with the current method" : "Assess again at the current Precision")+'</button></p>' : "");
     if(stale) $("rvAssessAgain").onclick=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true }));
     $("rvPrec").onchange=()=>mountAssessment(r, Object.assign({},opts,{ assess:true, again:true, force:true, prec:+$("rvPrec").value }));
     return; }

@@ -810,3 +810,14 @@ use only fitted layouts; if fewer than minFit fit, keep searching to extra x the
 Money test packaged (`layout-fit-test/`, `node overnight.js 8`): one reading seat, A today, B strict, C strict +
 minFit 60 + extra 10, D tries 300. Publish the best of B/C if it beats A. The report (`ASSESS`) uses the same layouts
 and will need the same setting.
+
+## 21 November 2026 (evening): the mistake report prices only on layouts that fit the bids. PUBLISHED
+
+`ASSESS.fitOnly` (on): the report's two `readLayouts` calls run with `READ.strict`, so the fill-up layouts that ignore
+the bids are no longer used. Reports are version 8; stored version 5 to 7 reports are shown marked as made before
+21 November with "Assess again with the current method". At the report's sizes (640 candidates, 160 kept) on Matt's
+10-card hand, table over by 1, 28 deals: before, trump opening +$1.72 and A♥ +$1.33; now +$0.23 and -$0.48; real
+deals +$0.03 and -$0.69. Bot play is unchanged (`READ.strict` stays false; `READ.minFit` and `READ.extra` exist for the
+money test). The laptop's first 1,800 deals of that test: fitted only minus today +$0.05 +/-0.14, so not settled;
+`ohhell-fit2.zip` (A against B only) is for Bagley's machine. All browser tests t19 to t33, the three rule checks and
+58 assertions pass. Checked on one hand type at four players only.

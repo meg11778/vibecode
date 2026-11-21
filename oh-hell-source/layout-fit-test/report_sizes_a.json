@@ -1,0 +1,41 @@
+{
+ "deals": 14,
+ "over": 1,
+ "fittedOf360": 87,
+ "fitHist": [
+  7,
+  7,
+  0,
+  0,
+  0
+ ],
+ "conf": [
+  {
+   "cf": {
+    "K": 160,
+    "MF": 4,
+    "budget": 0
+   },
+   "trump": 1.72,
+   "aceH": 1.26,
+   "gap": 0.46,
+   "gapCI": 0.25,
+   "opensTrump": 0.5,
+   "ms": 1087
+  },
+  {
+   "cf": {
+    "K": 160,
+    "MF": 4,
+    "budget": 0,
+    "strict": true
+   },
+   "trump": 0.31,
+   "aceH": -0.36,
+   "gap": 0.67,
+   "gapCI": 0.37,
+   "opensTrump": 0.57,
+   "ms": 1075
+  }
+ ]
+}

@@ -10,7 +10,7 @@ const { chromium } = require('playwright'), fs=require('fs'), parse=require('./h
     console.log(f+" ("+sec.toFixed(1)+"s)");
     for(const p of a.plays) if(!p.same) console.log("  trick "+(p.trick+1)+" played "+p.played+" best "+p.best+" cost "+p.cost+" ±"+(2*p.se).toFixed(2)+" "+p.verdict+" layouts "+p.layouts+(p.rough?" rough":"")+" | "+p.options.map(o=>o.cards.join("=")+" "+o.worth+"±"+o.pm).join(", ")+" || run 2: "+(q=>q.options.map(o=>o.cards[0]+" "+o.worth).join(", "))(a2.plays.find(x=>x.trick===p.trick)));
     console.log("  as the cards lay: "+a.lay.map(l=>l.worth).join(" "));
-    ok(a.version===7 && a.lay.length===r.cards, "one as-the-cards-lay figure per trick"); ok(a.plays.length===r.cards && a.plays.every(p=>p.same ? (p.worth!=null && p.pm!=null) : p.options.length>1), "a Worth figure at every trick, greyed rows included");
+    ok(a.version===8 && a.lay.length===r.cards, "one as-the-cards-lay figure per trick"); ok(a.plays.length===r.cards && a.plays.every(p=>p.same ? (p.worth!=null && p.pm!=null) : p.options.length>1), "a Worth figure at every trick, greyed rows included");
     ok(Math.abs(a.lay[a.lay.length-1].worth-actual)<0.011, "the line ends at the real result "+actual.toFixed(2));
     ok(a.plays.filter(p=>!p.same).every(p=>p.options.every(o=>o.pm!=null)), "every level has a margin");
     // levels agree between two runs within their margins (allowing both margins)
