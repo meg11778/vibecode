@@ -1,0 +1,5 @@
+const sg=x=>(x>=0?'+':'')+x.toFixed(2);for(const f of process.argv.slice(2)){const r=JSON.parse(require('fs').readFileSync(f,'utf8'));
+console.log(`\n${r.P} players, 7 cards, ${r.deals} deals. The bidding network's own first choice with this hand is 2 in ${(100*r.netBid2/r.deals).toFixed(0)}% of deals.`);
+for(const k of Object.keys(r.G).sort()){const g=r.G[k],m=g.d/g.k;console.log(`  ${k}  (${g.k} deals)  trump lead minus ace lead ${sg(m)} ±${(1.96*Math.sqrt((g.d2/g.k-m*m)/g.k)).toFixed(2)}`);
+ if(!k.includes('|'))r.LEADS.forEach((L,i)=>console.log(`      ${L.padEnd(28)} $${sg(g.v[i]/g.k)} | makes 2: ${(100*g.made[i]/g.k).toFixed(0)}% | short: ${(100*g.bust[i]/g.k).toFixed(0)}% | over: ${(100*(g.k-g.made[i]-g.bust[i])/g.k).toFixed(0)}% | network leads it ${(100*g.netLead[i]/g.k).toFixed(0)}%`+(g.readLead.reduce((a,b)=>a+b,0)?` | reading bot ${(100*g.readLead[i]/g.readLead.reduce((a,b)=>a+b,0)).toFixed(0)}%`:'')));
+ if(g.rk){const q=g.rd/g.rk;console.log(`      reading bot's own sums, trump minus ace: ${sg(q)} ±${(1.96*Math.sqrt((g.rd2/g.rk-q*q)/g.rk)).toFixed(2)} (${g.rk} positions)`);}}}

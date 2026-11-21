@@ -1,0 +1,84 @@
+
+4 players, 7 cards, 150000 deals. The bidding network's own first choice with this hand is 2 in 76% of deals.
+  over by 1  (37085 deals)  trump lead minus ace lead +0.70 ±0.05
+      ace                          $-0.49 | makes 2: 57% | short: 34% | over: 10% | network leads it 0%
+      trump                        $+0.21 | makes 2: 62% | short: 26% | over: 12% | network leads it 98%
+      low under the ace            $-2.11 | makes 2: 43% | short: 52% | over: 5% | network leads it 0%
+      top of the aceless suit      $-0.69 | makes 2: 54% | short: 36% | over: 9% | network leads it 1%
+      bottom of the aceless suit   $-0.76 | makes 2: 54% | short: 36% | over: 10% | network leads it 1%
+  over by 1 | ace with J-K  (8554 deals)  trump lead minus ace lead +0.55 ±0.11
+  over by 1 | ace with a low card  (28531 deals)  trump lead minus ace lead +0.74 ±0.06
+  over by 1 | trump 2-3  (15260 deals)  trump lead minus ace lead +0.67 ±0.08
+  over by 1 | trump 4-6  (21825 deals)  trump lead minus ace lead +0.71 ±0.07
+  over by 2 or more  (5736 deals)  trump lead minus ace lead +0.77 ±0.14
+      ace                          $-1.23 | makes 2: 41% | short: 55% | over: 4% | network leads it 1%
+      trump                        $-0.45 | makes 2: 48% | short: 47% | over: 5% | network leads it 97%
+      low under the ace            $-3.04 | makes 2: 26% | short: 72% | over: 2% | network leads it 0%
+      top of the aceless suit      $-1.58 | makes 2: 37% | short: 58% | over: 4% | network leads it 1%
+      bottom of the aceless suit   $-1.57 | makes 2: 37% | short: 59% | over: 4% | network leads it 1%
+  over by 2 or more | ace with J-K  (1247 deals)  trump lead minus ace lead +0.41 ±0.31
+  over by 2 or more | ace with a low card  (4489 deals)  trump lead minus ace lead +0.87 ±0.16
+  over by 2 or more | trump 2-3  (2385 deals)  trump lead minus ace lead +0.86 ±0.22
+  over by 2 or more | trump 4-6  (3351 deals)  trump lead minus ace lead +0.71 ±0.18
+  under by 1  (66382 deals)  trump lead minus ace lead +0.13 ±0.04
+      ace                          $-0.19 | makes 2: 58% | short: 13% | over: 29% | network leads it 1%
+      trump                        $-0.06 | makes 2: 58% | short: 9% | over: 32% | network leads it 78%
+      low under the ace            $-0.43 | makes 2: 56% | short: 22% | over: 22% | network leads it 0%
+      top of the aceless suit      $-0.14 | makes 2: 57% | short: 15% | over: 28% | network leads it 7%
+      bottom of the aceless suit   $-0.20 | makes 2: 57% | short: 16% | over: 28% | network leads it 14%
+  under by 1 | ace with J-K  (16566 deals)  trump lead minus ace lead -0.31 ±0.08
+  under by 1 | ace with a low card  (49816 deals)  trump lead minus ace lead +0.28 ±0.05
+  under by 1 | trump 2-3  (26375 deals)  trump lead minus ace lead +0.05 ±0.06
+  under by 1 | trump 4-6  (40007 deals)  trump lead minus ace lead +0.19 ±0.05
+  under by 2 or more  (40797 deals)  trump lead minus ace lead -0.01 ±0.05
+      ace                          $-0.42 | makes 2: 42% | short: 7% | over: 51% | network leads it 3%
+      trump                        $-0.43 | makes 2: 42% | short: 5% | over: 53% | network leads it 57%
+      low under the ace            $-0.22 | makes 2: 45% | short: 11% | over: 44% | network leads it 2%
+      top of the aceless suit      $-0.22 | makes 2: 43% | short: 8% | over: 49% | network leads it 20%
+      bottom of the aceless suit   $-0.23 | makes 2: 43% | short: 10% | over: 47% | network leads it 18%
+  under by 2 or more | ace with J-K  (11009 deals)  trump lead minus ace lead -0.41 ±0.09
+  under by 2 or more | ace with a low card  (29788 deals)  trump lead minus ace lead +0.14 ±0.06
+  under by 2 or more | trump 2-3  (16041 deals)  trump lead minus ace lead -0.14 ±0.08
+  under by 2 or more | trump 4-6  (24756 deals)  trump lead minus ace lead +0.08 ±0.06
+
+5 players, 7 cards, 120000 deals. The bidding network's own first choice with this hand is 2 in 47% of deals.
+  over by 1  (33635 deals)  trump lead minus ace lead +0.72 ±0.06
+      ace                          $-1.35 | makes 2: 54% | short: 40% | over: 6% | network leads it 0%
+      trump                        $-0.63 | makes 2: 61% | short: 32% | over: 7% | network leads it 99%
+      low under the ace            $-2.95 | makes 2: 39% | short: 57% | over: 3% | network leads it 0%
+      top of the aceless suit      $-1.55 | makes 2: 53% | short: 42% | over: 5% | network leads it 0%
+      bottom of the aceless suit   $-1.61 | makes 2: 52% | short: 42% | over: 6% | network leads it 1%
+  over by 1 | ace with J-K  (7876 deals)  trump lead minus ace lead +0.51 ±0.12
+  over by 1 | ace with a low card  (25759 deals)  trump lead minus ace lead +0.78 ±0.07
+  over by 1 | trump 2-3  (13631 deals)  trump lead minus ace lead +0.74 ±0.09
+  over by 1 | trump 4-6  (20004 deals)  trump lead minus ace lead +0.70 ±0.08
+  over by 2 or more  (5316 deals)  trump lead minus ace lead +0.64 ±0.15
+      ace                          $-2.46 | makes 2: 38% | short: 60% | over: 2% | network leads it 0%
+      trump                        $-1.82 | makes 2: 43% | short: 55% | over: 2% | network leads it 100%
+      low under the ace            $-4.20 | makes 2: 23% | short: 76% | over: 1% | network leads it 0%
+      top of the aceless suit      $-2.78 | makes 2: 35% | short: 64% | over: 2% | network leads it 0%
+      bottom of the aceless suit   $-2.78 | makes 2: 34% | short: 64% | over: 2% | network leads it 0%
+  over by 2 or more | ace with J-K  (1202 deals)  trump lead minus ace lead +0.76 ±0.32
+  over by 2 or more | ace with a low card  (4114 deals)  trump lead minus ace lead +0.61 ±0.17
+  over by 2 or more | trump 2-3  (2183 deals)  trump lead minus ace lead +0.61 ±0.23
+  over by 2 or more | trump 4-6  (3133 deals)  trump lead minus ace lead +0.67 ±0.19
+  under by 1  (49632 deals)  trump lead minus ace lead +0.25 ±0.05
+      ace                          $-0.44 | makes 2: 63% | short: 18% | over: 20% | network leads it 2%
+      trump                        $-0.19 | makes 2: 65% | short: 13% | over: 23% | network leads it 91%
+      low under the ace            $-0.92 | makes 2: 57% | short: 28% | over: 14% | network leads it 0%
+      top of the aceless suit      $-0.37 | makes 2: 63% | short: 18% | over: 19% | network leads it 1%
+      bottom of the aceless suit   $-0.50 | makes 2: 61% | short: 19% | over: 19% | network leads it 5%
+  under by 1 | ace with J-K  (12499 deals)  trump lead minus ace lead -0.26 ±0.10
+  under by 1 | ace with a low card  (37133 deals)  trump lead minus ace lead +0.42 ±0.05
+  under by 1 | trump 2-3  (19820 deals)  trump lead minus ace lead +0.28 ±0.07
+  under by 1 | trump 4-6  (29812 deals)  trump lead minus ace lead +0.23 ±0.06
+  under by 2 or more  (31417 deals)  trump lead minus ace lead +0.08 ±0.06
+      ace                          $+0.03 | makes 2: 57% | short: 10% | over: 33% | network leads it 10%
+      trump                        $+0.11 | makes 2: 58% | short: 6% | over: 36% | network leads it 76%
+      low under the ace            $+0.08 | makes 2: 57% | short: 16% | over: 27% | network leads it 1%
+      top of the aceless suit      $+0.20 | makes 2: 58% | short: 10% | over: 33% | network leads it 3%
+      bottom of the aceless suit   $+0.13 | makes 2: 57% | short: 11% | over: 32% | network leads it 10%
+  under by 2 or more | ace with J-K  (8401 deals)  trump lead minus ace lead -0.44 ±0.11
+  under by 2 or more | ace with a low card  (23016 deals)  trump lead minus ace lead +0.27 ±0.07
+  under by 2 or more | trump 2-3  (12212 deals)  trump lead minus ace lead +0.03 ±0.09
+  under by 2 or more | trump 4-6  (19205 deals)  trump lead minus ace lead +0.11 ±0.07
