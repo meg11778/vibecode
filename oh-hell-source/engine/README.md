@@ -771,3 +771,10 @@ Up to four batches of layouts on close calls (`READ.rounds=4`) against one batch
 +$0.174 +/-0.026 a deal (51,600 deals), positive at every size, larger in longer rounds. Kept.
 Bidding network 2 against network 1: +$0.010 +/-0.011 as the simulation's picture (189,200 deals), +$0.027 +/-0.029
 as the reader's picture. No measurable difference; not installed. Opponents were the project's own engines.
+
+## 21 November 2026: "how much thinking is enough" test sent to Bagley (`oh-hell-source/thinking-test/`)
+
+One card-reading seat, same deals, four settings: today (Normal, up to 4 batches on close calls), up to 8 batches,
+double precision, four times precision. `node overnight.js <hours>`, results in `results.jsonl`, `node summary.js`.
+The folder needs a copy of `ohhell-play.html` beside the scripts (the zip sent to Bagley has one). Also
+`seat-values/seat-values-by-seat.png` (`seat_bar_chart.js`): seat averages over all round sizes as a bar chart.
