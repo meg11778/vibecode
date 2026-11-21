@@ -1,0 +1,54 @@
+4 players 5 cards, leader needs 2 or more (holds a trump 7 or lower: 31733 leads)
+   THE TELL    leads of a low trump: 10048.  Leader also holds A/K/Q of trumps  33.1% ±0.9 | any higher trump  76.4% | the top trump left  12.7%
+   BASE RATE   holds A/K/Q whatever was led  44.4%
+   WHO LEADS IT  lone low trump: led  43.4% ±1.5 of 4157 | low trump + A/K/Q: low led  23.6%, big led  23.8% of 14083 | low + other trumps, none big:  36.4% of 13493
+4 players 5 cards, leader needs exactly 1 (holds a trump 7 or lower: 42841 leads)
+   THE TELL    leads of a low trump: 14172.  Leader also holds A/K/Q of trumps  34.1% ±0.8 | any higher trump  91.4% | the top trump left  12.3%
+   BASE RATE   holds A/K/Q whatever was led  17.5%
+   WHO LEADS IT  lone low trump: led   6.0% ±0.3 of 17784 | low trump + A/K/Q: low led  64.2%, big led   1.7% of 7517 | low + other trumps, none big:  47.2% of 17540
+4 players 7 cards, leader needs 2 or more (holds a trump 7 or lower: 85595 leads)
+   THE TELL    leads of a low trump: 16694.  Leader also holds A/K/Q of trumps  38.0% ±0.7 | any higher trump  76.1% | the top trump left  17.2%
+   BASE RATE   holds A/K/Q whatever was led  47.9%
+   WHO LEADS IT  lone low trump: led  28.7% ±0.9 of 9962 | low trump + A/K/Q: low led  15.5%, big led  13.8% of 41025 | low + other trumps, none big:  21.7% of 34608
+4 players 7 cards, leader needs exactly 1 (holds a trump 7 or lower: 69610 leads)
+   THE TELL    leads of a low trump: 16769.  Leader also holds A/K/Q of trumps  37.1% ±0.7 | any higher trump  86.0% | the top trump left  16.1%
+   BASE RATE   holds A/K/Q whatever was led  21.5%
+   WHO LEADS IT  lone low trump: led   6.8% ±0.3 of 26525 | low trump + A/K/Q: low led  41.6%, big led   3.0% of 14980 | low + other trumps, none big:  31.1% of 28105
+4 players 10 cards, leader needs 2 or more (holds a trump 7 or lower: 234942 leads)
+   THE TELL    leads of a low trump: 30731.  Leader also holds A/K/Q of trumps  35.7% ±0.5 | any higher trump  70.6% | the top trump left  25.0%
+   BASE RATE   holds A/K/Q whatever was led  52.7%
+   WHO LEADS IT  lone low trump: led  28.6% ±0.6 of 22107 | low trump + A/K/Q: low led   8.9%, big led   8.8% of 123755 | low + other trumps, none big:  15.1% of 89080
+4 players 10 cards, leader needs exactly 1 (holds a trump 7 or lower: 109496 leads)
+   THE TELL    leads of a low trump: 21662.  Leader also holds A/K/Q of trumps  39.6% ±0.7 | any higher trump  78.8% | the top trump left  21.8%
+   BASE RATE   holds A/K/Q whatever was led  26.7%
+   WHO LEADS IT  lone low trump: led   9.8% ±0.3 of 34976 | low trump + A/K/Q: low led  29.3%, big led   6.5% of 29247 | low + other trumps, none big:  21.3% of 45273
+5 players 6 cards, leader needs 2 or more (holds a trump 7 or lower: 42406 leads)
+   THE TELL    leads of a low trump: 10205.  Leader also holds A/K/Q of trumps  45.8% ±1.0 | any higher trump  77.6% | the top trump left  21.0%
+   BASE RATE   holds A/K/Q whatever was led  52.6%
+   WHO LEADS IT  lone low trump: led  40.2% ±1.5 of 3870 | low trump + A/K/Q: low led  21.0%, big led  16.8% of 22286 | low + other trumps, none big:  24.5% of 16250
+5 players 6 cards, leader needs exactly 1 (holds a trump 7 or lower: 55779 leads)
+   THE TELL    leads of a low trump: 14797.  Leader also holds A/K/Q of trumps  41.9% ±0.8 | any higher trump  90.3% | the top trump left  18.3%
+   BASE RATE   holds A/K/Q whatever was led  23.9%
+   WHO LEADS IT  lone low trump: led   5.7% ±0.3 of 18089 | low trump + A/K/Q: low led  46.5%, big led   1.4% of 13336 | low + other trumps, none big:  31.0% of 24354
+5 players 8 cards, leader needs 2 or more (holds a trump 7 or lower: 103268 leads)
+   THE TELL    leads of a low trump: 17325.  Leader also holds A/K/Q of trumps  41.8% ±0.7 | any higher trump  75.5% | the top trump left  27.9%
+   BASE RATE   holds A/K/Q whatever was led  55.1%
+   WHO LEADS IT  lone low trump: led  36.1% ±1.1 of 7912 | low trump + A/K/Q: low led  12.7%, big led  11.4% of 56949 | low + other trumps, none big:  18.8% of 38407
+5 players 8 cards, leader needs exactly 1 (holds a trump 7 or lower: 83871 leads)
+   THE TELL    leads of a low trump: 17541.  Leader also holds A/K/Q of trumps  42.4% ±0.7 | any higher trump  84.6% | the top trump left  24.3%
+   BASE RATE   holds A/K/Q whatever was led  29.8%
+   WHO LEADS IT  lone low trump: led   8.9% ±0.4 of 24397 | low trump + A/K/Q: low led  29.8%, big led   3.6% of 24971 | low + other trumps, none big:  23.0% of 34503
+6 players 6 cards, leader needs 2 or more (holds a trump 7 or lower: 32528 leads)
+   THE TELL    leads of a low trump: 8723.  Leader also holds A/K/Q of trumps  50.0% ±1.0 | any higher trump  82.0% | the top trump left  28.0%
+   BASE RATE   holds A/K/Q whatever was led  57.6%
+   WHO LEADS IT  lone low trump: led  46.0% ±2.1 of 2241 | low trump + A/K/Q: low led  23.3%, big led  15.4% of 18738 | low + other trumps, none big:  28.8% of 11549
+6 players 6 cards, leader needs exactly 1 (holds a trump 7 or lower: 54463 leads)
+   THE TELL    leads of a low trump: 14785.  Leader also holds A/K/Q of trumps  44.7% ±0.8 | any higher trump  91.8% | the top trump left  22.3%
+   BASE RATE   holds A/K/Q whatever was led  30.3%
+   WHO LEADS IT  lone low trump: led   5.6% ±0.4 of 14511 | low trump + A/K/Q: low led  40.0%, big led   1.5% of 16524 | low + other trumps, none big:  31.4% of 23428
+4p5: low trump led by a seat needing 1 (14172): best other trump: lone 7.5% | low 19.4% | mid 39.1% | big 34.1% || holds one of the two highest trumps left 26.1% || first three tricks only (11258): lone 9.4% | low 18.4% | mid 38.7% | big 33.5%
+4p7: low trump led by a seat needing 1 (16769): best other trump: lone 10.8% | low 17.6% | mid 34.4% | big 37.1% || holds one of the two highest trumps left 32.5% || first three tricks only (7963): lone 19.3% | low 15.8% | mid 29.7% | big 35.2%
+4p10: low trump led by a seat needing 1 (21662): best other trump: lone 15.9% | low 16.0% | mid 28.6% | big 39.6% || holds one of the two highest trumps left 44.2% || first three tricks only (4589): lone 42.9% | low 15.4% | mid 14.4% | big 27.4%
+5p6: low trump led by a seat needing 1 (14797): best other trump: lone 7.0% | low 14.9% | mid 36.1% | big 41.9% || holds one of the two highest trumps left 37.4% || first three tricks only (9256): lone 10.4% | low 13.9% | mid 32.4% | big 43.3%
+5p8: low trump led by a seat needing 1 (17541): best other trump: lone 12.4% | low 12.5% | mid 32.8% | big 42.4% || holds one of the two highest trumps left 49.7% || first three tricks only (5734): lone 27.4% | low 11.3% | mid 21.1% | big 40.2%
+6p6: low trump led by a seat needing 1 (14785): best other trump: lone 5.5% | low 14.7% | mid 35.1% | big 44.7% || holds one of the two highest trumps left 45.0% || first three tricks only (8865): lone 8.5% | low 14.0% | mid 30.8% | big 46.7%
