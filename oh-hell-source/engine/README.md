@@ -778,3 +778,17 @@ One card-reading seat, same deals, four settings: today (Normal, up to 4 batches
 double precision, four times precision. `node overnight.js <hours>`, results in `results.jsonl`, `node summary.js`.
 The folder needs a copy of `ohhell-play.html` beside the scripts (the zip sent to Bagley has one). Also
 `seat-values/seat-values-by-seat.png` (`seat_bar_chart.js`): seat averages over all round sizes as a bar chart.
+
+## 21 November 2026: bidding network as the calculator's picture of the bidders: BUILT, NOT PUBLISHED
+
+`oh-hell-source/calculator-bidnet-test/ohhell_candidate.html` is `ohhell.html` with the bidding network weighing
+deals by the bids ahead and bidding the seats behind (`initSim`: `bidNet`, `netSeat`; `runChunk`). It stays on the
+formula when no turned card is entered, at no trump short of the whole deck, for a seat with a custom profile, and
+when `cfg.bidModel==="formula"`. The network block sits after the `===== UI =====` marker so the game page's build
+does not get two copies. `assertions.js` (58 pass) still pins the formula path, because it loads the engine section
+alone. Browser check `ui.js`: three setups run with no errors; the no-turned-card setup gives the same figures as before.
+Money test `calccmp.js` (calculator best bid under each picture, 400 deals, one seat at a table of the game's
+simulation bidders) takes about 5 seconds a deal at 7 cards, so it is packaged for Matt's laptop
+(`node overnight.js 8`, send back `results.jsonl`). Publish only if not negative. The live `ohhell.html` and
+`ohhell-play.html` are unchanged; the engine folder's working `ohhell.html` is the candidate, the published one is
+`ohhell_before_bidnet.html` there.
