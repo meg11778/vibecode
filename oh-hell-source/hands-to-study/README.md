@@ -63,3 +63,6 @@ Points to remember:
   layouts. If such a seat ducks 25 / 50 / 75 / 100% of the time, the J♣ line is worth $1.09 / $1.21 / $1.34 / $1.52
   (makes 92.0 / 93.2 / 94.6 / 96.4%); it draws level with the 2♦ line ($1.10) at about 25% and leads by $0.12 ±0.05
   at 50%. Only the trick-2 club is changed; a table that ducks everywhere is not modelled.
+  After the J♣ wins trick 2 (`T3=1`, 1,211 layouts): every lead but the A♥ makes 98 to 98.5% (±0.4) and loses trick 3
+  (the 4♣ wins it 1.6%). By money: 4♣ $2.07, small heart $1.97 to $2.00, 2♦ $1.86, 2♠ $1.62 (4♣ minus 2♠ +$0.45
+  ±0.07); the gap is opponents busted (1.50 after the 4♣, 1.36 after the 2♠). The A♥ wins 87% and makes 13%.

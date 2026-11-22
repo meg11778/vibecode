@@ -112,6 +112,16 @@ if (process.env.DUCK) {   // what if the table ducks the club more than the bots
   for (const p of [0, 0.25, 0.5, 0.75, 1]) { const r = L.map((pk, k) => play(pk, jl.first, jl.second, null, { p, u: U[k] })), f = g => (100 * r.filter(g).length / K).toFixed(1) + '%', dj = r.map((x, k) => x.money - jl.res[k].money), dd = r.map((x, k) => x.money - ref('A♠, 2♦')[k].money), da = r.map((x, k) => x.money - ref('A♠, A♥')[k].money);
     console.log('  ducks ' + String(100 * p).padStart(3) + '%: J♣ wins ' + f(x => x.t2won === ME) + ' | makes ' + f(x => x.tricks === bids[ME]) + ', short ' + f(x => x.tricks < bids[ME]) + ', over ' + f(x => x.tricks > bids[ME]) + ' | worth $' + mean(r.map(x => x.money)).toFixed(2) + ' | others busted ' + mean(r.map(x => x.bust)).toFixed(2) + ' | against the bots\' J♣ line ' + (mean(dj) >= 0 ? '+' : '') + mean(dj).toFixed(2) + ' ±' + se(dj).toFixed(2) + ' | against 2♦ ' + (mean(dd) >= 0 ? '+' : '') + mean(dd).toFixed(2) + ' ±' + se(dd).toFixed(2) + ' | against A♥ ' + (mean(da) >= 0 ? '+' : '') + mean(da).toFixed(2) + ' ±' + se(da).toFixed(2)); }
 }
+if (process.env.T3) {   // the J♣ has won trick 2: every trick-3 lead, on the layouts where it wins (bots as they are, and a table that always ducks the club when it can)
+  const jl = lines.find(l => l.name === 'A♠, J♣'), dr = M.mulberry32(77), U = L.map(() => [dr(), dr(), dr(), dr(), dr()]), rest = hand.filter(c => c !== C('A♠') && c !== C('J♣'));
+  for (const p of [0, 1]) { const ks = []; L.forEach((pk, k) => { if (play(pk, jl.first, jl.second, null, { p, u: U[k] }).t2won === ME) ks.push(k); });
+    console.log('\nJ♣ won trick 2 (' + (p ? 'a table that always ducks the club when it can' : 'the bots as they are') + '): ' + ks.length + ' layouts, ' + (100 * ks.length / K).toFixed(0) + '%. Trick-3 leads, network afterwards:');
+    const rows = rest.map(c => ({ c, r: ks.map(k => play(L[k], jl.first, jl.second, { idx: 2, card: c }, { p, u: U[k] })) })); rows.push({ c: -1, r: ks.map(k => play(L[k], jl.first, jl.second, null, { p, u: U[k] })) });
+    rows.sort((x, y) => mean(y.r.map(v => v.money)) - mean(x.r.map(v => v.money))); const best = rows[0];
+    for (const o of rows) { const r = o.r, f = g => (100 * r.filter(g).length / r.length).toFixed(1).padStart(5) + '%', d = r.map((v, j) => v.money - best.r[j].money), m = mean(d), sd = Math.sqrt(d.reduce((a2, v) => a2 + (v - m) ** 2, 0) / d.length / Math.max(1, d.length - 1)), pm = r.filter(v => v.tricks === bids[ME]).length / r.length;
+      const t3 = r.filter(v => { const e = v.log[2]; return e && e.winner === ME; }).length / r.length;
+      console.log('  ' + (o.c < 0 ? 'network' : T(o.c)).padEnd(8) + ' makes ' + f(v => v.tricks === bids[ME]) + ' ±' + (100 * Math.sqrt(pm * (1 - pm) / r.length)).toFixed(1) + ' | worth $' + mean(r.map(v => v.money)).toFixed(2).padStart(5) + ' | against the best ' + m.toFixed(2).padStart(5) + ' ±' + sd.toFixed(2) + ' | the lead itself wins ' + (100 * t3).toFixed(1).padStart(4) + '% | others busted ' + mean(r.map(v => v.bust)).toFixed(2)); } }
+}
 if (process.env.WHY) {   // the network in your seat throws the A♥ away while still a trick short: what was it looking at, and what would the other cards have done?
   const AH = C('A♥'), sn = c => M.suitOf(c);
   for (const ln of lines.filter(l => ['A♠, J♣', 'A♠, 2♦'].includes(l.name))) { const hit = []; let allThrown = 0;
