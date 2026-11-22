@@ -848,3 +848,17 @@ deals): -$0.089 +/-0.030 a deal; 5p10 -$0.26 +/-0.11, 6p8 -$0.30 +/-0.11; level 
 calculator recommends worse bids than the bot makes. NOT KNOWN whether this holds at the calculator's real sample size
 (it runs until about 2,500 effective deals); the test used 400 to be affordable. Candidate stays in
 `calculator-bidnet-test/ohhell_candidate.html`; live `ohhell.html` unchanged.
+
+## 22 November 2026 (later): the first calculator test was too thin at 5 and 6 players; second test packaged
+
+Diagnostics (`calculator-bidnet-test/calcdiag.js`, `calcdiag2.js`, small samples): the calculator's top bid at 400 and
+at 2,000 deals is the same in 33 of 37 decisions, and its "better of two ways of playing" pricing changes the bid in
+1 of 91, so neither explains the gap to the bot. But with bids ahead the weighted deals collapse: at 5 players 10
+cards, 400 deals carried the weight of 5 to 25 for the last two seats, and 6,000 deals still only 74 to 366. The
+bot's own simulation draws up to 6,000 and falls back to the bidding network below 25. So the first test's 5- and
+6-player figures (the calculator trailing the bot, and the network picture bidding higher and losing) are NOT
+reliable. Second test (`calccmp2.js`, `overnight2.js`, `summary2.js`; zip `ohhell-calc2` with a page built from the
+candidate calculator): calculator draws until 400 deals carry weight or 6,000 are drawn, both pictures, against the
+bot's bid, by seat, at 5p10 and 6p8. About 100 seconds a deal in the workspace.
+Live calculator note: Auto stops at 2,500 effective deals or 20,000 drawn; by these figures a 5-player 10-card
+dealer gets a few hundred effective deals.
