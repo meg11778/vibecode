@@ -67,6 +67,10 @@ console.log('\nwhere your tricks came from (share of layouts):');
 for (const ln of show) { const r = ln.res, f = g => pct(r.filter(g).length / K), w = (x, s) => x.wins.includes(C(s));
   console.log('  ' + ln.name.padEnd(9) + ' A♠ wins ' + f(x => w(x, 'A♠')) + ' | A♥ wins ' + f(x => w(x, 'A♥')) + ' | J♣ wins ' + f(x => w(x, 'J♣')) + ' | 2♠ wins ' + f(x => w(x, '2♠')) + ' | a small heart, 4♣ or 2♦ wins ' + f(x => x.wins.some(c => ![C('A♠'), C('A♥'), C('J♣'), C('2♠')].includes(c))) + ' || fails short ' + f(x => x.tricks < bids[ME]) + ', fails over ' + f(x => x.tricks > bids[ME])); }
 { const x = lines.find(l => l.name === 'A♠, 2♦'), y = lines.find(l => l.name === 'A♠, A♥'); if (x && y) { const d = x.res.map((r, k) => r.money - y.res[k].money); console.log('  A♠, 2♦ minus A♠, A♥: ' + mean(d).toFixed(2) + ' ±' + se(d).toFixed(2)); } }
+// which tricks you take, as a set, on each line (share of all layouts)
+console.log('\nwhich tricks you take on each line (share of layouts; sets under 1% left out):');
+for (const ln of show) { const sets = {}; for (const x of ln.res) { const key = (x.wins.length ? x.wins.map(T).join(' + ') : 'none') + (x.tricks === bids[ME] ? '' : x.tricks < bids[ME] ? '  [short]' : '  [over]'); sets[key] = (sets[key] || 0) + 1; }
+  console.log('  ' + ln.name + ':'); for (const key of Object.keys(sets).sort((x, y) => sets[y] - sets[x])) if (sets[key] / K >= 0.01) console.log('      ' + (100 * sets[key] / K).toFixed(1).padStart(5) + '%  ' + key); }
 // what the layouts say about the hidden cards
 const cl = c => M.suitOf(c) === 3, sp = c => M.suitOf(c) === 0, he = c => M.suitOf(c) === 1, di = c => M.suitOf(c) === 2, sh = f => (100 * L.filter(f).length / K).toFixed(0) + '%', names = ['first seat (0)', 'second seat (0)', 'you', 'fourth seat (' + bids[3] + ')', 'dealer (' + bids[4] + ')'];
 console.log('\nwhat the layouts hold (the first seat\'s count includes the 4♠ it led):');
