@@ -195,3 +195,37 @@ Plain network plays every seat. 362 hands at 4 players 7 cards, 271 at 4 players
   tables (axiom 3: it does not draw trumps), which could make bidding up look worse than it is for a good player.
   Hands were chosen by the bidding network's doubt, not by a person's. Six players and 13-card no trump not run.
   X=1 (down means a zero bid) is in the sample: -$0.71 +/-0.20 at 4p7, -$0.56 +/-0.46 at 4p10.
+
+## 7. "Get in and get out" in underbid hands (22 Nov 2026): TRUE ON MATT'S CLASSIC HAND; general test not yet run
+
+Said as: "in an underbid hand, once you are comfortable you can take no tricks afterwards, take your tricks early and
+get off lead; do not duck just to duck (a duck with a purpose, such as throwing a dangerous singleton, is different)."
+Classic hand: A♠ (trumps), ♥10-4-3-2, ♣3-2, no diamond, bid 1, a diamond is led. Novices throw the ♥10; Matt takes the
+ace of trumps and gets out with a club.
+
+Test (`07-get-in-get-out/classic.js`): 7-card round, the hand in a random seat other than the leader's, bid 1 (the
+bidding network's own bid every time), other cards random, others bid as the bots do; deals kept when the opening lead
+is a diamond and nobody has trumped yet. Each line played out on the same deal, plain network otherwise. 80,000 deals
+each at four and five players.
+
+| ruff and exit with the ♣3, minus throwing the ♥10 | 4 players | 5 players |
+|---|---|---|
+| table under by 2 or more | +$0.16 +/-0.03 | +$0.16 +/-0.02 |
+| table under by 1 | +$0.28 +/-0.03 | +$0.19 +/-0.02 |
+| table over by 1 | -$0.02 +/-0.04 | +$0.13 +/-0.04 |
+| table over by 2 or more | +$0.15 +/-0.12 | +$0.01 +/-0.09 |
+
+- Underbid: taking the ace at once is better at both sizes and from every position in the trick (+$0.12 to +$0.31).
+  The ruff line makes the bid 99.9 to 100%; throwing the ♥10 goes over 1.4 to 1.6% of the time at four players (0.1
+  to 0.2% at five), the rest of the gap comes from what happens to the other seats. Throwing a club instead of the
+  ♥10 is no better (+$0.18 to +$0.27 behind the ruff).
+- At four players the gap disappears when the table is OVERBID (-$0.02 +/-0.04), as the axiom's "in underbid hands"
+  says; at five players a smaller gap remains.
+- The exit matters only if it is the ♥10: ruff then ♥10 goes over 27 to 36% at four players and costs $2.1 to $2.7.
+  ♣3, ♣2 and ♥2 are within 4 cents of each other.
+- BOTS: the plain network takes the ace 98 to 99% at four players but only 67 to 76% at five (it throws the ♥10 22 to
+  33% there). The game's card-reading bot (539 sampled positions) takes the ace only 60 to 73% on the underbid deals
+  and throws a heart or a club the rest of the time, although its own sums put the ace ahead of the ♥10 by $0.20 to
+  $0.33, in line with the measured figures: the known noise between plays a few dimes apart.
+- Limits: one hand, the first trick only, plain network plays on. Not yet tested: the general rule (take now or later
+  with a sure winner, by how many cards are left), which is what Matt's three reasons are about.

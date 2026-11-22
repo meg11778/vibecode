@@ -1,0 +1,158 @@
+
+===== 4 players, 7 cards: 80000 deals used of 542280 dealt (diamond opening lead, not yet trumped). The bidding network's own bid with this hand is 1 on 100.0% =====
+
+under by 2 or more (30155 deals)
+   line               money    made 1   went over  took last trick   ruff + club 3 beats it by
+   ruff + club 3      +3.40    99.9%      0.1%         0.1%        
+   ruff + club 2      +3.41    99.9%      0.1%         0.1%        -0.00 +/-0.01
+   ruff + heart 2     +3.37    99.8%      0.2%         0.0%        +0.04 +/-0.02
+   ruff + heart 10    +0.75    64.1%     35.9%         0.0%        +2.66 +/-0.05
+   ruff + network     +3.39    99.9%      0.1%         0.1%        +0.01 +/-0.02
+   pitch heart 10     +3.24    98.6%      1.4%         0.6%        +0.16 +/-0.03
+   pitch club 3       +3.18    98.4%      1.6%         0.5%        +0.22 +/-0.03
+   plain network plays: trump ace 98.4%, heart 10 0.4%, low heart 0.2%, club 1.0%;  after ruffing it exits with 2♣ 30.6%, 4♥ 28.4%, 2♥ 26.2%, 3♣ 14.8%
+
+under by 2 or more | last to play (12907 deals)
+   ruff + club 3 beats pitch heart 10 by +0.20 +/-0.04;  made 1: 99.9% against 98.6%
+
+under by 2 or more | in the middle (9027 deals)
+   ruff + club 3 beats pitch heart 10 by +0.12 +/-0.05;  made 1: 99.9% against 98.6%
+
+under by 2 or more | second to play (8221 deals)
+   ruff + club 3 beats pitch heart 10 by +0.16 +/-0.05;  made 1: 99.9% against 98.7%
+
+under by 1 (35298 deals)
+   line               money    made 1   went over  took last trick   ruff + club 3 beats it by
+   ruff + club 3      +2.70   100.0%      0.0%         0.0%        
+   ruff + club 2      +2.70   100.0%      0.0%         0.0%        -0.01 +/-0.01
+   ruff + heart 2     +2.66    99.9%      0.1%         0.0%        +0.03 +/-0.02
+   ruff + heart 10    +0.60    72.9%     27.1%         0.0%        +2.09 +/-0.04
+   ruff + network     +2.66    99.9%      0.1%         0.0%        +0.04 +/-0.02
+   pitch heart 10     +2.42    98.4%      1.6%         0.2%        +0.28 +/-0.03
+   pitch club 3       +2.43    98.7%      1.3%         0.2%        +0.27 +/-0.02
+   plain network plays: trump ace 98.6%, heart 10 0.2%, low heart 0.2%, club 0.9%;  after ruffing it exits with 4♥ 47.7%, 2♥ 39.5%, 3♣ 7.4%, 2♣ 5.3%
+
+under by 1 | last to play (7833 deals)
+   ruff + club 3 beats pitch heart 10 by +0.31 +/-0.05;  made 1: 100.0% against 98.3%
+
+under by 1 | in the middle (13746 deals)
+   ruff + club 3 beats pitch heart 10 by +0.29 +/-0.04;  made 1: 100.0% against 98.4%
+
+under by 1 | second to play (13719 deals)
+   ruff + club 3 beats pitch heart 10 by +0.25 +/-0.04;  made 1: 100.0% against 98.6%
+
+over by 1 (13118 deals)
+   line               money    made 1   went over  took last trick   ruff + club 3 beats it by
+   ruff + club 3      +2.65   100.0%      0.0%         0.0%        
+   ruff + club 2      +2.65   100.0%      0.0%         0.0%        -0.01 +/-0.01
+   ruff + heart 2     +2.65    99.9%      0.1%         0.0%        -0.01 +/-0.04
+   ruff + heart 10    +2.00    89.5%     10.5%         0.0%        +0.64 +/-0.05
+   ruff + network     +2.63    99.9%      0.1%         0.0%        +0.01 +/-0.04
+   pitch heart 10     +2.66    98.8%      1.2%         0.1%        -0.02 +/-0.04
+   pitch club 3       +2.67    99.5%      0.5%         0.0%        -0.02 +/-0.04
+   plain network plays: trump ace 99.5%, heart 10 0.1%, low heart 0.0%, club 0.4%;  after ruffing it exits with 4♥ 82.0%, 2♥ 16.5%, 3♣ 1.0%, 3♥ 0.3%
+
+over by 1 | last to play (1704 deals)
+   ruff + club 3 beats pitch heart 10 by +0.01 +/-0.12;  made 1: 100.0% against 98.9%
+
+over by 1 | in the middle (4932 deals)
+   ruff + club 3 beats pitch heart 10 by +0.01 +/-0.07;  made 1: 100.0% against 98.8%
+
+over by 1 | second to play (6482 deals)
+   ruff + club 3 beats pitch heart 10 by -0.04 +/-0.06;  made 1: 100.0% against 98.8%
+
+over by 2 or more (1429 deals)
+   line               money    made 1   went over  took last trick   ruff + club 3 beats it by
+   ruff + club 3      +3.76   100.0%      0.0%         0.0%        
+   ruff + club 2      +3.77   100.0%      0.0%         0.0%        -0.00 +/-0.03
+   ruff + heart 2     +3.65    99.9%      0.1%         0.0%        +0.11 +/-0.09
+   ruff + heart 10    +3.07    91.0%      9.0%         0.0%        +0.69 +/-0.13
+   ruff + network     +3.64    99.9%      0.1%         0.0%        +0.12 +/-0.09
+   pitch heart 10     +3.62    98.8%      1.2%         0.1%        +0.15 +/-0.12
+   pitch club 3       +3.60    99.4%      0.6%         0.1%        +0.17 +/-0.11
+   plain network plays: trump ace 99.8%, heart 10 0.0%, low heart 0.0%, club 0.2%;  after ruffing it exits with 4♥ 86.5%, 2♥ 12.8%, 3♣ 0.4%, 3♥ 0.1%
+
+over by 2 or more | in the middle (460 deals)
+   ruff + club 3 beats pitch heart 10 by +0.13 +/-0.20;  made 1: 100.0% against 98.5%
+
+over by 2 or more | second to play (686 deals)
+   ruff + club 3 beats pitch heart 10 by +0.14 +/-0.17;  made 1: 100.0% against 98.8%
+
+===== 5 players, 7 cards: 80000 deals used of 480753 dealt (diamond opening lead, not yet trumped). The bidding network's own bid with this hand is 1 on 100.0% =====
+
+under by 2 or more (30178 deals)
+   line               money    made 1   went over  took last trick   ruff + club 3 beats it by
+   ruff + club 3      +2.96   100.0%      0.0%         0.0%        
+   ruff + club 2      +2.96   100.0%      0.0%         0.0%        -0.00 +/-0.01
+   ruff + heart 2     +2.92   100.0%      0.0%         0.0%        +0.03 +/-0.02
+   ruff + heart 10    +1.64    83.5%     16.5%         0.0%        +1.32 +/-0.04
+   ruff + network     +2.95   100.0%      0.0%         0.0%        +0.00 +/-0.01
+   pitch heart 10     +2.80    99.9%      0.1%         0.1%        +0.16 +/-0.02
+   pitch club 3       +2.77    99.5%      0.5%         0.1%        +0.18 +/-0.02
+   plain network plays: trump ace 76.1%, heart 10 22.3%, low heart 0.6%, club 1.1%;  after ruffing it exits with 3♣ 69.6%, 2♣ 24.1%, 4♥ 6.3%, 2♥ 0.0%
+
+under by 2 or more | last to play (9512 deals)
+   ruff + club 3 beats pitch heart 10 by +0.19 +/-0.04;  made 1: 100.0% against 99.9%
+
+under by 2 or more | in the middle (14125 deals)
+   ruff + club 3 beats pitch heart 10 by +0.14 +/-0.03;  made 1: 100.0% against 99.9%
+
+under by 2 or more | second to play (6541 deals)
+   ruff + club 3 beats pitch heart 10 by +0.16 +/-0.05;  made 1: 100.0% against 99.9%
+
+under by 1 (33185 deals)
+   line               money    made 1   went over  took last trick   ruff + club 3 beats it by
+   ruff + club 3      +2.28   100.0%      0.0%         0.0%        
+   ruff + club 2      +2.28   100.0%      0.0%         0.0%        -0.00 +/-0.01
+   ruff + heart 2     +2.26   100.0%      0.0%         0.0%        +0.02 +/-0.02
+   ruff + heart 10    +1.53    91.0%      9.0%         0.0%        +0.75 +/-0.03
+   ruff + network     +2.28   100.0%      0.0%         0.0%        +0.00 +/-0.00
+   pitch heart 10     +2.09    99.8%      0.2%         0.0%        +0.19 +/-0.02
+   pitch club 3       +2.05    99.4%      0.6%         0.1%        +0.24 +/-0.02
+   plain network plays: trump ace 67.4%, heart 10 32.6%, low heart 0.0%, club 0.1%;  after ruffing it exits with 3♣ 79.2%, 2♣ 18.8%, 4♥ 2.0%, 2♥ 0.0%
+
+under by 1 | last to play (5547 deals)
+   ruff + club 3 beats pitch heart 10 by +0.28 +/-0.06;  made 1: 100.0% against 99.8%
+
+under by 1 | in the middle (18389 deals)
+   ruff + club 3 beats pitch heart 10 by +0.18 +/-0.03;  made 1: 100.0% against 99.8%
+
+under by 1 | second to play (9249 deals)
+   ruff + club 3 beats pitch heart 10 by +0.15 +/-0.04;  made 1: 100.0% against 99.8%
+
+over by 1 (14996 deals)
+   line               money    made 1   went over  took last trick   ruff + club 3 beats it by
+   ruff + club 3      +2.40   100.0%      0.0%         0.0%        
+   ruff + club 2      +2.39   100.0%      0.0%         0.0%        +0.01 +/-0.01
+   ruff + heart 2     +2.40   100.0%      0.0%         0.0%        -0.00 +/-0.03
+   ruff + heart 10    +2.17    97.3%      2.7%         0.0%        +0.23 +/-0.04
+   ruff + network     +2.40   100.0%      0.0%         0.0%        +0.00 +/-0.01
+   pitch heart 10     +2.27    99.9%      0.1%         0.1%        +0.13 +/-0.04
+   pitch club 3       +2.25    99.8%      0.2%         0.0%        +0.15 +/-0.04
+   plain network plays: trump ace 77.1%, heart 10 22.8%, low heart 0.0%, club 0.1%;  after ruffing it exits with 3♣ 79.7%, 2♣ 18.4%, 4♥ 1.9%, 2♥ 0.0%
+
+over by 1 | last to play (1400 deals)
+   ruff + club 3 beats pitch heart 10 by +0.34 +/-0.11;  made 1: 100.0% against 99.9%
+
+over by 1 | in the middle (8621 deals)
+   ruff + club 3 beats pitch heart 10 by +0.13 +/-0.05;  made 1: 100.0% against 99.9%
+
+over by 1 | second to play (4975 deals)
+   ruff + club 3 beats pitch heart 10 by +0.09 +/-0.06;  made 1: 100.0% against 99.9%
+
+over by 2 or more (1641 deals)
+   line               money    made 1   went over  took last trick   ruff + club 3 beats it by
+   ruff + club 3      +3.16   100.0%      0.0%         0.0%        
+   ruff + club 2      +3.20   100.0%      0.0%         0.0%        -0.04 +/-0.04
+   ruff + heart 2     +3.16   100.0%      0.0%         0.0%        -0.00 +/-0.08
+   ruff + heart 10    +3.03    98.1%      1.9%         0.0%        +0.13 +/-0.09
+   ruff + network     +3.17   100.0%      0.0%         0.0%        -0.01 +/-0.02
+   pitch heart 10     +3.15   100.0%      0.0%         0.0%        +0.01 +/-0.09
+   pitch club 3       +3.09    99.9%      0.1%         0.0%        +0.07 +/-0.09
+   plain network plays: trump ace 81.1%, heart 10 18.9%, low heart 0.0%, club 0.0%;  after ruffing it exits with 3♣ 68.7%, 2♣ 29.1%, 4♥ 2.1%, 2♥ 0.1%
+
+over by 2 or more | in the middle (860 deals)
+   ruff + club 3 beats pitch heart 10 by +0.05 +/-0.12;  made 1: 100.0% against 100.0%
+
+over by 2 or more | second to play (510 deals)
+   ruff + club 3 beats pitch heart 10 by -0.08 +/-0.15;  made 1: 100.0% against 100.0%
