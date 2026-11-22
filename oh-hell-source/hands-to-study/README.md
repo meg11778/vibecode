@@ -42,3 +42,15 @@ Points to remember:
   discard study (`../zero-discard/`).
 - North's duck with Q-4 of trumps needing one trick, 4 players 7 cards (`matt_4p7_north_duck.txt`): the 4, because
   after the queen wins the 4 is a second winner; the 4 works when the last player holds one middling trump (11%).
+
+## Hands studied in the hands-to-study conversation (from 22 Nov 2026)
+
+- Win the trump ace, then what? 5 players, 9 cards, spades trump (5♠ turned); third seat A♠ 2♠ A♥ 4♥ 3♥ 2♥ J♣ 4♣ 2♦,
+  bids 0 0 2 4 2 (one under), a zero bidder leads the 4♠ (`matt_5p9_ace_then_what.js`; a described position, so there
+  is no game text in `hands/`; bids and hand can be changed on the command line). 6,000 layouts fitted to the bids
+  and the lead, network in every seat after the forced cards: A♠ then 2♦ $1.10 (makes 92%), A♠ then A♥ $1.00 (92%),
+  A♠ then J♣ $0.95 (91%), duck with the 2♠ $0.75 (86%); 2♦ minus J♣ +$0.15 ±0.05, A♥ minus J♣ +$0.05 ±0.05, 2♦ minus
+  A♥ +$0.09 ±0.05. The card-reading bot wins the ace 90% (100% at 10x precision) and then leads the 2♦ 70% (100% at
+  10x). Why: the J♣ wins only 20% of the time (no layout has every higher club undealt), so it mostly gives up the lead
+  and delays the A♥, which stands up 87% now and less later; the 2♦ keeps both chances and adds the 2♠ as a ruffing
+  trick (it takes a trick on 20% of layouts, against 8% after the J♣ and 4% after the A♥). The differences are small.
