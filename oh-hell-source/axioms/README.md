@@ -4,6 +4,27 @@ Matt's group has rules of thumb learned at the table. Each one here is written d
 project's own bots, and marked. Everything is bot against bot: it shows what calculating players do and what a play is
 worth against them, not what people do.
 
+## Picking this up in a new conversation
+
+How we work: Matt states a rule of thumb in his own words; Claude writes it down precisely, says how it will be
+tested, runs it, and reports in money or make-rates with error bars, including where the rule stops holding. Every
+test hand is also a chance to check the bots: compare what the bot thinks a line is worth with what it earns when
+played out on real deals (axiom 3 found a real bot error that way).
+
+Tools: each folder's script loads the game page's engine in node (`OHHELL_ENGINE` = a folder holding
+`ohhell-play.html`). Plain-network bots play about a thousand deals a second; the card-reading bots take a second or
+more per choice, so they are used to price sampled positions ("probe" mode) or need an overnight run.
+
+Open follow-ups Matt may ask for:
+- Axiom 1: his classic case alone (bid two, win a side trick, then the two of trumps appears).
+- Axiom 2: cash one ace and then lead the trump; other round sizes and seats.
+- Axiom 3: more hand types than the one 10-card hand; five and six players.
+- Axiom 4: a chart for sharing; the 13-card no-trump round.
+- Discard question (21 Nov): does a bot keep the jack and throw the seven when the player about to win the trick is
+  known to be out of the jack's suit? One quick position showed no effect; it needs a fairer position (trumps mostly
+  gone, the two-bidder holding one trump and a small side card) or a real hand from Matt.
+- Matt's wider theme: overbid deals and how to use trumps in them.
+
 ## 1. The low-trump tell (21 Nov 2026): PARTLY TRUE
 
 Said as: "when someone wants one more trick and exits with a low trump, they almost certainly hold a high trump
