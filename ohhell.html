@@ -121,13 +121,15 @@
 :root {
   --bg:      #040d14;
   --panel:   rgba(0,255,160,.035);
-  --border:  rgba(0,255,160,.14);
+  --border:  rgba(0,255,160,.34);
   --green:   #00ffa0;
   --cyan:    #00e5ff;
   --red:     #ff6b6b;
-  --text:    #c8e0f0;
-  --dim:     rgba(160,210,255,.55);
-  --faint:   rgba(160,210,255,.32);
+  /* Brighter text, 22 Nov 2026 (Matt Glassman): the dim blues were hard to read on a phone outdoors.
+     Was --text #c8e0f0, --dim rgba(160,210,255,.55), --faint rgba(160,210,255,.32), --border alpha .14. */
+  --text:    #f4f9fd;
+  --dim:     #d3e3f0;
+  --faint:   #a9c1d6;
 }
 
 html, body {
@@ -3746,7 +3748,7 @@ function setupLink(){
 :root { color-scheme: dark; }
 html, body {
   background: #040d14 !important;
-  color: #c8e0f0 !important;
+  color: #f4f9fd !important;
   min-height: 100vh !important;
 }
 /* Fallback backdrop in case a wrapper element paints over html/body. */
