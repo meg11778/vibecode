@@ -834,3 +834,17 @@ construction argument behind it; `ohhell-fit2.zip` on Bagley's machine is to tig
 After the change, Matt's 10-card hand over by 1 (211 deals): the bot's sums are 2♠ +$0.06, 4♦ -$0.22, J♦ -$0.57,
 A♥ -$0.69, A♣ -$1.16; real deals give +$0.03, -$0.29, -$0.57, -$0.69, -$1.17. It opens a trump 55% (was 40%) and the
 A♥ 6% (was 14%). All browser tests, rule checks and 58 assertions pass.
+
+## 22 November 2026: calculator with the bidding-network picture: NO GAIN, NOT PUBLISHED
+
+Matt's laptop, 35,860 deals (`calculator-bidnet-test/results-laptop-2026-11-22.jsonl`, `node summary.js`), calculator's
+top bid at 400 weighted deals, one seat at a table of the game's simulation bidders. Network picture minus formula
+picture: +$0.019 +/-0.032 a deal over all sizes. By size: 4p3 +0.01, 4p5 +0.06 +/-0.08, 4p7 -0.01, 4p10 +0.14 +/-0.12,
+4p13 +0.16 +/-0.13, 5p4 +0.01, 5p7 -0.01, 5p10 -0.17 +/-0.13, 6p4 +0.07 +/-0.07, 6p8 -0.08 +/-0.12. The network
+picture bids higher in 72 to 74% of the differing deals at 5p10 and 6p8 and loses there: the same direction as the
+unexplained over-bidding and dealer loss in big 5- and 6-player rounds since the bidding network went into the game.
+SECOND FINDING: the calculator's top bid (network picture) against the game bot's own quick bid (`simulateBid`, 150
+deals): -$0.089 +/-0.030 a deal; 5p10 -$0.26 +/-0.11, 6p8 -$0.30 +/-0.11; level at four players. So at 400 deals the
+calculator recommends worse bids than the bot makes. NOT KNOWN whether this holds at the calculator's real sample size
+(it runs until about 2,500 effective deals); the test used 400 to be affordable. Candidate stays in
+`calculator-bidnet-test/ohhell_candidate.html`; live `ohhell.html` unchanged.
