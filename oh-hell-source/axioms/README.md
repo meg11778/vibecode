@@ -280,3 +280,40 @@ network; DUCK = the network's best other card, then the network. TAKE minus DUCK
 - Limits: plain network in every seat; "sure winners" are top trumps only (side aces only in the scripted hands);
   "safe" is a crude stand-in for Matt's judgement; moments are the first in each deal, as the network's play reached
   them. Not run with card-reading bots.
+
+Follow-ups the same evening (`late.js`, `general.js` with a LOCK split; ordinary underbid deals, plain network;
+200,000 to 700,000 deals a size at 4p7, 4p10, 5p8, 6p6). Matt's two ideas: trumps you alone hold are "zombie cards"
+to be collected last; and a lone top trump cannot safely be held because someone will lead trumps to put you on lead
+late ("knuckling": ruff high with the queen from Q-2, exit with the 2).
+
+KNUCKLE. A trick starts with 2 to 4 cards left and spare tricks out; the leader K has a trump and a non-trump; another
+seat V holds the top remaining trump as its only trump and needs exactly one. K leads its lowest trump, against K's
+best non-trump lead. K's money, knuckle minus other:
+
+| K has made its bid | 4p7 | 4p10 | 5p8 | 6p6 |
+|---|---|---|---|---|
+| 2 cards left | +$3.94 +/-0.25 | +$3.92 +/-0.27 | +$3.10 +/-0.25 | +$2.42 +/-0.19 |
+| 3 cards left | +$1.85 +/-0.19 | +$2.25 +/-0.21 | +$1.64 +/-0.17 | +$1.36 +/-0.12 |
+| 4 cards left | +$0.90 +/-0.14 | +$1.22 +/-0.16 | +$0.86 +/-0.12 | +$0.67 +/-0.08 |
+
+- With 2 cards left the knuckle sends V over 54 to 64% of the time against 11 to 13%, and K itself makes 85 to 89%
+  against 41 to 62%: the low trump is K's own safe exit as well as V's trap, exactly as Matt describes.
+- It is a move for a seat that has MADE. When K still needs tricks the trump lead costs K $0.66 to $1.14 (it gives away
+  a lead K needed); when K is already over it is worth little ($0.03 to $0.14).
+- THE BOTS KNUCKLE: the plain network leads a trump here 88 to 92% of the time when it has made. The game's
+  card-reading bot (219 sampled moments) does it 75% (4p7) and 69% (5p8). A seat that still needs tricks leads the
+  trump 35 to 43% as the network, which looks too often given what it costs; not looked into.
+
+ZOMBIE TRUMPS. A seat holds every remaining trump, needs exactly that many tricks and has other cards. WAIT = never
+play a trump while another card may legally be played; CASH = lead the trumps at the first chance. Rare: 708 moments at
+4p10, 963 at 5p8 (too few at 4p7 and 6p6).
+- WAIT beats CASH by $0.57 +/-0.20 (4p10) and $0.62 +/-0.17 (5p8); on lead by $0.83 and $1.27. The network already
+  waits (level with WAIT to within a few cents).
+- But the hand is not safe: WAIT still goes over 28% (4p10) and 19% (5p8), almost all of it when the seat is ON LEAD
+  at that moment (over 41% and 32%; when following only 7%). The trumps are guaranteed; the other cards are not.
+
+LOCK, by the trumps the others hold (the take-now-or-later test, seats with one top trump needing one): with 2 or 3
+cards left, taking now is worse than holding by $0.73 to $1.00 when the others hold two or more trumps and by $1.2 to
+$1.3 when they hold exactly one. Moments where the others hold no trump were too few to report (the test takes the
+first moment in a deal, which is usually early). So against these bots, which do knuckle, holding a late lock still
+beat cashing it late; nothing here measures a table of people who knuckle at every chance.
