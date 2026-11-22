@@ -73,3 +73,10 @@ Points to remember:
   bidders busted per hand 0.75 after the 4♣, 0.71 after a small heart, 0.69 after the 2♦, 0.54 after the 2♠; the
   other two seats 0.75 / 0.76 / 0.72 / 0.83. That accounts for the whole money gap (4♣ over 2♠: +$0.60 from zero
   bidders, -$0.15 from the others).
+- Ruff or pitch at trick 1? 5 players, 4 cards, hearts trump (K♥ turned), bids 0 1 1 1 0 (one under); a zero bidder's
+  8♦ is winning, you hold Q♥ 10♠ 6♠ 3♠ needing one, the other zero bidder (dealer) still to play
+  (`matt_5p4_ruff_or_pitch.txt`, `matt_5p4_ruff_or_pitch.js`). The report is right: 4,000 layouts, ruff $2.63 (makes
+  97.0%), throw the 10♠ or 6♠ $2.99 (makes 86.4%), +$0.36 ±0.06; the 3♠ $2.76. Throwing leaves the trick with one of
+  the two zero bidders every time (NW 67%, West forced to win 33%): zero bidders busted per hand 1.12 against 0.42,
+  worth +$1.25 at $1.80 each, against -$0.85 for your own bonus. The card-reading bot throws a spade 96% (100% at
+  10x). The throw loses only when the A♥ is out (27% of layouts: makes 52 to 84% there, 92% otherwise).
