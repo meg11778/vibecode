@@ -72,6 +72,11 @@ for (const ln of show) { const r = ln.res, f = g => pct(r.filter(g).length / K),
 console.log('\nwhich tricks you take on each line (share of layouts; sets under 1% left out):');
 for (const ln of show) { const sets = {}; for (const x of ln.res) { const key = (x.wins.length ? x.wins.map(T).join(' + ') : 'none') + (x.tricks === bids[ME] ? '' : x.tricks < bids[ME] ? '  [short]' : '  [over]'); sets[key] = (sets[key] || 0) + 1; }
   console.log('  ' + ln.name + ':'); for (const key of Object.keys(sets).sort((x, y) => sets[y] - sets[x])) if (sets[key] / K >= 0.01) console.log('      ' + (100 * sets[key] / K).toFixed(1).padStart(5) + '%  ' + key); }
+// each lead line split by whether the trick-2 lead wins
+console.log('\neach line split by whether the trick-2 lead wins:');
+for (const ln of lines.filter(l => l.second != null && show.includes(l))) for (const w of [true, false]) { const r = ln.res.filter(x => (x.t2won === ME) === w); if (!r.length) continue; const f = g => (100 * r.filter(g).length / r.length).toFixed(1) + '%', p0 = r.filter(x => x.tricks === bids[ME]).length / r.length;
+  const sets = {}; for (const x of r) { const key = x.wins.map(T).join(' + '); sets[key] = (sets[key] || 0) + 1; }
+  console.log('  ' + ln.name + ', the ' + T(ln.second) + (w ? ' wins  ' : ' loses ') + (100 * r.length / K).toFixed(1).padStart(5) + '% of layouts (' + r.length + '): makes ' + f(x => x.tricks === bids[ME]) + ' ±' + (100 * Math.sqrt(p0 * (1 - p0) / r.length)).toFixed(1) + ', short ' + f(x => x.tricks < bids[ME]) + ', over ' + f(x => x.tricks > bids[ME]) + ' | worth $' + mean(r.map(x => x.money)).toFixed(2) + ' | tricks: ' + Object.keys(sets).sort((x, y) => sets[y] - sets[x]).slice(0, 4).map(k => k + ' ' + (100 * sets[k] / r.length).toFixed(1) + '%').join(', ')); }
 // when a line fails, what went wrong (share of all layouts)
 console.log('\nwhen each line fails, what went wrong (share of all layouts):');
 { const who = q => ['the first seat (0)', 'the second seat (0)', 'you', 'the fourth seat (' + bids[3] + ')', 'the dealer (' + bids[4] + ')'][q], when = t => t <= 2 ? 'tricks 2-3' : t <= 5 ? 'tricks 4-6' : 'tricks 7-9';
