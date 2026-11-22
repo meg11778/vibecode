@@ -196,7 +196,7 @@ Plain network plays every seat. 362 hands at 4 players 7 cards, 271 at 4 players
   Hands were chosen by the bidding network's doubt, not by a person's. Six players and 13-card no trump not run.
   X=1 (down means a zero bid) is in the sample: -$0.71 +/-0.20 at 4p7, -$0.56 +/-0.46 at 4p10.
 
-## 7. "Get in and get out" in underbid hands (22 Nov 2026): TRUE ON MATT'S CLASSIC HAND; general test not yet run
+## 7. "Get in and get out" in underbid hands (22 Nov 2026): TRUE EARLY IN THE HAND; late in the hand the opposite
 
 Said as: "in an underbid hand, once you are comfortable you can take no tricks afterwards, take your tricks early and
 get off lead; do not duck just to duck (a duck with a purpose, such as throwing a dangerous singleton, is different)."
@@ -227,5 +227,56 @@ each at four and five players.
   33% there). The game's card-reading bot (539 sampled positions) takes the ace only 60 to 73% on the underbid deals
   and throws a heart or a club the rest of the time, although its own sums put the ace ahead of the ♥10 by $0.20 to
   $0.33, in line with the measured figures: the known noise between plays a few dimes apart.
-- Limits: one hand, the first trick only, plain network plays on. Not yet tested: the general rule (take now or later
-  with a sure winner, by how many cards are left), which is what Matt's three reasons are about.
+- Limits of this part: one hand, the first trick only, plain network plays on.
+
+Second hand, and on lead (`scripted.js`, 60,000 deals a row; Matt: "take ALL your tricks at once, and even more so
+on lead"). Hand 2 = the same with ♣A-2 and a bid of 2. Figures: the get-in-get-out line minus the other line.
+
+| underbid tables (by 2 or more / by 1) | 4 players | 5 players |
+|---|---|---|
+| hand 2, diamond led: ruff, ♣A, ♣2 against throwing the ♥10 | +$0.57 / +$0.65 | +$0.51 / +$0.67 |
+| ... against ruff, exit ♥2, get in again later with the ♣A | +$0.97 / +$1.05 | +$0.74 / +$0.96 |
+| hand 2 on lead: A♠, A♣, ♣2 against ♥2 first | +$0.43 / +$0.64 | +$0.21 / +$0.32 |
+| ... against A♣, ♣2, keeping the trump ace | +$0.41 / +$0.41 | +$0.12 / +$0.33 |
+| ... against A♣ before A♠ | +$0.16 / +$0.15 | +$0.16 / +$0.26 |
+| hand 1 on lead: A♠ then ♣3 against ♣3 first, keeping the ace | -$0.03 / +$0.23 | -$0.21 / -$0.06 |
+
+(+/- 0.03 to 0.08.) Hand 2 backs Matt fully, at overbid tables too (+$0.6 to +$1.1 against the ♥10 throw): a side ace
+is a winner that can be lost by waiting, so take everything at once, trump ace first. Hand 1 on lead is the one
+EXCEPTION found: at five players, and at four when under by two or more, leading the ♣3 and keeping the trump ace
+earns as much or more money although it goes over a little more often (0.9 to 4.7% against 0 to 0.2%). A guess, not
+tested: cashing the trump ace at trick one draws trumps the opponents were stuck with.
+BOT WEAKNESS: with hand 2 and a diamond led at a four-player table under by one, the plain network throws the ♥10
+69% of the time and ruffs only 19% (five players: ruffs 37 to 61%), giving up about $0.65 each time.
+
+General test (`general.js`, ordinary underbid deals at 4p7, 4p10, 5p8, 6p6; 200,000 to 400,000 deals a size).
+A. THE DANGER SPOT (Matt: on lead, bid made, hand still underbid). A seat that has exactly made, with spare tricks
+still out, takes the trick it leads to 12% of the time with 7 cards left, 18% with 4, 27% with 3, 41% with 2 and
+70% with 1 (4p7; 4p10 the same; 5p8 9.5% to 64%; 6p6 7% to 58%). The same seat NOT on lead takes that trick 4 to 12%
+whatever the count. So the spot is three to six times as dangerous late as early, as Matt says.
+B. TAKE NOW OR LATER. The first moment a seat needs exactly as many tricks as it has sure winners (top remaining
+trumps) and may win the trick with one or legally not. TAKE = the sure winner now, the others at once, then the
+network; DUCK = the network's best other card, then the network. TAKE minus DUCK:
+
+| | 4p7 | 4p10 | 5p8 | 6p6 |
+|---|---|---|---|---|
+| safe hand, on lead, 6+ cards left | +$0.12 +/-0.17 | +$0.28 +/-0.12 | +$0.08 +/-0.15 | +$0.24 +/-0.20 |
+| safe hand, on lead, 4-5 left | +$0.08 +/-0.14 | -$0.18 +/-0.13 | +$0.25 +/-0.13 | +$0.40 +/-0.14 |
+| safe hand, on lead, 2-3 left | -$0.90 +/-0.12 | -$0.72 +/-0.11 | -$0.71 +/-0.12 | -$0.38 +/-0.12 |
+| can ruff, 2-3 left (safe / not safe) | -$1.88 / -$2.79 | -$1.95 / -$3.12 | -$1.25 / -$3.05 | -$0.51 / -$1.96 |
+| another trump behind the sure winner | -$1.15 +/-0.05 | -$0.99 +/-0.05 | -$1.29 +/-0.05 | -$1.40 +/-0.05 |
+| can ruff, and the duck throws a singleton | -$1.32 +/-0.18 | -$1.76 +/-0.20 | -$1.47 +/-0.14 | -$1.04 +/-0.10 |
+
+("Safe" = no other trump and a 2, 3 or 4 in every side suit held.)
+- EARLY, with a safe hand, taking at once is level to better and makes the bid 3 to 6 points more often. LATE (2 or 3
+  cards left) taking now is clearly worse: the seat is put on lead in the danger spot with almost nothing to get out
+  with, while a top trump kept to the very end wins the last trick and never has to lead. So the rule the bots
+  support is: get in and get out EARLY; if you have left it late, keep the sure winner for the end.
+- Matt's exception holds strongly: when the duck throws a singleton it is worth $1.0 to $1.8 more than ruffing.
+- With another trump behind the sure winner, do not cash: the second trump becomes a winner too (goes over 45 to 58%).
+- Over all moments, every kind of hand and timing mixed, TAKE is worse by $0.69 to $0.81, and cashing two top trumps
+  at once is worse than cashing one and letting the network choose ($0.72 to $1.11): a top trump, unlike a side ace,
+  cannot be lost by waiting. "Comfortable that you can take zero afterwards" and "early" are both doing real work.
+- Limits: plain network in every seat; "sure winners" are top trumps only (side aces only in the scripted hands);
+  "safe" is a crude stand-in for Matt's judgement; moments are the first in each deal, as the network's play reached
+  them. Not run with card-reading bots.

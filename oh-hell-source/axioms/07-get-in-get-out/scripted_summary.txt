@@ -1,0 +1,252 @@
+
+===== hand 2 (clubs A-2, bid 2), diamond led: 4 players, 7 cards, 60000 deals. The bidding network's own bid is 2 on 77.7% =====
+
+under by 2 or more (15642 deals)
+   line                                 money     made    over   short   first line beats it by
+   ruff, club A, club 2                 +3.57   91.6%   0.9%    7.5%   
+   ruff, club 2 (keep the club A)       +1.08   59.5%   6.5%   33.9%   +2.50 +/-0.08
+   ruff, heart 2                        +2.61   78.0%   4.2%   17.8%   +0.97 +/-0.07
+   ruff, then network                   +3.57   91.6%   0.9%    7.5%   +0.00 +/-0.00
+   pitch heart 10                       +3.01   86.5%   1.7%   11.8%   +0.57 +/-0.06
+   pitch club 2                         +2.93   84.5%   8.2%    7.3%   +0.64 +/-0.06
+   plain network plays first: AS 89.8%, TH 9.3%, 3H 0.8%, 4H 0.1%
+
+under by 1 (27026 deals)
+   line                                 money     made    over   short   first line beats it by
+   ruff, club A, club 2                 +2.55   87.9%   1.2%   10.9%   
+   ruff, club 2 (keep the club A)       -0.44   51.8%   2.9%   45.3%   +2.99 +/-0.06
+   ruff, heart 2                        +1.51   73.5%   3.2%   23.2%   +1.05 +/-0.05
+   ruff, then network                   +2.55   87.9%   1.2%   10.9%   -0.00 +/-0.00
+   pitch heart 10                       +1.90   81.5%   1.6%   16.9%   +0.65 +/-0.05
+   pitch club 2                         +1.88   82.1%   5.3%   12.6%   +0.68 +/-0.05
+   plain network plays first: TH 69.3%, AS 19.3%, 3H 9.1%, 4H 2.3%
+
+over by 1 (14821 deals)
+   line                                 money     made    over   short   first line beats it by
+   ruff, club A, club 2                 +1.01   73.2%   0.7%   26.1%   
+   ruff, club 2 (keep the club A)       -2.67   34.6%   1.0%   64.4%   +3.68 +/-0.10
+   ruff, heart 2                        +0.05   61.3%   2.2%   36.5%   +0.96 +/-0.09
+   ruff, then network                   +1.01   73.2%   0.7%   26.1%   -0.00 +/-0.00
+   pitch heart 10                       +0.39   66.5%   1.0%   32.6%   +0.62 +/-0.08
+   pitch club 2                         +0.67   69.8%   1.7%   28.5%   +0.34 +/-0.08
+   plain network plays first: 3H 65.7%, TH 24.6%, 4H 7.7%, AS 1.8%
+
+over by 2 or more (2511 deals)
+   line                                 money     made    over   short   first line beats it by
+   ruff, club A, club 2                 +0.96   60.6%   0.8%   38.6%   
+   ruff, club 2 (keep the club A)       -2.67   22.6%   0.4%   77.0%   +3.63 +/-0.24
+   ruff, heart 2                        -0.47   45.0%   1.2%   53.8%   +1.43 +/-0.22
+   ruff, then network                   +0.96   60.6%   0.8%   38.6%   +0.00 +/-0.00
+   pitch heart 10                       +0.11   52.3%   0.6%   47.1%   +0.85 +/-0.19
+   pitch club 2                         +0.39   55.5%   0.9%   43.6%   +0.57 +/-0.19
+   plain network plays first: 3H 66.0%, 4H 12.9%, TH 12.6%, AS 7.9%
+
+===== hand 2 (clubs A-2, bid 2), diamond led: 5 players, 7 cards, 60000 deals. The bidding network's own bid is 2 on 38.4% =====
+
+under by 2 or more (15992 deals)
+   line                                 money     made    over   short   first line beats it by
+   ruff, club A, club 2                 +2.77   88.1%   0.2%   11.7%   
+   ruff, club 2 (keep the club A)       +0.01   55.0%   2.9%   42.1%   +2.75 +/-0.09
+   ruff, heart 2                        +2.02   77.8%   2.5%   19.7%   +0.74 +/-0.07
+   ruff, then network                   +2.76   88.1%   0.2%   11.7%   +0.00 +/-0.00
+   pitch heart 10                       +2.25   84.0%   0.3%   15.8%   +0.51 +/-0.06
+   pitch club 2                         +2.34   84.9%   3.2%   11.8%   +0.42 +/-0.06
+   plain network plays first: AS 61.3%, TH 19.9%, 3H 18.5%, 4H 0.2%
+
+under by 1 (25027 deals)
+   line                                 money     made    over   short   first line beats it by
+   ruff, club A, club 2                 +1.65   83.2%   0.2%   16.6%   
+   ruff, club 2 (keep the club A)       -1.71   44.5%   1.4%   54.1%   +3.37 +/-0.07
+   ruff, heart 2                        +0.69   71.3%   2.0%   26.6%   +0.96 +/-0.06
+   ruff, then network                   +1.65   83.2%   0.2%   16.6%   +0.00 +/-0.00
+   pitch heart 10                       +0.99   77.8%   0.4%   21.8%   +0.67 +/-0.05
+   pitch club 2                         +1.14   80.3%   1.9%   17.8%   +0.51 +/-0.05
+   plain network plays first: AS 36.8%, 3H 35.6%, TH 18.7%, 2C 8.9%
+
+over by 1 (16441 deals)
+   line                                 money     made    over   short   first line beats it by
+   ruff, club A, club 2                 +0.21   68.2%   0.1%   31.7%   
+   ruff, club 2 (keep the club A)       -3.60   28.5%   0.5%   71.0%   +3.82 +/-0.10
+   ruff, heart 2                        -0.97   55.5%   1.2%   43.2%   +1.19 +/-0.09
+   ruff, then network                   +0.21   68.2%   0.1%   31.7%   +0.00 +/-0.01
+   pitch heart 10                       -0.53   62.8%   0.3%   36.9%   +0.74 +/-0.08
+   pitch club 2                         -0.25   66.4%   0.4%   33.2%   +0.46 +/-0.07
+   plain network plays first: AS 47.7%, 2C 25.5%, 3H 17.4%, TH 9.4%
+
+over by 2 or more (2540 deals)
+   line                                 money     made    over   short   first line beats it by
+   ruff, club A, club 2                 -0.18   56.6%   0.1%   43.3%   
+   ruff, club 2 (keep the club A)       -4.04   17.1%   0.0%   82.8%   +3.86 +/-0.24
+   ruff, heart 2                        -1.96   38.7%   0.6%   60.7%   +1.78 +/-0.23
+   ruff, then network                   -0.20   56.6%   0.1%   43.3%   +0.01 +/-0.04
+   pitch heart 10                       -1.26   46.1%   0.2%   53.7%   +1.08 +/-0.20
+   pitch club 2                         -1.02   48.9%   0.1%   51.1%   +0.84 +/-0.19
+   plain network plays first: AS 64.9%, 2C 19.7%, 3H 10.1%, TH 5.3%
+
+===== hand 1 (clubs 3-2, bid 1) on opening lead: 4 players, 7 cards, 60000 deals. The bidding network's own bid is 1 on 100.0% =====
+
+under by 2 or more (15012 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club 3                      +2.99   99.8%   0.2%    0.0%   
+   spade A, heart 2                     +2.97   99.7%   0.3%    0.0%   +0.02 +/-0.03
+   club 3 (keep the spade A)            +3.02   95.3%   4.7%    0.0%   -0.03 +/-0.04
+   heart 2                              +3.02   96.5%   3.5%    0.0%   -0.03 +/-0.04
+   heart 10                             +1.79   79.8%  20.2%    0.0%   +1.20 +/-0.06
+   plain network plays first: AS 91.3%, 3C 8.7%
+
+under by 1 (27040 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club 3                      +2.51   99.9%   0.1%    0.0%   
+   spade A, heart 2                     +2.47   99.8%   0.2%    0.0%   +0.04 +/-0.02
+   club 3 (keep the spade A)            +2.28   95.5%   4.5%    0.0%   +0.23 +/-0.03
+   heart 2                              +2.34   96.9%   3.1%    0.0%   +0.17 +/-0.03
+   heart 10                             +1.61   87.2%  12.8%    0.0%   +0.91 +/-0.04
+   plain network plays first: AS 98.8%, 3C 0.8%, 4H 0.4%
+
+over by 1 (15932 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club 3                      +2.78  100.0%   0.0%    0.0%   
+   spade A, heart 2                     +2.74   99.9%   0.1%    0.0%   +0.04 +/-0.03
+   club 3 (keep the spade A)            +2.65   97.0%   3.0%    0.0%   +0.13 +/-0.04
+   heart 2                              +2.63   97.4%   2.6%    0.0%   +0.15 +/-0.04
+   heart 10                             +2.39   93.8%   6.2%    0.0%   +0.38 +/-0.04
+   plain network plays first: AS 100.0%, 4H 0.0%
+
+over by 2 or more (2016 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club 3                      +3.70   99.9%   0.1%    0.0%   
+   spade A, heart 2                     +3.76  100.0%   0.0%    0.0%   -0.06 +/-0.08
+   club 3 (keep the spade A)            +3.52   97.1%   2.9%    0.0%   +0.18 +/-0.10
+   heart 2                              +3.56   96.8%   3.2%    0.0%   +0.14 +/-0.10
+   heart 10                             +3.37   93.7%   6.3%    0.0%   +0.33 +/-0.11
+   plain network plays first: AS 100.0%
+
+===== hand 1 (clubs 3-2, bid 1) on opening lead: 5 players, 7 cards, 60000 deals. The bidding network's own bid is 1 on 100.0% =====
+
+under by 2 or more (18135 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club 3                      +2.58  100.0%   0.0%    0.0%   
+   spade A, heart 2                     +2.55   99.9%   0.1%    0.0%   +0.04 +/-0.03
+   club 3 (keep the spade A)            +2.79   99.1%   0.9%    0.0%   -0.21 +/-0.03
+   heart 2                              +2.72   99.1%   0.9%    0.0%   -0.13 +/-0.03
+   heart 10                             +1.96   89.3%  10.7%    0.0%   +0.62 +/-0.04
+   plain network plays first: AS 78.3%, 3C 21.7%
+
+under by 1 (25494 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club 3                      +2.07  100.0%   0.0%    0.0%   
+   spade A, heart 2                     +2.05  100.0%   0.0%    0.0%   +0.02 +/-0.02
+   club 3 (keep the spade A)            +2.13   99.0%   1.0%    0.0%   -0.06 +/-0.03
+   heart 2                              +2.07   99.1%   0.9%    0.0%   -0.00 +/-0.03
+   heart 10                             +1.71   94.8%   5.2%    0.0%   +0.36 +/-0.03
+   plain network plays first: AS 89.6%, 3C 10.1%, 2C 0.2%
+
+over by 1 (14539 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club 3                      +2.35  100.0%   0.0%    0.0%   
+   spade A, heart 2                     +2.33  100.0%   0.0%    0.0%   +0.02 +/-0.03
+   club 3 (keep the spade A)            +2.32   99.6%   0.4%    0.0%   +0.03 +/-0.04
+   heart 2                              +2.32   99.7%   0.3%    0.0%   +0.03 +/-0.04
+   heart 10                             +2.22   98.4%   1.6%    0.0%   +0.13 +/-0.04
+   plain network plays first: AS 96.3%, 3C 3.3%, 2C 0.4%
+
+over by 2 or more (1832 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club 3                      +3.25  100.0%   0.0%    0.0%   
+   spade A, heart 2                     +3.25  100.0%   0.0%    0.0%   -0.00 +/-0.08
+   club 3 (keep the spade A)            +3.17   99.9%   0.1%    0.0%   +0.08 +/-0.08
+   heart 2                              +3.18   99.9%   0.1%    0.0%   +0.07 +/-0.08
+   heart 10                             +3.14   99.4%   0.6%    0.0%   +0.10 +/-0.08
+   plain network plays first: AS 95.1%, 3C 4.2%, 2C 0.7%
+
+===== hand 2 (clubs A-2, bid 2) on opening lead: 4 players, 7 cards, 60000 deals. The bidding network's own bid is 2 on 100.0% =====
+
+under by 2 or more (13818 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club A, club 2              +3.33   92.1%   2.0%    5.9%   
+   club A, spade A, club 2              +3.17   89.9%   2.4%    7.8%   +0.16 +/-0.04
+   spade A, club 2 (keep the club A)    +0.35   53.9%  12.4%   33.7%   +2.98 +/-0.08
+   club A, club 2 (keep the spade A)    +2.92   83.0%   9.2%    7.8%   +0.41 +/-0.06
+   club 2                               +1.52   66.7%   9.4%   23.9%   +1.80 +/-0.08
+   heart 2                              +2.90   84.0%   4.6%   11.5%   +0.43 +/-0.06
+   heart 10                             +2.74   82.5%   8.3%    9.2%   +0.59 +/-0.06
+   plain network plays first: AS 84.9%, AC 15.1%
+
+under by 1 (28630 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club A, club 2              +2.47   87.9%   2.9%    9.2%   
+   club A, spade A, club 2              +2.33   85.9%   3.3%   10.8%   +0.15 +/-0.03
+   spade A, club 2 (keep the club A)    -0.70   50.3%   8.6%   41.1%   +3.18 +/-0.06
+   club A, club 2 (keep the spade A)    +2.06   82.6%   6.6%   10.8%   +0.41 +/-0.04
+   club 2                               +0.06   59.0%   5.9%   35.1%   +2.41 +/-0.06
+   heart 2                              +1.83   80.0%   4.2%   15.8%   +0.64 +/-0.04
+   heart 10                             +1.77   79.8%   5.1%   15.1%   +0.71 +/-0.04
+   plain network plays first: AS 93.5%, AC 6.5%
+
+over by 1 (15646 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club A, club 2              +1.76   79.5%   2.1%   18.3%   
+   club A, spade A, club 2              +1.30   75.0%   1.9%   23.0%   +0.46 +/-0.05
+   spade A, club 2 (keep the club A)    -2.11   39.2%   3.3%   57.4%   +3.88 +/-0.10
+   club A, club 2 (keep the spade A)    +1.25   74.6%   2.4%   23.0%   +0.52 +/-0.06
+   club 2                               -2.03   41.5%   1.6%   56.9%   +3.80 +/-0.10
+   heart 2                              +0.94   72.0%   2.0%   26.0%   +0.82 +/-0.07
+   heart 10                             +0.74   69.9%   2.1%   28.0%   +1.03 +/-0.07
+   plain network plays first: AS 99.4%, AC 0.6%
+
+over by 2 or more (1906 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club A, club 2              +1.72   67.0%   2.5%   30.5%   
+   club A, spade A, club 2              +1.20   61.2%   2.5%   36.3%   +0.52 +/-0.17
+   spade A, club 2 (keep the club A)    -2.03   29.1%   1.4%   69.6%   +3.75 +/-0.28
+   club A, club 2 (keep the spade A)    +1.19   62.5%   1.2%   36.3%   +0.53 +/-0.18
+   club 2                               -2.15   28.4%   0.4%   71.2%   +3.87 +/-0.28
+   heart 2                              +0.34   55.4%   1.1%   43.5%   +1.38 +/-0.22
+   heart 10                             +0.12   53.2%   0.9%   45.9%   +1.60 +/-0.23
+   plain network plays first: AS 97.9%, AC 2.1%
+
+===== hand 2 (clubs A-2, bid 2) on opening lead: 5 players, 7 cards, 60000 deals. The bidding network's own bid is 2 on 9.0% =====
+
+under by 2 or more (15578 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club A, club 2              +2.56   89.4%   0.4%   10.2%   
+   club A, spade A, club 2              +2.40   87.1%   0.7%   12.2%   +0.16 +/-0.04
+   spade A, club 2 (keep the club A)    -0.23   55.8%   6.7%   37.5%   +2.79 +/-0.08
+   club A, club 2 (keep the spade A)    +2.44   85.3%   2.5%   12.2%   +0.12 +/-0.05
+   club 2                               +0.79   65.7%   3.0%   31.3%   +1.77 +/-0.08
+   heart 2                              +2.35   84.8%   1.3%   13.9%   +0.21 +/-0.06
+   heart 10                             +2.22   83.5%   2.4%   14.1%   +0.34 +/-0.05
+   plain network plays first: AS 100.0%
+
+under by 1 (26961 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club A, club 2              +1.52   83.9%   0.6%   15.5%   
+   club A, spade A, club 2              +1.26   80.4%   0.9%   18.7%   +0.26 +/-0.03
+   spade A, club 2 (keep the club A)    -1.55   48.7%   4.7%   46.6%   +3.07 +/-0.07
+   club A, club 2 (keep the spade A)    +1.19   79.3%   2.0%   18.7%   +0.33 +/-0.04
+   club 2                               -1.06   53.3%   2.3%   44.3%   +2.58 +/-0.07
+   heart 2                              +1.20   79.7%   1.2%   19.0%   +0.32 +/-0.05
+   heart 10                             +1.04   78.1%   1.4%   20.5%   +0.47 +/-0.04
+   plain network plays first: AS 100.0%
+
+over by 1 (15702 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club A, club 2              +0.61   72.9%   0.3%   26.8%   
+   club A, spade A, club 2              +0.13   68.1%   0.4%   31.6%   +0.47 +/-0.06
+   spade A, club 2 (keep the club A)    -2.93   36.5%   1.9%   61.6%   +3.54 +/-0.10
+   club A, club 2 (keep the spade A)    +0.07   67.9%   0.5%   31.6%   +0.54 +/-0.06
+   club 2                               -3.13   35.3%   0.5%   64.3%   +3.74 +/-0.10
+   heart 2                              -0.07   67.2%   0.6%   32.3%   +0.68 +/-0.07
+   heart 10                             -0.26   64.8%   0.9%   34.3%   +0.86 +/-0.07
+   plain network plays first: AS 100.0%, AC 0.0%
+
+over by 2 or more (1759 deals)
+   line                                 money     made    over   short   first line beats it by
+   spade A, club A, club 2              +0.64   64.4%   0.5%   35.1%   
+   club A, spade A, club 2              +0.28   61.0%   0.3%   38.7%   +0.36 +/-0.18
+   spade A, club 2 (keep the club A)    -3.18   26.7%   0.8%   72.5%   +3.82 +/-0.31
+   club A, club 2 (keep the spade A)    +0.27   61.1%   0.2%   38.7%   +0.37 +/-0.18
+   club 2                               -3.34   24.8%   0.2%   75.0%   +3.98 +/-0.30
+   heart 2                              -0.52   53.5%   0.2%   46.3%   +1.17 +/-0.23
+   heart 10                             -0.96   48.6%   0.5%   50.9%   +1.61 +/-0.24
+   plain network plays first: AS 100.0%
