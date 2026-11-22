@@ -1,0 +1,21 @@
+
+bot_4x7.jsonl: 4 players 7 cards, 354 hooked bids by the game's simulation
+  it bids X+1 23%, X-1 76%, something else 2%;  bidding network alone would bid up 46%
+  up minus down: simulation's own sums -1.00 +/-0.15 | measured for those hands (main run) -1.03 +/-0.11 | this deal played out -0.50 +/-0.68
+  simulation's sums minus measured, hand by hand: +0.03 +/-0.09
+  when it bids up (80): its sums +0.78 +/-0.17, measured +0.08 +/-0.21
+  what its choice earns above always bidding X-1 (measured, X+1/X-1 choices only): +0.02 +/-0.05
+
+bot_4x10.jsonl: 4 players 10 cards, 289 hooked bids by the game's simulation
+  it bids X+1 24%, X-1 72%, something else 4%;  bidding network alone would bid up 44%
+  up minus down: simulation's own sums -1.20 +/-0.19 | measured for those hands (main run) -1.24 +/-0.15 | this deal played out -1.31 +/-0.81
+  simulation's sums minus measured, hand by hand: +0.05 +/-0.11
+  when it bids up (68): its sums +0.82 +/-0.18, measured +0.00 +/-0.18
+  what its choice earns above always bidding X-1 (measured, X+1/X-1 choices only): +0.00 +/-0.04
+
+bot_5x8.jsonl: 5 players 8 cards, 232 hooked bids by the game's simulation
+  it bids X+1 16%, X-1 79%, something else 5%;  bidding network alone would bid up 39%
+  up minus down: simulation's own sums -1.66 +/-0.23 | measured for those hands (main run) -1.81 +/-0.19 | this deal played out -1.82 +/-0.86
+  simulation's sums minus measured, hand by hand: +0.15 +/-0.14
+  when it bids up (37): its sums +1.03 +/-0.32, measured -0.21 +/-0.42
+  what its choice earns above always bidding X-1 (measured, X+1/X-1 choices only): -0.03 +/-0.07

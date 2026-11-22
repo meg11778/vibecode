@@ -24,6 +24,8 @@ Open follow-ups Matt may ask for:
   known to be out of the jack's suit? One quick position showed no effect; it needs a fairer position (trumps mostly
   gone, the two-bidder holding one trump and a small side card) or a real hand from Matt.
 - Matt's wider theme: overbid deals and how to use trumps in them.
+- Axiom 6: the same test with card-reading bots playing the dealer's hand (a laptop night); 6 players; whether people
+  at the table bid the hooked dealer down as often as these numbers say they should.
 
 ## 1. The low-trump tell (21 Nov 2026): PARTLY TRUE
 
@@ -140,3 +142,53 @@ and have taken no trick, following suit. Touching = every rank between is alread
   noise between near-equal cards in its sampled layouts. A rule "a seat that wants no more tricks plays its highest
   losing card" would make the bots follow the axiom; not built, because no cost has been shown.
 - Limits: bots, not people. Against people the inference should be at least as strong as against the network.
+
+## 6. Hooked dealer: "would X be easier to make overbid or underbid?" (22 Nov 2026): RIGHT DIRECTION, WRONG ZERO POINT
+
+Said as: "you are the dealer and the bid you want, X, is the one you may not make. Imagine you could bid X and ask
+whether it would be easier to make at an overbid table or an underbid one. Overbid: bid X+1. Underbid: bid X-1."
+
+Test (`06-dealer-hook/`): dealer hands torn across the hook (the bidding network gives X-1 and X+1 at least 15% each
+and 80% together; it never chooses X itself because it has learned the hook). Each hand and turned card is kept and
+the other cards redealt 3,000 to 4,000 times, the other seats bidding as the bots do. Three tables turn up by
+themselves: bids ahead leave exactly X (the same deal is played with the dealer bidding X+1 and X-1: "up minus
+down", in money); bids ahead one higher (dealer bids X at a table over by one); one lower (X at a table under by
+one). TILT = make rate of X when over minus make rate when under. LEAN = average tricks taken when bidding X, minus X.
+Plain network plays every seat. 362 hands at 4 players 7 cards, 271 at 4 players 10, 228 at 5 players 8 (about 560 to
+860 hooked deals a hand). +/- is two standard errors across hands.
+
+| | 4p, 7 cards | 4p, 10 cards | 5p, 8 cards |
+|---|---|---|---|
+| up minus down, all hands | -$0.99 +/-0.11 | -$1.29 +/-0.15 | -$2.00 +/-0.19 |
+| makes X+1 / makes X-1 | 34.5% / 48.4% | 34.9% / 53.1% | 31.4% / 58.3% |
+| fifth of hands with the lowest tilt | -$2.06 +/-0.18 | -$2.70 +/-0.29 | -$3.25 +/-0.35 |
+| middle fifth | -$0.95 +/-0.19 | -$1.02 +/-0.22 | -$2.02 +/-0.34 |
+| fifth with the highest tilt (about +0.07 to +0.24) | -$0.12 +/-0.22 | -$0.30 +/-0.26 | -$0.60 +/-0.40 |
+| axiom as stated (up when tilt > 0), against always down | -$0.16 +/-0.06 | -$0.20 +/-0.07 | -$0.17 +/-0.09 |
+| best cut on lean, fitted on other hands, against always down | +$0.02 +/-0.02 | $0.00 +/-0.02 | $0.00 +/-0.03 |
+
+- The DIRECTION is right: the more a hand's X is "easier overbid", the better bidding up does, steadily, at every size
+  (each 10 points of tilt is worth $0.57 / $0.77 / $0.83 of up-minus-down).
+- The ZERO POINT is wrong: tilt above zero is not enough. Bidding down is better by $1 to $2 on the average torn hand
+  and still level-or-better for the fifth of hands that tilt most towards overbid. Against these bots no rule tested
+  beats "always bid X-1" by more than a few cents; bidding up only pays, if at all, when the hand is worth about a
+  quarter of a trick more than X.
+- Why: at the hooked table the dealer who goes down needs to lose one trick at a table where everybody has a trick to
+  spare, and makes 48 to 58%; the dealer who goes up needs an extra trick at a table fighting for tricks and makes 31
+  to 35%. Going down also busts more opponents (1.15 to 1.21 against 1.00). The bigger X is, the bigger the gap
+  (4p10: -$0.5 at X=2, -$2.6 at X=6).
+- Tilt is mostly lean: the two go together (correlation 0.76 to 0.89). A hand makes X more easily when overbid mainly
+  because it is a little too good for X. With lean held equal, tilt still adds something at each size ($0.26 +/-0.16,
+  $0.32 +/-0.18, $0.33 +/-0.19 per 10 points), so the kind of hand matters a little beyond its strength; both are
+  measured with noise, so this is suggestive rather than settled.
+- What tilts a hand towards "overbid": top cards (a trump ace to queen +16 points of tilt at 4p7, a side ace +9) and a
+  small X. Towards "underbid": a bigger X and (4p7, 5p8) short suits, tricks that depend on what the others do.
+- THE GAME'S BOT AGREES (`hook_bot_check.js`, the game's own 150-deal bid simulation on hooked deals of these hands):
+  it bids X-1 76% / 72% / 79% of the time and X+1 23% / 24% / 16%; its own sums for up-minus-down match the measured
+  figure hand by hand (difference +$0.03 +/-0.09, +$0.05 +/-0.11, +$0.15 +/-0.14); when it does bid up the hand is
+  about level by measurement. The bidding network on its own would go up 39 to 46% and gives up $0.17 to $0.44 a
+  hooked hand against always-down: it is a poor guide at the hook, though the game does not use it alone there.
+- Limits: plain-network play in every seat, and that network has a known weakness as the stretching seat at overbid
+  tables (axiom 3: it does not draw trumps), which could make bidding up look worse than it is for a good player.
+  Hands were chosen by the bidding network's doubt, not by a person's. Six players and 13-card no trump not run.
+  X=1 (down means a zero bid) is in the sample: -$0.71 +/-0.20 at 4p7, -$0.56 +/-0.46 at 4p10.

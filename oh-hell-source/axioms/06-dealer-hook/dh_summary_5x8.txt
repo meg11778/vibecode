@@ -1,0 +1,72 @@
+
+===== 5 players, 8 cards: 228 dealer hands kept of 300 (need 150+ deals of each table) =====
+average deals per hand: hooked 613, over 378, under 703
+forbidden bid X: 1 (13), 2 (76), 3 (69), 4 (40), 5 (23), 6 (4), 7 (3)
+
+1. Whole sample
+   money X+1 -2.79 +/-0.17, X-1 -0.79 +/-0.23;  up minus down -2.00 +/-0.19
+   makes: X+1 31.4%, X-1 58.3%;  X when over 55.1%, X when under 62.0%
+   opponents busted: bidding up 1.00, bidding down 1.21
+   tilt -0.07 +/-0.01 (share of hands with tilt > 0: 23.7%)
+
+2. Hands in five groups by tilt (the axiom: up minus down should rise and cross zero near tilt 0)
+   tilt  -0.42 to  -0.16 ( 45 hands): up minus down -3.25 +/-0.35   tilt -0.22  lean -0.36
+   tilt  -0.16 to  -0.09 ( 46 hands): up minus down -2.25 +/-0.24   tilt -0.12  lean -0.21
+   tilt  -0.08 to  -0.04 ( 45 hands): up minus down -2.02 +/-0.34   tilt -0.06  lean -0.15
+   tilt  -0.04 to  +0.01 ( 46 hands): up minus down -1.89 +/-0.32   tilt -0.01  lean -0.07
+   tilt  +0.01 to  +0.20 ( 46 hands): up minus down -0.60 +/-0.40   tilt +0.07  lean +0.06
+
+3. Hands in five groups by lean (how far the hand's tricks sit above or below X)
+   lean  -1.00 to  -0.30 ( 45 hands): up minus down -3.48 +/-0.38   tilt -0.21  lean -0.44
+   lean  -0.30 to  -0.17 ( 46 hands): up minus down -2.28 +/-0.30   tilt -0.10  lean -0.21
+   lean  -0.17 to  -0.08 ( 45 hands): up minus down -1.88 +/-0.20   tilt -0.07  lean -0.13
+   lean  -0.08 to  +0.00 ( 46 hands): up minus down -1.68 +/-0.30   tilt -0.02  lean -0.04
+   lean  +0.00 to  +0.28 ( 46 hands): up minus down -0.70 +/-0.38   tilt +0.06  lean +0.09
+
+4. Does tilt tell you anything the lean does not?
+   correlations: up-minus-down with tilt +0.63, with lean +0.69;  tilt with lean +0.76
+   split-half reliability: up-minus-down +0.93, tilt +0.82
+   up-minus-down = a + b x tilt (tilt in units of 10 points of make rate)
+   constant            -1.43 +/-0.17
+   tilt (per 10 pts)   +0.83 +/-0.14
+   R2                  +0.40
+   up-minus-down = a + c x lean (per tenth of a trick)
+   constant            -1.28 +/-0.17
+   lean (per 0.1)      +0.50 +/-0.07
+   R2                  +0.48
+   up-minus-down = a + b x tilt + c x lean
+   constant            -1.25 +/-0.16
+   tilt (per 10 pts)   +0.33 +/-0.19
+   lean (per 0.1)      +0.36 +/-0.10
+   R2                  +0.51
+
+5. Rules, dollars per hooked hand above "always bid X-1"
+   always X+1                                    -2.00 +/-0.19   bids up 100.0%
+   axiom as stated: up when tilt > 0             -0.17 +/-0.09   bids up 23.7%
+   up when tilt is above the middle hand (-0.06) -0.66 +/-0.15   bids up 49.6%
+   up when lean > 0                              -0.15 +/-0.09   bids up 21.5%
+   up when lean is above the middle hand (-0.13) -0.65 +/-0.14   bids up 49.6%
+   bidding network (its likelier of the two)     -0.44 +/-0.14   bids up 36.0%
+   best per hand (chosen on half the deals, scored on the other half) +0.04 +/-0.04
+   best mix of lean and tilt (fitted on other hands)-0.00 +/-0.00   weights on tilt -2.25 / 0.75, cut 0.56 / 0.22
+   best cut on lean alone (fitted on other hands)-0.00 +/-0.03   cut 0.14 / 0.20
+
+6. What kind of hand? Each line: change per extra card of that kind, other kinds and X held equal
+   (compared with a low side card, 2 to 6)  tilt, points        up minus down, $      lean, tricks
+   constant                    +1.70 +/-8.5         -4.10 +/-1.26       -0.24 +/-0.15
+   X                           -6.29 +/-1.9         -0.95 +/-0.28       -0.18 +/-0.03
+   trump A-Q                   +8.26 +/-4.2         +1.47 +/-0.62       +0.26 +/-0.08
+   trump 9-J                   +3.42 +/-3.1         +1.14 +/-0.46       +0.15 +/-0.06
+   trump 2-8                   +1.48 +/-2.6         +0.68 +/-0.39       +0.10 +/-0.05
+   side aces                   +2.09 +/-2.8         +0.89 +/-0.41       +0.13 +/-0.05
+   side kings                  -0.29 +/-2.1         +0.67 +/-0.31       +0.07 +/-0.04
+   side Q-J                    +0.41 +/-1.6         +0.65 +/-0.23       +0.05 +/-0.03
+   side 7-10                   +2.63 +/-1.2         +0.61 +/-0.18       +0.06 +/-0.02
+   short suits (0-1)           -4.10 +/-2.0         -0.26 +/-0.30       -0.03 +/-0.04
+   R2                                 +0.54                 +0.42               +0.55
+
+7. By forbidden bid X
+   X=2 (76 hands): up minus down -1.52 +/-0.23, tilt -0.03, makes X+1 32.9% X-1 54.6%, corr(D,tilt) +0.67
+   X=3 (69 hands): up minus down -1.85 +/-0.25, tilt -0.05, makes X+1 32.6% X-1 59.1%, corr(D,tilt) +0.58
+   X=4 (40 hands): up minus down -2.54 +/-0.35, tilt -0.15, makes X+1 28.7% X-1 62.4%, corr(D,tilt) +0.64
+   X=5 (23 hands): up minus down -2.85 +/-0.62, tilt -0.16, makes X+1 25.2% X-1 63.0%, corr(D,tilt) +0.29
