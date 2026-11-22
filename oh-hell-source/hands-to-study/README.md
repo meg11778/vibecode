@@ -66,3 +66,6 @@ Points to remember:
   After the J♣ wins trick 2 (`T3=1`, 1,211 layouts): every lead but the A♥ makes 98 to 98.5% (±0.4) and loses trick 3
   (the 4♣ wins it 1.6%). By money: 4♣ $2.07, small heart $1.97 to $2.00, 2♦ $1.86, 2♠ $1.62 (4♣ minus 2♠ +$0.45
   ±0.07); the gap is opponents busted (1.50 after the 4♣, 1.36 after the 2♠). The A♥ wins 87% and makes 13%.
+  The card-reading bot at that lead (`RB=1`, 12 sampled positions): 4♣ 80% at Normal (small heart 13%, 2♦ 7%), 92% at
+  10x; never the 2♠ or A♥; its own figures (4♣ $2.14 to $2.24, small heart $1.91 to $1.97, 2♦ $1.82 to $1.88, 2♠ about
+  $1.5) match the play-outs. The plain network alone earns $1.77 there, about $0.30 under the best lead.

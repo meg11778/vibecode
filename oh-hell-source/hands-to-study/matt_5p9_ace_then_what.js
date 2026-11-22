@@ -32,7 +32,7 @@ console.log('bids ' + bids.join(' ') + ' | hand ' + hand.map(T).join(' ') + ' | 
 // play one layout: forced = the third seat's first card, and its lead if it wins trick 1 (null = network)
 function play(pk, first, second, over, duck) {
   const h = pk.map(x => x.slice()); h[ME] = hand.slice(); const won = [0, 0, 0, 0, 0], sn = Uint8Array.from(seen0), vd = mkVoids();
-  let turn = 1, led = 0, winCard = LEAD, winner = 0, i = 1, trick = [LEAD], tr = 0, t2won = -1, seat1 = -1, mine = 0, cur = -1; const wins = [], log = [];
+  let turn = 1, led = 0, winCard = LEAD, winner = 0, i = 1, trick = [LEAD], tr = 0, t2won = -1, seat1 = -1, mine = 0, cur = -1; const wins = [], log = [], hist = [{ seat: 0, card: LEAD }];
   for (let left = h.reduce((s, x) => s + x.length, 0); left > 0; left--) { const lg = M.legalCards(h[turn], led); let c = null;
     if (turn === ME && mine === 0) c = first; else if (turn === ME && mine === 1 && tr === 1 && i === 0 && second != null) c = second;
     if (over && turn === ME && mine === over.idx) c = over.card;
@@ -40,11 +40,12 @@ function play(pk, first, second, over, duck) {
     // opponents who over-duck: on the trick-2 lead, a seat that would beat your card with a higher card of the suit, and holds a lower one, plays its highest lower one instead with probability duck.p
     if (duck && tr === 1 && turn !== ME && i > 0 && winner === ME && M.suitOf(c) === led && c > winCard) { const low = h[turn].filter(d => M.suitOf(d) === led && d < winCard); duck.could = (duck.could || 0) + 1; if (low.length && duck.u[turn] < duck.p) c = Math.max(...low); else if (!low.length) duck.forced = (duck.forced || 0) + 1; }
     if (turn === ME) { mine++; cur = c; log.push({ c, tr, idx: mine - 1, lead: i === 0, ledSuit: i === 0 ? M.suitOf(c) : led, hand: h[ME].slice(), trick: trick.slice(), won: won.slice(), legal: lg.slice(), lens: h.map(x => x.length), winCardThen: winCard, winnerThen: winner }); } if (tr === 0 && turn === 1) seat1 = c;
+    hist.push({ seat: turn, card: c });
     h[turn].splice(h[turn].indexOf(c), 1); sn[c] = 1; trick.push(c); if (i === 0) led = M.suitOf(c); else if (M.suitOf(c) !== led) vd[turn][led] = true;
     if (M.beatsCard(c, winCard, trump)) { winCard = c; winner = turn; }
     if (++i === Pn) { won[winner]++; { const e = log[log.length - 1]; if (e && e.tr === tr) { e.winner = winner; e.winCard = winCard; } } if (winner === ME) wins.push(cur); if (tr === 1) t2won = winner; tr++; turn = winner; i = 0; led = -1; winCard = -1; trick = []; } else turn = (turn + 1) % Pn; }
   let tot = 0, bust = 0; for (let q = 0; q < Pn; q++) { tot += M.vienna(bids[q], won[q], n); if (q !== ME && won[q] !== bids[q]) bust++; }
-  return { money: M.vienna(bids[ME], won[ME], n) - tot / Pn, tricks: won[ME], bust, t2won, seat1, won, wins, log };
+  return { money: M.vienna(bids[ME], won[ME], n) - tot / Pn, tricks: won[ME], bust, t2won, seat1, won, wins, log, hist };
 }
 const has = c => hand.includes(c), lines = [];
 if (has(C('2♠'))) lines.push({ name: 'duck 2♠', first: C('2♠'), second: null });
@@ -121,6 +122,18 @@ if (process.env.T3) {   // the J♣ has won trick 2: every trick-3 lead, on the 
     for (const o of rows) { const r = o.r, f = g => (100 * r.filter(g).length / r.length).toFixed(1).padStart(5) + '%', d = r.map((v, j) => v.money - best.r[j].money), m = mean(d), sd = Math.sqrt(d.reduce((a2, v) => a2 + (v - m) ** 2, 0) / d.length / Math.max(1, d.length - 1)), pm = r.filter(v => v.tricks === bids[ME]).length / r.length;
       const t3 = r.filter(v => { const e = v.log[2]; return e && e.winner === ME; }).length / r.length;
       console.log('  ' + (o.c < 0 ? 'network' : T(o.c)).padEnd(8) + ' makes ' + f(v => v.tricks === bids[ME]) + ' ±' + (100 * Math.sqrt(pm * (1 - pm) / r.length)).toFixed(1) + ' | worth $' + mean(r.map(v => v.money)).toFixed(2).padStart(5) + ' | against the best ' + m.toFixed(2).padStart(5) + ' ±' + sd.toFixed(2) + ' | the lead itself wins ' + (100 * t3).toFixed(1).padStart(4) + '% | others busted ' + mean(r.map(v => v.bust)).toFixed(2)); } }
+}
+if (process.env.RB) {   // the game's card-reading bot on lead at trick 3 after the J♣ has won: sampled positions (the cards played to tricks 1 and 2 differ from layout to layout)
+  const jl = lines.find(l => l.name === 'A♠, J♣'), ks = []; L.forEach((pk, k) => { if (jl.res[k].t2won === ME) ks.push(k); });
+  const N = +(process.env.RBN || 12), reps = +(process.env.REPS || 5), step = Math.floor(ks.length / N), rest = hand.filter(c => c !== C('A♠') && c !== C('J♣')), grp = c => M.suitOf(c) === 1 && c !== C('A♥') ? 'small ♥' : T(c);
+  for (const [prec, rp] of [[1, reps], [10, 1]]) { M.READ.prec = prec; const cnt = {}, sum = {}, truth = {}; let tot = 0, t0 = Date.now();
+    for (let j = 0; j < N; j++) { const k = ks[j * step], x = jl.res[k], hist = x.hist.slice(0, 2 * Pn), seen = new Uint8Array(52), voids = mkVoids();
+      for (let t = 0; t < 2; t++) { const ls = M.suitOf(hist[t * Pn].card); for (let q = 0; q < Pn; q++) { const e = hist[t * Pn + q]; seen[e.card] = 1; if (M.suitOf(e.card) !== ls) voids[e.seat][ls] = true; } }
+      const S = { Pn, n, trump, turned, bids, order, hand: rest, seen, voids, lens: order.map(() => n - 2), won: [0, 0, 2, 0, 0], turn: ME, led: -1, winCard: -1, winner: ME, playedInTrick: 0, trick: [], hist };
+      for (let r = 0; r < rp; r++) { const o = M.readChoose(S, rand); tot++; cnt[grp(o.card)] = (cnt[grp(o.card)] || 0) + 1; const got = {}; for (const a2 of o.alts) { const g = grp(a2.card); if (got[g]) continue; got[g] = 1; sum[g] = (sum[g] || 0) + a2.score; } }
+      if (prec === 1 && j < 4) console.log('    e.g. tricks 1-2: ' + hist.map(e => T(e.card)).join(' ').replace(/^((?:\S+ ){5})/, '$1| ')); }
+    console.log('  card-reading bot, precision x' + prec + ', ' + N + ' positions x ' + rp + ' (' + ((Date.now() - t0) / tot / 1000).toFixed(1) + ' s a choice): ' + Object.keys(sum).sort((x, y) => sum[y] - sum[x]).map(g => g + ' chosen ' + (100 * (cnt[g] || 0) / tot).toFixed(0) + '%, its own figure $' + (sum[g] / tot).toFixed(2)).join(' | ')); }
+  M.READ.prec = 1;
 }
 if (process.env.WHY) {   // the network in your seat throws the A♥ away while still a trick short: what was it looking at, and what would the other cards have done?
   const AH = C('A♥'), sn = c => M.suitOf(c);
