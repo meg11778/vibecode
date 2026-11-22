@@ -821,3 +821,16 @@ deals +$0.03 and -$0.69. Bot play is unchanged (`READ.strict` stays false; `READ
 money test). The laptop's first 1,800 deals of that test: fitted only minus today +$0.05 +/-0.14, so not settled;
 `ohhell-fit2.zip` (A against B only) is for Bagley's machine. All browser tests t19 to t33, the three rule checks and
 58 assertions pass. Checked on one hand type at four players only.
+
+## 21 November 2026 (night): the bots read only from layouts that fit the bids. PUBLISHED (`READ.strict` true)
+
+Matt's laptop, 8 hours, 4,320 deals (`layout-fit-test/results-laptop-2026-11-21.jsonl`), one reading seat against the
+plain network, simulation bidders: fitted only minus fill-up +$0.115 +/-0.092 a deal (8-card rounds and up
++$0.18 +/-0.16, 5 and 6 cards +$0.05 +/-0.09); "at least 60 fitted" the same (+$0.116); ten times the search
++$0.069 +/-0.093 at 2.9 times the time. Fitted only takes about 1.2 times the time (1.4 at 6 players). By size the
+bars are wide: 4p6 +0.11 +/-0.14, 4p8 +0.25 +/-0.24, 4p10 -0.02 +/-0.32, 5p5 -0.05 +/-0.12, 5p8 +0.32 +/-0.28,
+6p6 +0.08 +/-0.19. The result differs on 27% of deals. Just clear of zero overall, so it is on, with the correct-by-
+construction argument behind it; `ohhell-fit2.zip` on Bagley's machine is to tighten the figure.
+After the change, Matt's 10-card hand over by 1 (211 deals): the bot's sums are 2♠ +$0.06, 4♦ -$0.22, J♦ -$0.57,
+A♥ -$0.69, A♣ -$1.16; real deals give +$0.03, -$0.29, -$0.57, -$0.69, -$1.17. It opens a trump 55% (was 40%) and the
+A♥ 6% (was 14%). All browser tests, rule checks and 58 assertions pass.
