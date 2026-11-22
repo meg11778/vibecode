@@ -24,8 +24,11 @@ Open follow-ups Matt may ask for:
   known to be out of the jack's suit? One quick position showed no effect; it needs a fairer position (trumps mostly
   gone, the two-bidder holding one trump and a small side card) or a real hand from Matt.
 - Matt's wider theme: overbid deals and how to use trumps in them.
-- Axiom 6: the same test with card-reading bots playing the dealer's hand (a laptop night); 6 players; whether people
-  at the table bid the hooked dealer down as often as these numbers say they should.
+- Axiom 6: 6 players; whether people at the table bid the hooked dealer down as often as these numbers say they should.
+
+Overnight queue (low priority; package only when Matt asks and a machine is free):
+- Axiom 6 again with the card-reading bot playing the dealer's hand (Matt, 22 Nov: "not that important"). Not yet
+  packaged: needs `dealer_hook.js` with `readChoose` for the dealer's seat and far fewer hands and redeals.
 
 ## 1. The low-trump tell (21 Nov 2026): PARTLY TRUE
 
