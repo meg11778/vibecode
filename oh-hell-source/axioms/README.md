@@ -72,3 +72,29 @@ two leads".
   to fit three opponents' bids and are topped up with layouts that ignore the bids, which makes an overbid table look
   softer than it is.
 - Limits: one hand; the network plays on after the scripted leads; four players only.
+
+## 4. A-4-3-2 in a side suit is a zero, not a one (22 Nov 2026): TRUE at every size and seat tested
+
+Test (`04-a432/`): one seat holds A-4-3-2 of a side suit plus random cards from the other suits; 40,000 deals a
+table size; plain network plays except where a plan overrides it. DUCK: never lead the ace, follow low, throw the ace
+on the first plain discard. CASH: lead the ace the first time on lead, or play it the first time the suit is led.
+Success = the suit's four cards take no trick (DUCK) or exactly one (CASH).
+
+| Table | DUCK takes none | CASH takes exactly one | ace trumped |
+|---|---|---|---|
+| 4 players, 7 cards | 94.5% | 68.6% | 16.7% |
+| 4 players, 10 cards | 92.9% | 77.0% | 13.2% |
+| 4 players, 12 cards | 93.2% | 83.2% | 7.8% |
+| 5 players, 7 cards | 97.9% | 55.8% | 24.4% |
+| 5 players, 10 cards | 96.9% | 78.0% | 14.1% |
+| 6 players, 8 cards | 98.6% | 59.5% | 23.0% |
+
+Seat barely matters (within about 2 points), except that the leader's ace is trumped about twice as often when it is
+led at trick one (4p7: 26.7% against 13%; 5p7: 41.6% against about 20%).
+4-card round, the hand IS A-4-3-2 (network plays for the bid): bid 0 makes 99.5% / 99.9% / 100.0% at 4 / 5 / 6
+players; bid 1 makes 35.7% / 34.8% / 31.5%; zero is better by $3.82 / $4.20 / $4.72 a hand (+/-0.04). On lead the
+scripted CASH does better than the network's bid-1 play (58% at 4 players, 38% at 5, 33% at 6: the ace is trumped
+31% / 60% / 66%), so the network plays a bid of 1 badly from the lead here; off lead the ace often never gets played.
+How DUCK fails in long rounds: the suit is led a fourth time (ace forced: 1.7% at 4p10, 4.7% at 4p12) or a small
+card wins late once the suit is gone (4 to 6% at four players). Both plans are simple scripts, so a careful player
+should beat both figures; the gap is what matters. Counts the suit only, not the whole hand's bid.
