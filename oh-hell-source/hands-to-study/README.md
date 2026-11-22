@@ -58,3 +58,8 @@ Points to remember:
   is the A♥ trumped (mostly by the seat that bid 4) or stranded: held to the last trick because you never regained
   the lead and no live heart was led (J♣ line 2.6% + 0.6% where the heart led was already trumped; 2♦ line 1.6% +
   0.5%). That is not a network misplay (`WHY=1` shows it). Over is mostly the J♣ winning a club trick when following.
+  Split: J♣ wins trick 2 (20%): makes 98.5%; loses (80%): makes 88.6%. A♥ wins (87%): 96.3%; trumped (13%): 62.8%.
+  Over-ducking opponents (`DUCK=1`): the bots beat the jack with a higher club while holding one below it on 55% of
+  layouts. If such a seat ducks 25 / 50 / 75 / 100% of the time, the J♣ line is worth $1.09 / $1.21 / $1.34 / $1.52
+  (makes 92.0 / 93.2 / 94.6 / 96.4%); it draws level with the 2♦ line ($1.10) at about 25% and leads by $0.12 ±0.05
+  at 50%. Only the trick-2 club is changed; a table that ducks everywhere is not modelled.

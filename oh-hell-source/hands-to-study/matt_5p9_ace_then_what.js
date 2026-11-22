@@ -30,13 +30,15 @@ const t0 = Date.now(), RL = M.readLayouts(S0, rand, +(process.env.DRAW || K * 12
 console.log('bids ' + bids.join(' ') + ' | hand ' + hand.map(T).join(' ') + ' | ' + K + ' layouts kept from ' + RL.cands.length + ' that fit the bids; effective number after weighing the 4♠ lead: ' + RL.ess.toFixed(0) + ' (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
 
 // play one layout: forced = the third seat's first card, and its lead if it wins trick 1 (null = network)
-function play(pk, first, second, over) {
+function play(pk, first, second, over, duck) {
   const h = pk.map(x => x.slice()); h[ME] = hand.slice(); const won = [0, 0, 0, 0, 0], sn = Uint8Array.from(seen0), vd = mkVoids();
   let turn = 1, led = 0, winCard = LEAD, winner = 0, i = 1, trick = [LEAD], tr = 0, t2won = -1, seat1 = -1, mine = 0, cur = -1; const wins = [], log = [];
   for (let left = h.reduce((s, x) => s + x.length, 0); left > 0; left--) { const lg = M.legalCards(h[turn], led); let c = null;
     if (turn === ME && mine === 0) c = first; else if (turn === ME && mine === 1 && tr === 1 && i === 0 && second != null) c = second;
     if (over && turn === ME && mine === over.idx) c = over.card;
     if (c == null) c = lg.length === 1 ? lg[0] : M.netChoose({ hand: h[turn], seen: sn, voids: vd, lens: h.map(x => x.length), bids, won, turn, led, winCard, winner, playedInTrick: i, trick, turned, trump, n, P: Pn }, 0).card;
+    // opponents who over-duck: on the trick-2 lead, a seat that would beat your card with a higher card of the suit, and holds a lower one, plays its highest lower one instead with probability duck.p
+    if (duck && tr === 1 && turn !== ME && i > 0 && winner === ME && M.suitOf(c) === led && c > winCard) { const low = h[turn].filter(d => M.suitOf(d) === led && d < winCard); duck.could = (duck.could || 0) + 1; if (low.length && duck.u[turn] < duck.p) c = Math.max(...low); else if (!low.length) duck.forced = (duck.forced || 0) + 1; }
     if (turn === ME) { mine++; cur = c; log.push({ c, tr, idx: mine - 1, lead: i === 0, ledSuit: i === 0 ? M.suitOf(c) : led, hand: h[ME].slice(), trick: trick.slice(), won: won.slice(), legal: lg.slice(), lens: h.map(x => x.length), winCardThen: winCard, winnerThen: winner }); } if (tr === 0 && turn === 1) seat1 = c;
     h[turn].splice(h[turn].indexOf(c), 1); sn[c] = 1; trick.push(c); if (i === 0) led = M.suitOf(c); else if (M.suitOf(c) !== led) vd[turn][led] = true;
     if (M.beatsCard(c, winCard, trump)) { winCard = c; winner = turn; }
@@ -99,6 +101,17 @@ for (const q of [0, 1, 3, 4]) { const full = pk => q === 0 ? pk[q].concat([LEAD]
 console.log('  no club above the jack was dealt to anyone: ' + sh(pk => !pk.some((x, q) => q !== ME && x.some(c => cl(c) && c > C('J♣')))) + ' | clubs above the jack only with zero bidders: ' + sh(pk => [0, 1].some(q => pk[q].some(c => cl(c) && c > C('J♣'))) && ![3, 4].some(q => pk[q].some(c => cl(c) && c > C('J♣')))));
 const tb = lines.find(l => l.name === 'A♠, J♣'); if (tb) { const w = [0, 1, 3, 4].map(q => mean(tb.res.map(x => x.won[q]))); console.log('  after A♠ then J♣, average tricks: first seat ' + w[0].toFixed(2) + ', second seat ' + w[1].toFixed(2) + ', fourth seat ' + w[2].toFixed(2) + ', dealer ' + w[3].toFixed(2)); }
 
+if (process.env.DUCK) {   // what if the table ducks the club more than the bots do?
+  const jl = lines.find(l => l.name === 'A♠, J♣'), dr = M.mulberry32(77), U = L.map(() => [dr(), dr(), dr(), dr(), dr()]);
+  // how the jack is beaten at present
+  const how = {}; L.forEach((pk, k) => { const x = jl.res[k]; if (x.t2won === ME) return; const e = x.log.find(l => l.c === C('J♣')), q = x.t2won, tr = M.suitOf(e.winCard) === trump, hadLow = pk[q].some(d => M.suitOf(d) === 3 && d < C('J♣'));
+    const key = ['the first seat (0)', 'the second seat (0)', '', 'the fourth seat (' + bids[3] + ')', 'the dealer (' + bids[4] + ')'][q] + (tr ? ' trumps it' : hadLow ? ' wins with a higher club, holding a lower one' : ' wins with a higher club, holding no lower one'); how[key] = (how[key] || 0) + 1; });
+  console.log('\nwho beats the J♣ now (share of all layouts):'); for (const key of Object.keys(how).sort((x, y) => how[y] - how[x])) console.log('  ' + (100 * how[key] / K).toFixed(1).padStart(5) + '%  ' + key);
+  console.log('\nthe J♣ line if each seat that would win with a higher club, and holds a club below the jack, ducks with this chance (same layouts; the other lines do not change):');
+  const ref = n2 => lines.find(l => l.name === n2).res;
+  for (const p of [0, 0.25, 0.5, 0.75, 1]) { const r = L.map((pk, k) => play(pk, jl.first, jl.second, null, { p, u: U[k] })), f = g => (100 * r.filter(g).length / K).toFixed(1) + '%', dj = r.map((x, k) => x.money - jl.res[k].money), dd = r.map((x, k) => x.money - ref('A♠, 2♦')[k].money), da = r.map((x, k) => x.money - ref('A♠, A♥')[k].money);
+    console.log('  ducks ' + String(100 * p).padStart(3) + '%: J♣ wins ' + f(x => x.t2won === ME) + ' | makes ' + f(x => x.tricks === bids[ME]) + ', short ' + f(x => x.tricks < bids[ME]) + ', over ' + f(x => x.tricks > bids[ME]) + ' | worth $' + mean(r.map(x => x.money)).toFixed(2) + ' | others busted ' + mean(r.map(x => x.bust)).toFixed(2) + ' | against the bots\' J♣ line ' + (mean(dj) >= 0 ? '+' : '') + mean(dj).toFixed(2) + ' ±' + se(dj).toFixed(2) + ' | against 2♦ ' + (mean(dd) >= 0 ? '+' : '') + mean(dd).toFixed(2) + ' ±' + se(dd).toFixed(2) + ' | against A♥ ' + (mean(da) >= 0 ? '+' : '') + mean(da).toFixed(2) + ' ±' + se(da).toFixed(2)); }
+}
 if (process.env.WHY) {   // the network in your seat throws the A♥ away while still a trick short: what was it looking at, and what would the other cards have done?
   const AH = C('A♥'), sn = c => M.suitOf(c);
   for (const ln of lines.filter(l => ['A♠, J♣', 'A♠, 2♦'].includes(l.name))) { const hit = []; let allThrown = 0;
