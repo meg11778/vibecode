@@ -119,3 +119,24 @@ scripted CASH does better than the network's bid-1 play (58% at 4 players, 38% a
 How DUCK fails in long rounds: the suit is led a fourth time (ace forced: 1.7% at 4p10, 4.7% at 4p12) or a small
 card wins late once the suit is gone (4 to 6% at four players). Both plans are simple scripts, so a careful player
 should beat both figures; the gap is what matters. Counts the suit only, not the whole hand's bid.
+
+## 5. A zero bidder follows suit with its highest losing card (22 Nov 2026): TRUE about 19 times in 20 for the network, less for the card-reading bot
+
+Said as: "a zero bidder never plays a lower card than it needs to. If the queen is winning and the zero bidder plays
+the 2, it has no other card of the suit below the queen (a touching 3 apart)."
+
+Test (`05-zero-follows-high/`): 60,000 deals a size, plain network, bids from the bidding network. Seats that bid 0
+and have taken no trick, following suit. Touching = every rank between is already seen or in the same hand.
+
+- The hand-reader's view (every losing follow by a live zero bidder): it still holds a higher losing card, not
+  touching, 1.3% (4p5), 2.3% (4p7), 3.8% (4p10), 1.7% (5p6), 3.0% (5p8), 1.8% (6p6) of the time.
+- When it had a real choice: highest losing card 96.6 / 95.0 / 92.7 / 95.2 / 92.4 / 94.2%; a lower card 3 to 6%
+  (nine times in ten skipping just one card); took the trick 0.2 to 2%. More lower cards early in the hand, in longer
+  rounds, and when the table is overbid. Seats that have exactly made a bid of one or more: 94 to 98%.
+- Cost of the network's lower cards, finishing the real deal both ways: $-0.02 +/-0.05 (4p7, 3,663 plays) and
+  +$0.05 +/-0.04 (5p8, 11,342 plays). So they are close to free: mostly spots where the skipped card could not matter.
+- CARD-READING BOT (the one in the game), 823 sampled choices: highest losing card 87% (4p7) and 80% (5p8); lower card
+  11% and 16%; took the trick 2% and 4%. Cost of its lower cards not resolved (+$0.07 +/-0.40, 111 plays). Likely
+  noise between near-equal cards in its sampled layouts. A rule "a seat that wants no more tricks plays its highest
+  losing card" would make the bots follow the axiom; not built, because no cost has been shown.
+- Limits: bots, not people. Against people the inference should be at least as strong as against the network.

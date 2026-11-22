@@ -1,0 +1,3 @@
+const fs=require('fs'),pc=(a,b)=>b?(100*a/b).toFixed(1)+'%':'-';
+for(const f of process.argv.slice(2)){const r=JSON.parse(fs.readFileSync(f,'utf8'));console.log(`\n${r.P} players ${r.n} cards`);
+ for(const k of Object.keys(r.G).sort()){const g=r.G[k];console.log(`  ${k.padEnd(40)} ${String(g.k).padStart(7)} | highest losing card ${pc(g.top,g.k)} | a lower card ${pc(g.lower,g.k)} | took the trick ${pc(g.took,g.k)}`+(g.lower&&!k.includes('|')?` | when lower, cards skipped: one ${pc(g.gap1,g.lower)}, two ${pc(g.gap2,g.lower)}, three+ ${pc(g.gap3,g.lower)}`:'')+(g.rk?` | reading bot (${g.rk}): highest ${pc(g.rtop,g.rk)}, lower ${pc(g.rlower,g.rk)}, took ${pc(g.rtook,g.rk)}`:''));}}
