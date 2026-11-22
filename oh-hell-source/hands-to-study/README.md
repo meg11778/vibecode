@@ -54,3 +54,7 @@ Points to remember:
   10x). Why: the J♣ wins only 20% of the time (no layout has every higher club undealt), so it mostly gives up the lead
   and delays the A♥, which stands up 87% now and less later; the 2♦ keeps both chances and adds the 2♠ as a ruffing
   trick (it takes a trick on 20% of layouts, against 8% after the J♣ and 4% after the A♥). The differences are small.
+  Failures (share of layouts, 2♦ / A♥ / J♣ / duck): one short 4.3 / 4.6 / 7.4 / 8.4%, over 4.0 / 3.5 / 2.0 / 5.3%. Short
+  is the A♥ trumped (mostly by the seat that bid 4) or stranded: held to the last trick because you never regained
+  the lead and no live heart was led (J♣ line 2.6% + 0.6% where the heart led was already trumped; 2♦ line 1.6% +
+  0.5%). That is not a network misplay (`WHY=1` shows it). Over is mostly the J♣ winning a club trick when following.

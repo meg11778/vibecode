@@ -30,13 +30,14 @@ const t0 = Date.now(), RL = M.readLayouts(S0, rand, +(process.env.DRAW || K * 12
 console.log('bids ' + bids.join(' ') + ' | hand ' + hand.map(T).join(' ') + ' | ' + K + ' layouts kept from ' + RL.cands.length + ' that fit the bids; effective number after weighing the 4♠ lead: ' + RL.ess.toFixed(0) + ' (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
 
 // play one layout: forced = the third seat's first card, and its lead if it wins trick 1 (null = network)
-function play(pk, first, second) {
+function play(pk, first, second, over) {
   const h = pk.map(x => x.slice()); h[ME] = hand.slice(); const won = [0, 0, 0, 0, 0], sn = Uint8Array.from(seen0), vd = mkVoids();
   let turn = 1, led = 0, winCard = LEAD, winner = 0, i = 1, trick = [LEAD], tr = 0, t2won = -1, seat1 = -1, mine = 0, cur = -1; const wins = [], log = [];
   for (let left = h.reduce((s, x) => s + x.length, 0); left > 0; left--) { const lg = M.legalCards(h[turn], led); let c = null;
     if (turn === ME && mine === 0) c = first; else if (turn === ME && mine === 1 && tr === 1 && i === 0 && second != null) c = second;
+    if (over && turn === ME && mine === over.idx) c = over.card;
     if (c == null) c = lg.length === 1 ? lg[0] : M.netChoose({ hand: h[turn], seen: sn, voids: vd, lens: h.map(x => x.length), bids, won, turn, led, winCard, winner, playedInTrick: i, trick, turned, trump, n, P: Pn }, 0).card;
-    if (turn === ME) { mine++; cur = c; log.push({ c, tr, lead: i === 0, ledSuit: i === 0 ? M.suitOf(c) : led }); } if (tr === 0 && turn === 1) seat1 = c;
+    if (turn === ME) { mine++; cur = c; log.push({ c, tr, idx: mine - 1, lead: i === 0, ledSuit: i === 0 ? M.suitOf(c) : led, hand: h[ME].slice(), trick: trick.slice(), won: won.slice(), legal: lg.slice(), lens: h.map(x => x.length), winCardThen: winCard, winnerThen: winner }); } if (tr === 0 && turn === 1) seat1 = c;
     h[turn].splice(h[turn].indexOf(c), 1); sn[c] = 1; trick.push(c); if (i === 0) led = M.suitOf(c); else if (M.suitOf(c) !== led) vd[turn][led] = true;
     if (M.beatsCard(c, winCard, trump)) { winCard = c; winner = turn; }
     if (++i === Pn) { won[winner]++; { const e = log[log.length - 1]; if (e && e.tr === tr) { e.winner = winner; e.winCard = winCard; } } if (winner === ME) wins.push(cur); if (tr === 1) t2won = winner; tr++; turn = winner; i = 0; led = -1; winCard = -1; trick = []; } else turn = (turn + 1) % Pn; }
@@ -93,6 +94,39 @@ for (const q of [0, 1, 3, 4]) { const full = pk => q === 0 ? pk[q].concat([LEAD]
 console.log('  no club above the jack was dealt to anyone: ' + sh(pk => !pk.some((x, q) => q !== ME && x.some(c => cl(c) && c > C('J♣')))) + ' | clubs above the jack only with zero bidders: ' + sh(pk => [0, 1].some(q => pk[q].some(c => cl(c) && c > C('J♣'))) && ![3, 4].some(q => pk[q].some(c => cl(c) && c > C('J♣')))));
 const tb = lines.find(l => l.name === 'A♠, J♣'); if (tb) { const w = [0, 1, 3, 4].map(q => mean(tb.res.map(x => x.won[q]))); console.log('  after A♠ then J♣, average tricks: first seat ' + w[0].toFixed(2) + ', second seat ' + w[1].toFixed(2) + ', fourth seat ' + w[2].toFixed(2) + ', dealer ' + w[3].toFixed(2)); }
 
+if (process.env.WHY) {   // the network in your seat throws the A♥ away while still a trick short: what was it looking at, and what would the other cards have done?
+  const AH = C('A♥'), sn = c => M.suitOf(c);
+  for (const ln of lines.filter(l => ['A♠, J♣', 'A♠, 2♦'].includes(l.name))) { const hit = []; let allThrown = 0;
+    ln.res.forEach((x, k) => { const e = x.log.find(l => l.c === AH); if (e && e.ledSuit !== 1) { allThrown++; if (e.won[ME] < bids[ME]) hit.push({ k, x, e }); } });
+    console.log('\n' + ln.name + ': the A♥ is thrown on another suit on ' + (100 * allThrown / K).toFixed(1) + '% of layouts; on ' + (100 * hit.length / K).toFixed(1) + '% you were still a trick short when it went');
+    const fin = { made: 0, short: 0, over: 0 }; for (const { x } of hit) fin[x.tricks === bids[ME] ? 'made' : x.tricks < bids[ME] ? 'short' : 'over']++;
+    console.log('  how those ended with the network\'s throw: made ' + (100 * fin.made / hit.length).toFixed(0) + '%, short ' + (100 * fin.short / hit.length).toFixed(0) + '%, over ' + (100 * fin.over / hit.length).toFixed(0) + '%  (' + hit.length + ' layouts)');
+    const sit = {}; for (const { e } of hit) { const key = 'trick ' + (e.tr + 1) + ', ' + '♠♥♦♣'[e.ledSuit] + ' led, ' + (M.suitOf(e.winCardThen) === trump && e.ledSuit !== trump ? 'already trumped' : 'not yet trumped') + ', ' + (e.hand.includes(C('2♠')) ? 'you hold the 2♠' : 'no 2♠') + ', small hearts held ' + e.hand.filter(c => sn(c) === 1 && c !== AH).length; sit[key] = (sit[key] || 0) + 1; }
+    console.log('  the situation when it was thrown:'); for (const key of Object.keys(sit).sort((x, y) => sit[y] - sit[x]).slice(0, 8)) console.log('    ' + String(sit[key]).padStart(4) + '  ' + key);
+    // the same layouts with a different card at that moment, network afterwards
+    const alt = {}; const add = (name, r, base) => { const o = alt[name] = alt[name] || { n: 0, made: 0, money: 0, d: [] }; o.n++; o.made += r.tricks === bids[ME] ? 1 : 0; o.money += r.money; o.d.push(r.money - base.money); };
+    for (const { k, x, e } of hit) { add('throw the A♥ (network)', x, x);
+      for (const c of e.legal) { if (c === AH) continue; const kind = sn(c) === trump ? 'trump with the ' + T(c) : sn(c) === 1 ? 'throw a small heart' : 'throw the ' + T(c); if (sn(c) === 1 && e.legal.some(d => sn(d) === 1 && d !== AH && d > c)) continue;   // one small heart stands for all
+        add(kind, play(L[k], ln.first, ln.second, { idx: e.idx, card: c }), x); } }
+    console.log('  the same layouts with another card at that moment (network before and after):');
+    for (const name of Object.keys(alt).sort((x, y) => alt[y].n - alt[x].n)) { const o = alt[name]; console.log('    ' + name.padEnd(26) + ' possible on ' + String(o.n).padStart(4) + ' | makes ' + (100 * o.made / o.n).toFixed(0).padStart(3) + '% | worth $' + (o.money / o.n).toFixed(2) + ' | against the A♥ throw ' + (mean(o.d) >= 0 ? '+' : '') + mean(o.d).toFixed(2) + ' ±' + Math.sqrt(o.d.reduce((s2, v) => s2 + (v - mean(o.d)) ** 2, 0) / o.n / Math.max(1, o.n - 1)).toFixed(2)); }
+    // the whole line if the best single replacement were used every time it is possible
+    for (const rule of ['trump with the 2♠', 'throw a small heart']) { const tot = ln.res.map(r => r.money), mk = ln.res.map(r => r.tricks === bids[ME] ? 1 : 0); let used = 0;
+      for (const { k, e } of hit) { const c = rule[1] === 'r' ? (e.legal.includes(C('2♠')) ? C('2♠') : null) : (e.legal.filter(d => sn(d) === 1 && d !== AH).sort((p, q) => q - p)[0] ?? null); if (c == null) continue; const r = play(L[k], ln.first, ln.second, { idx: e.idx, card: c }); tot[k] = r.money; mk[k] = r.tricks === bids[ME] ? 1 : 0; used++; }
+      console.log('  whole line with "' + rule + '" in place of the A♥ throw (used ' + used + ' times): worth $' + mean(tot).toFixed(2) + ', makes ' + (100 * mean(mk)).toFixed(1) + '%  (was $' + mean(ln.res.map(r => r.money)).toFixed(2) + ', ' + (100 * mean(ln.res.map(r => r.tricks === bids[ME] ? 1 : 0))).toFixed(1) + '%)'); }
+    // it was the last card in every case, so the question is earlier: was a heart ever led while you held the ace, and what if you had put the ace on it?
+    { let never = 0, ducked = 0, mk = 0, d = []; const pos = {}, trk = {}, tr2 = {};
+      for (const { k, x } of hit) { const e1 = x.log.find(l => l.ledSuit === 1 && !l.lead && l.c !== AH && l.legal.includes(AH)); if (!e1) { never++; continue; } ducked++;
+        const r = play(L[k], ln.first, ln.second, { idx: e1.idx, card: AH }); mk += r.tricks === bids[ME] ? 1 : 0; d.push(r.money - x.money);
+        const a = 'trick ' + (e1.tr + 1); trk[a] = (trk[a] || 0) + 1; const b = e1.trick.length === Pn - 1 ? 'you were last to play' : (Pn - 1 - e1.trick.length) + ' still to play behind you'; pos[b] = (pos[b] || 0) + 1;
+        const c = M.suitOf(e1.winCardThen) === trump ? 'already trumped when it reached you' : 'not trumped when it reached you'; tr2[c] = (tr2[c] || 0) + 1; }
+      console.log('  no heart was ever led while you held the ace: ' + never + ' (' + (100 * never / K).toFixed(1) + '% of all layouts) | a heart was led and the network played a small one: ' + ducked + ' (' + (100 * ducked / K).toFixed(1) + '%)');
+      if (ducked) { console.log('    the first such heart lead: ' + [trk, pos, tr2].map(o => Object.keys(o).sort((x, y) => o[y] - o[x]).map(q => q + ' ' + o[q]).join(', ')).join(' | '));
+        console.log('    putting the ace on that first heart lead instead (network afterwards): makes ' + (100 * mk / ducked).toFixed(0) + '%, worth ' + (mean(d) >= 0 ? '+' : '') + mean(d).toFixed(2) + ' a layout more');
+        const tot = ln.res.map(r => r.money), mm = ln.res.map(r => r.tricks === bids[ME] ? 1 : 0); for (const { k, x } of hit) { const e1 = x.log.find(l => l.ledSuit === 1 && !l.lead && l.c !== AH && l.legal.includes(AH)); if (!e1 || M.suitOf(e1.winCardThen) === trump) continue; const r = play(L[k], ln.first, ln.second, { idx: e1.idx, card: AH }); tot[k] = r.money; mm[k] = r.tricks === bids[ME] ? 1 : 0; }
+        console.log('    whole line if you had done that on these layouts (hindsight: only the layouts that ended short are changed, so this is an upper limit): worth $' + mean(tot).toFixed(2) + ', makes ' + (100 * mean(mm)).toFixed(1) + '%'); } }
+    for (const { k, x, e } of hit.slice(0, 5)) console.log('    e.g. trick ' + (e.tr + 1) + ': table ' + e.trick.map(T).join(' ') + ' | you hold ' + e.hand.map(T).join(' ') + ' | tricks so far ' + e.won.join(' ') + ' | ended with ' + x.tricks + ' | others: ' + [0, 1, 3, 4].map(q => q + ':' + L[k][q].map(T).join(' ')).join(' / ')); }
+}
 if (process.env.READ) {   // the card-reading bot's own choices
   const top1 = +Object.keys(s1).sort((x, y) => s1[y] - s1[x])[0], seen = Uint8Array.from(seen0); seen[top1] = 1; const vd = mkVoids(); if (M.suitOf(top1) !== 0) vd[1][0] = true;
   const win1 = M.beatsCard(top1, LEAD, trump);
