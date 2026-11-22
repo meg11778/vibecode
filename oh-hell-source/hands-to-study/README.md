@@ -69,3 +69,7 @@ Points to remember:
   The card-reading bot at that lead (`RB=1`, 12 sampled positions): 4♣ 80% at Normal (small heart 13%, 2♦ 7%), 92% at
   10x; never the 2♠ or A♥; its own figures (4♣ $2.14 to $2.24, small heart $1.91 to $1.97, 2♦ $1.82 to $1.88, 2♠ about
   $1.5) match the play-outs. The plain network alone earns $1.77 there, about $0.30 under the best lead.
+  Who goes down after each trick-3 lead (a busted zero bidder is worth 14/5 = $2.80 here, another seat $2.00): zero
+  bidders busted per hand 0.75 after the 4♣, 0.71 after a small heart, 0.69 after the 2♦, 0.54 after the 2♠; the
+  other two seats 0.75 / 0.76 / 0.72 / 0.83. That accounts for the whole money gap (4♣ over 2♠: +$0.60 from zero
+  bidders, -$0.15 from the others).
