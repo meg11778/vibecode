@@ -878,3 +878,19 @@ calculator drew until 400 deals carried weight or 6,000 were drawn; one seat at 
 - Even 6,000 deals leave the late seats thin: fewer than 400 effective deals in 57 to 100% of decisions for the last
   three seats (formula picture), and more often with the network picture (83 to 100%), whose weights are sharper.
 This line is closed unless a reason appears: the live calculator stays on the formula picture.
+
+## 23 November 2026: Bagley's think2 run (25,880 deals): the layout fix is money-neutral; double precision earns a little, mostly in long rounds
+
+One card-reading seat against the plain network, simulation bidders, same deals five ways
+(`thinking-test/v2/results-bagley-2026-11-23.jsonl`, `node summary.js`). A = the game today.
+- A over the plain network: +$0.293 +/-0.040 a deal (rounds of 8 and 9 cards +$0.44 +/-0.09, shorter +$0.22 +/-0.04).
+- B, old fill-up layouts, minus A: -$0.010 +/-0.032. So "fitted layouts only" (published 21 Nov on +$0.115 +/-0.092
+  from 4,320 laptop deals) is NOT a measurable money gain; it is neutral, costs no time (A is about 10% faster), and
+  makes the bot's and the report's sums match real play-outs. Kept for that reason.
+- C, up to 8 batches on close calls, minus A: +$0.006 +/-0.029 at 1.5 times the time. No.
+- D, double precision, minus A: +$0.053 +/-0.032 at 1.9 times the time. Long rounds (4p9, 5p8) +$0.116 +/-0.078;
+  shorter rounds +$0.022 +/-0.029.
+- E, four times precision, minus A: +$0.072 +/-0.032 at 3.6 times the time. Long +$0.147 +/-0.079, shorter
+  +$0.034 +/-0.029. E minus D: +$0.019 +/-0.029, so four times is not shown to beat double.
+By size, D / E: 4p4 +0.04/+0.04, 4p6 +0.03/+0.03, 4p9 +0.11/+0.19, 5p5 +0.02/+0.05, 5p8 +0.12/+0.11, 6p5 0.00/+0.02
+(each +/-0.04 to 0.12). Opponents were the plain network; not tested against other card-reading bots.
