@@ -1405,7 +1405,10 @@ function assessmentHtml(r){
       const mine=p.options.find(o=>o.cards.includes(p.played)), best=p.options[0];
       // the choice that makes the bid most often, named when it is not the choice worth most (it matters at Bust Out)
       const safe=p.options.reduce((x,o)=>o.make!=null && (x===null || o.make>x.make) ? o : x, null), safer = safe && best.make!=null && safe!==best && safe.make>=best.make+3;
-      h+="<tr><td>"+(p.trick+1)+"</td><td>"+showCard(p.played,"small")+"</td><td>"+(p.cost>0?showCard(p.best,"small"):"same")
+      // Level (23 Nov 2026): a play judged fine whose gap to the top card is inside the sampling noise is not shown another
+      // card as "best". Matt Glassman's ace-or-three hand: A♦ and 3♣ two cents apart read as "it wants the 3♣".
+      const level = p.cost>0 && p.verdict==="ok" && p.se!=null && p.cost<=2*p.se;
+      h+="<tr><td>"+(p.trick+1)+"</td><td>"+showCard(p.played,"small")+"</td><td>"+(level?"level":p.cost>0?showCard(p.best,"small"):"same")
         +'</td><td class="num">'+(p.cost>0?p.cost.toFixed(2):"0")+'</td><td>'+(p.verdict==="minor"||p.verdict==="major"?'<b class="mk '+p.verdict+'" style="margin:0">'+word[p.verdict]+"</b>":word[p.verdict])
         +'</td><td class="num" style="white-space:nowrap">'+mine.worth.toFixed(2)+(mine.pm!=null ? ' <span style="color:var(--dim)">\u00b1'+mine.pm.toFixed(2)+(p.rough?" rough":"")+"</span>" : "")+'</td><td class="num">'+(mine.make!=null ? mine.make+"%" : "\u2013")+"</td>"+layCell
         +'<td style="color:var(--dim)">'+p.options.map(o=>o.cards.map(t).join("=")+" "+o.worth.toFixed(2)+(o.make!=null ? " ("+o.make+"%"+(safer && o===safe ? ", safest" : "")+")" : "")).join(", ")+"</td></tr>";
@@ -1415,7 +1418,7 @@ function assessmentHtml(r){
   const money=a.unit==="money";
   const cur$=money?"$":"";
   h+='<details class="explain"><summary>Explain these columns</summary><div class="hint">'
-    +'<p style="margin:0 0 6px"><b>Cost</b> answers \u201cwas this the right card?\u201d. Every card on a trick is played out on the same '+a.samples+' imagined layouts of the hidden cards, so the gap between two cards is steady. Under '+cur$+ASSESS.minor+' is fine, up to '+(money?"$1":ASSESS.major+" point")+' minor, more than that major; \u201ctoo close to call\u201d means the gap is within the sampling noise.</p>'
+    +'<p style="margin:0 0 6px"><b>Cost</b> answers \u201cwas this the right card?\u201d. Every card on a trick is played out on the same '+a.samples+' imagined layouts of the hidden cards, so the gap between two cards is steady. Under '+cur$+ASSESS.minor+' is fine, up to '+(money?"$1":ASSESS.major+" point")+' minor, more than that major; \u201ctoo close to call\u201d means the gap is within the sampling noise. \u201cLevel\u201d under Best means your card and the top one are within that noise of each other, so neither is named.</p>'
     +'<p style="margin:0 0 6px"><b>Worth</b> answers \u201chow was I doing, on what I could know?\u201d: '+(money?"your average result for the hand in dollars at $1 a point (your points less the table\u2019s average)":"your average points for the hand")+' after that card, with every seat playing on as the '+a.by+' does. It is given at every trick, including the greyed ones where you had no real choice. Each trick draws its own layouts, so read the \u00b1 before comparing one trick with the next; \u201crough\u201d means few layouts explained the play so far. To compare Worth across tricks, set Precision to High or Very high and assess again.</p>'
     +(a.version>=7 ? '<p style="margin:0 0 6px"><b>Makes</b> is how often you make your own bid after that card, on the same layouts and the same play as Worth. Under \u201cEvery choice\u201d each card\u2019s figure follows its worth in brackets. Cost and the verdict go by money, where busting an opponent pays and a made bid is not everything; when making your bid matters more than the money on this hand (at Bust Out, where a bust sits you out of the next hand), compare these. \u201cSafest\u201d marks a card that makes at least 3 points more often than the one worth most.</p>' : "")
     +(a.lay ? '<p style="margin:0 0 6px"><b>As the cards lay</b> answers \u201cwhat actually decided the hand?\u201d: your result if, after the card you played, every seat played on as the '+a.by+' does with the cards really dealt. It uses the hidden cards, so it has no sampling noise, it moves only at a trick where a play changed the outcome, and it ends at your actual result. A mistake that left it unchanged cost nothing this time; a correct play after which it is still poor could not have saved the hand.</p>' : "")
@@ -2112,7 +2115,7 @@ $("onlyMarked").onchange=renderHistory;
 cuBuild(); dsBuild(); syncSetupHint(); renderHistory();
 
 /* hooks for automated checks */
-window.__ohhell={ READ, bustStudy, readArena, readArena2, readChoose, DS, dsSpec, dsLoad, calcLink, buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
+window.__ohhell={ READ, assessmentHtml, bustStudy, readArena, readArena2, readChoose, DS, dsSpec, dsLoad, calcLink, buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
 })();
 </script>
 </body>

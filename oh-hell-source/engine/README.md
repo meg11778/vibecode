@@ -894,3 +894,11 @@ One card-reading seat against the plain network, simulation bidders, same deals 
   +$0.034 +/-0.029. E minus D: +$0.019 +/-0.029, so four times is not shown to beat double.
 By size, D / E: 4p4 +0.04/+0.04, 4p6 +0.03/+0.03, 4p9 +0.11/+0.19, 5p5 +0.02/+0.05, 5p8 +0.12/+0.11, 6p5 0.00/+0.02
 (each +/-0.04 to 0.12). Opponents were the plain network; not tested against other card-reading bots.
+
+## 23 November 2026: the report says "level" when two cards are within the noise. PUBLISHED
+
+Display only (`assessmentHtml`): when a play is judged fine and its gap to the top card is no more than twice the
+standard error of that gap, the Best column shows "level" where it used to show the other card. Bigger gaps that are
+still inside the noise keep their card and the "too close to call" verdict. Works on stored version-8 reports, no
+re-assessment needed. From Matt's ace-or-three hand (A♦ and 3♣ two cents apart had read as "it wants the 3♣").
+Test `t34.js`; t19, t20, t30 to t33 and the 58 assertions pass. `assessmentHtml` is now on `window.__ohhell` for tests.
