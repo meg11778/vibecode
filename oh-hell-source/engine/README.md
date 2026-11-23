@@ -862,3 +862,19 @@ candidate calculator): calculator draws until 400 deals carry weight or 6,000 ar
 bot's bid, by seat, at 5p10 and 6p8. About 100 seconds a deal in the workspace.
 Live calculator note: Auto stops at 2,500 effective deals or 20,000 drawn; by these figures a 5-player 10-card
 dealer gets a few hundred effective deals.
+
+## 23 November 2026: second calculator test (enough deals behind each decision): the calculator's bid is level with the bot's
+
+Matt's laptop, 4,110 deals (`calculator-bidnet-test/results2-laptop-2026-11-23.jsonl`, `node summary2.js`). The
+calculator drew until 400 deals carried weight or 6,000 were drawn; one seat at a table of the game's bidders.
+- Calculator (network picture) minus the bot's own bid: -$0.04 +/-0.10 (6 players 8 cards), -$0.02 +/-0.12
+  (5 players 10 cards). Calculator (formula picture, the live one) minus bot: -$0.18 +/-0.13 and +$0.04 +/-0.14.
+  So the -$0.26 / -$0.30 of the first test was the thin sample, as suspected.
+- Network picture minus formula picture: +$0.14 +/-0.13 (6p8), -$0.06 +/-0.13 (5p10); together +$0.04 +/-0.09.
+  No overall gain; NOT published. By seat (wide bars): first two seats at 6p8 +$0.26 +/-0.28 and +$0.41 +/-0.31;
+  third and fourth seats at 5p10 -$0.28 +/-0.31 and -$0.24 +/-0.27.
+- The formula picture bids about 0.2 of a trick lower than the bots in the early seats (6p8 mean bid 0.98 against
+  1.16; 5p10 1.63 against 1.82); the network picture matches the bots' level.
+- Even 6,000 deals leave the late seats thin: fewer than 400 effective deals in 57 to 100% of decisions for the last
+  three seats (formula picture), and more often with the network picture (83 to 100%), whose weights are sharper.
+This line is closed unless a reason appears: the live calculator stays on the formula picture.
