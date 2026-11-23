@@ -902,3 +902,20 @@ standard error of that gap, the Best column shows "level" where it used to show 
 still inside the noise keep their card and the "too close to call" verdict. Works on stored version-8 reports, no
 re-assessment needed. From Matt's ace-or-three hand (A♦ and 3♣ two cents apart had read as "it wants the 3♣").
 Test `t34.js`; t19, t20, t30 to t33 and the 58 assertions pass. `assessmentHtml` is now on `window.__ohhell` for tests.
+
+## 23 November 2026: card-play network 1 retraining in today's bidding world: PACKAGED (`oh-hell-source/train-money-3/`)
+
+Why: the installed network was trained (`train-money-2/`) at tables bid by the bid formula, and its teacher filled up
+with deals that ignored the bids when its search ran out. Seat by seat the formula's bids match today's bots (bids
+drawn from the bidding network) only 61% (4p5), 53% (4p7), 45% (4p10), 42% (4p12) of the time; overbid tables are
+47 / 43 / 42 / 42% under the formula against 29 / 24 / 24 / 24% today.
+Changes from `train-money-2`: `table.js` draws each training bid from the bidding network (`bidnet.js` loads the
+page's `bidnet_block.js`) and `makeBidCheck` returns the probability of the bid made (within the seat's slack on
+perturbed deals); `rollout.js` keeps a sampled deal with that probability and uses fitted deals only (budget 60 tries
+a deal, earlier fitted deals reused when it runs out: all 20 fitted in 88% of decisions at 4 and 7 cards, 71% at 10,
+63% at 12; none fitted 0 to 4%). Self-play is about 1.6 times slower at 10 cards. Side suits were already shuffled
+in training (the `perms` in `encode.js`), so that needed no change. Starts from `engine/net_best.json`.
+`exam.js <weights>`: trump opening on Matt's overbid 10-card hand, A-4-3-2 bid 1 on lead, a zero bidder's highest
+losing card, and money against the installed network at today's tables (all deals and overbid deals).
+Baseline, installed network: opens a trump 0% (A♥ 74%), earning -$0.77 a deal there; A-4-3-2 makes 36%; highest
+losing card 95%. Smoke-tested with one tiny generation (play, train, test). Install only on a money gain.
