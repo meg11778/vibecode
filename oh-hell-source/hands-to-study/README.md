@@ -80,3 +80,7 @@ Points to remember:
   the two zero bidders every time (NW 67%, West forced to win 33%): zero bidders busted per hand 1.12 against 0.42,
   worth +$1.25 at $1.80 each, against -$0.85 for your own bonus. The card-reading bot throws a spade 96% (100% at
   10x). The throw loses only when the A♥ is out (27% of layouts: makes 52 to 84% there, 92% otherwise).
+- Ace or three with three tricks left, zero bid, 5 players 5 cards (`matt_5p5_ace_or_three.txt`, `matt_5p5_ace_or_three.js`;
+  looked at in the engine conversation, 22 Nov): holding 3♣ A♦ 6♦ on a heart lead, the report put the 3♣ ahead of the A♦.
+  It is a tie: zero made 99.83% after the A♦ and 99.92% after the 3♣ on 40,000 layouts, two cents apart. Only the 6♦
+  is worse (97%, about 30 cents). The report naming a "best" between two level cards is the confusing part.

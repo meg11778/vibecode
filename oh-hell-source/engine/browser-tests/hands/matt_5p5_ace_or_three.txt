@@ -1,0 +1,16 @@
+Oh Hell hand 3 of 8 | 5 players | 5 cards | trump ♠ (turned K♠) | dealer NE | bots played by: neural network with card reading
+Hands:
+  You   10♥ 9♣ 3♣ A♦ 6♦
+  West  A♠ 10♠ K♥ 8♣ 4♣
+  NW    6♠ 5♠ 9♥ 6♥ 2♦
+  NE    7♠ 4♠ J♥ 8♥ 10♣
+  East  9♠ 8♠ 3♠ 5♥ 6♣
+Bids, in order: East 2, You 0, West 2, NW 0, NE 0
+Trick  1: East leads 8♠, You 10♥, West 10♠, NW 6♠, NE 7♠  -> West
+Trick  2: West leads 4♣, NW 2♦, NE 10♣, East 6♣, You 9♣  -> NE
+Trick  3: NE leads J♥, East 5♥, You A♦, West K♥, NW 9♥  -> West
+Trick  4: West leads A♠, NW 5♠, NE 4♠, East 3♠, You 6♦  -> West
+Trick  5: West leads 8♣, NW 6♥, NE 8♥, East 9♠, You 3♣  -> East
+Note (22 Nov 2026): at trick 3 the report (Very high) put the 3♣ ahead of the A♦. Replay (hands-to-study/matt_5p5_ace_or_three.js):
+a tie. Bot's sums A♦ $3.00, 3♣ $3.02, 6♦ $2.70; on 40,000 layouts the zero is made 99.83% after the A♦, 99.92% after the 3♣,
+97.03% after the 6♦. The bot itself throws the A♦ 73% at Normal precision and the 3♣ 70% at Very high: noise between equals.
