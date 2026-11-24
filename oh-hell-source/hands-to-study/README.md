@@ -97,3 +97,9 @@ Points to remember:
   the A♥ had already won 5.0%. The A♥ is the unwanted trick in 79.5% of busts.
   Of the A♥ busts (6.0% of hands), 96.9% never had a trick on which the A♥ could be thrown as a sure loser; the other
   3% all trumped a diamond lead with the A♠ when the A♥ could have gone instead (0.18% of hands).
+  Club at trick 1, then a club or diamond at trick 2 with you void (`Q2=1`; 3,693 hands of 80,000, 4.6%): throw the A♥
+  makes 98.7% ±0.2, $3.18; trump with the A♠ and lead the 2♥ makes 96.4% ±0.3, $2.84 (-$0.34 ±0.04); throwing the 2♥ or
+  trumping and leading the A♥ about 52%. EXCEPTION: when someone ahead has already trumped the trick (691 hands),
+  overtrumping with the A♠ is worth +$0.44 ±0.12 more than the throw although it makes 91.0% against 99.4%: 1.69
+  opponents busted against 1.15. The card-reading bot agrees both ways (`RB=150`: A♥ 73% when nobody has trumped, A♠
+  78% when someone has); the plain network trumps 61% overall, which is wrong when nobody has trumped.

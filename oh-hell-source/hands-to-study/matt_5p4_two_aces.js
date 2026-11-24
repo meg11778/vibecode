@@ -23,12 +23,14 @@ const bidOf = (h, turned, q, prior, d) => { M.setKnown([turned]);
   if (BIDS === 'net') { const pb = M.bidNetProbs(Pn, n, turned, q, h, prior), B = prior.reduce((s, x) => s + x, 0), u = rng(); let acc = 0, bb = n; for (let x = 0; x <= n; x++) { acc += pb[x]; if (u < acc) { bb = x; break; } } if (q === Pn - 1 && bb === n - B) { let bp = -1; for (let x = 0; x <= n; x++) if (x !== n - B && pb[x] > bp) { bp = pb[x]; bb = x; } } return bb; }
   const B = prior.reduce((s, x) => s + x, 0), est = M.muFor(h, trump, n, Pn, q), adj = Math.max(0, Math.min(n, est * M.auctionFactor(n, Pn, B, Pn - q))), f = M.bidAt(adj, n, q === Pn - 1 ? n - B : -1);
   const r = M.simulateBid(h, trump, turned, n, Pn, q, prior.slice(), { bid: f, adj }, (seed * 7919 + d * 31 + q) >>> 0, null); return r.bid != null ? r.bid : f; };
-function playDeal(hands0, turned, bids, d) { const prng = M.mulberry32((seed ^ 0x51ed270b) + d), h = hands0.map(x => x.slice()), won = [0, 0, 0, 0, 0], seen = new Uint8Array(52), voids = h.map(() => [false, false, false, false]), hist = [];
+function playDeal(hands0, turned, bids, d, forced) { let myPlays = 0; const prng = M.mulberry32((seed ^ 0x51ed270b) + d), h = hands0.map(x => x.slice()), won = [0, 0, 0, 0, 0], seen = new Uint8Array(52), voids = h.map(() => [false, false, false, false]), hist = [];
   let turn = 0, led = -1, winCard = -1, winner = 0, i = 0, trick = []; M.setKnown([turned]);
   for (let left = Pn * n; left > 0; left--) { const lg = M.legalCards(h[turn], led); let c;
-    if (lg.length === 1) c = lg[0];
+    if (turn === ME && forced && forced[myPlays] != null && lg.includes(forced[myPlays])) c = forced[myPlays];
+    else if (lg.length === 1) c = lg[0];
     else if (PLAY === 'all' || (PLAY === 'read' && turn === ME)) c = M.readChoose({ Pn, n, trump, turned, bids, order, hand: h[turn], seen, voids, lens: h.map(x => x.length), won, turn, led, winCard, winner, playedInTrick: i, trick, hist }, prng).card;
     else c = M.netChoose({ hand: h[turn], seen, voids, lens: h.map(x => x.length), bids, won, turn, led, winCard, winner, playedInTrick: i, trick, turned, trump, n, P: Pn }, true).card;
+    if (turn === ME) myPlays++;
     h[turn].splice(h[turn].indexOf(c), 1); seen[c] = 1; trick.push(c); hist.push({ seat: turn, card: c });
     if (i === 0) led = M.suitOf(c); else if (M.suitOf(c) !== led) voids[turn][led] = true;
     if (M.beatsCard(c, winCard, trump)) { winCard = c; winner = turn; }
@@ -80,3 +82,36 @@ for (const su of [0, 1, 2, 3]) { const s = rows.filter(r => M.suitOf(r.hist[0]) 
     const k2 = !chances.length ? 'no chance: never a trick the A♥ could be thrown on' : chances.map(x => 'trick ' + (x.t + 1) + ', ' + '♠♥♦♣'[x.led] + ' led: played the ' + T(x.c) + (x.wonIt ? ' and won' : '') + (x.hadWon ? ' (bid already made)' : '')).join('; '); cat[k2] = (cat[k2] || 0) + 1; }
   console.log('the A♥ busts (' + tot + ', ' + (100 * tot / N).toFixed(1) + '% of hands): was there an earlier trick where the A♥ could have been thrown as a sure loser?');
   for (const k2 of Object.keys(cat).sort((x, y) => cat[y] - cat[x])) if (cat[k2] / tot >= 0.004) console.log('  ' + (100 * cat[k2] / tot).toFixed(1).padStart(5) + '% (' + (100 * cat[k2] / N).toFixed(2) + '% of hands)  ' + k2); }
+
+// Matt's question of 24 Nov: a club is led at trick 1 (your 2♣ goes), then a club or a diamond is led at trick 2 and you
+// are void: throw the A♥, or trump with the A♠ and lead the 2♥? (network in every seat except the forced cards)
+if (process.env.Q2) { const AS = C('A♠'), AH = C('A♥'), H2 = C('2♥'), set = [];
+  for (const r of rows) { if (M.suitOf(r.hist[0]) !== 3) continue; let w = 0; const cs = r.hist.slice(0, Pn); for (let j = 1; j < Pn; j++) if (M.beatsCard(cs[j], cs[w], trump)) w = j; if (w === ME) continue; const led2 = M.suitOf(r.hist[Pn]); if (led2 !== 2 && led2 !== 3) continue;
+    const pos = (ME - w + Pn) % Pn, before = r.hist.slice(Pn, Pn + pos), trumped = before.some(c => M.suitOf(c) === trump);
+    const run = f => { const x = playDeal(r.hands, r.turned, r.bids, r.d, f); return { money: x.money, won: x.won, hist: x.hist.map(e => e.card) }; };
+    set.push({ r, led2, pos, trumped, lines: { 'throw the A♥': run({ 1: AH }), 'trump with the A♠, lead the 2♥': run({ 1: AS, 2: H2 }), 'trump with the A♠, lead the A♥': run({ 1: AS, 2: AH }), 'throw the 2♥': run({ 1: H2 }) }, net: r.hist[Pn + pos] }); }
+  const show = (label, g) => { if (g.length < 20) return; console.log('\n' + label + ': ' + g.length + ' hands (' + (100 * g.length / N).toFixed(1) + '% of all)'); const names = Object.keys(g[0].lines), base = names[0];
+    for (const nm of names) { const m = g.map(x => x.lines[nm].money), d = g.map(x => x.lines[nm].money - x.lines[base].money), p = g.filter(x => x.lines[nm].won[ME] === MYBID).length / g.length;
+      console.log('  ' + nm.padEnd(32) + ' makes ' + (100 * p).toFixed(1).padStart(5) + '% ±' + (100 * Math.sqrt(p * (1 - p) / g.length)).toFixed(1) + ' | takes 0: ' + (100 * g.filter(x => x.lines[nm].won[ME] === 0).length / g.length).toFixed(1) + '%, 2+: ' + (100 * g.filter(x => x.lines[nm].won[ME] > MYBID).length / g.length).toFixed(1) + '% | worth $' + mean(m).toFixed(2) + ' | against throwing the A♥ ' + (mean(d) >= 0 ? '+' : '') + mean(d).toFixed(2) + ' ±' + sd(d).toFixed(2) + ' | opponents busted ' + mean(g.map(x => [0, 1, 3, 4].filter(q => x.lines[nm].won[q] !== x.r.bids[q]).length)).toFixed(2)); }
+    const nc = {}; for (const x of g) nc[T(x.net)] = (nc[T(x.net)] || 0) + 1; console.log('  the network itself plays: ' + Object.keys(nc).sort((x, y) => nc[y] - nc[x]).map(k2 => k2 + ' ' + (100 * nc[k2] / g.length).toFixed(0) + '%').join(', ')); };
+  show('club at trick 1, then a club or diamond at trick 2, you are void', set);
+  show('  trick 2 is a club', set.filter(x => x.led2 === 3)); show('  trick 2 is a diamond', set.filter(x => x.led2 === 2));
+  show('  nobody ahead of you has trumped trick 2', set.filter(x => !x.trumped)); show('  someone ahead of you has trumped trick 2', set.filter(x => x.trumped));
+  for (const ps of [1, 2, 3, 4]) show('  you are ' + ['', 'second', 'third', 'fourth', 'last'][ps] + ' to play at trick 2', set.filter(x => x.pos === ps));
+  // how the trump line fails and how the throw fails
+  const fl = (nm, f) => (100 * set.filter(x => f(x.lines[nm])).length / set.length).toFixed(1) + '%';
+  const lastTrick = L => { const cs = L.hist.slice(15, 20); return cs; };
+  console.log('\nafter trumping and leading the 2♥: the 2♥ wins trick 3 ' + fl('trump with the A♠, lead the 2♥', L => { const cs = L.hist.slice(10, 15); let w = 0; for (let j = 1; j < Pn; j++) if (M.beatsCard(cs[j], cs[w], trump)) w = j; return w === 0; }) + ' | the A♥ takes the last trick ' + fl('trump with the A♠, lead the 2♥', L => L.won[ME] >= 2));
+  console.log('after throwing the A♥: you take no trick ' + fl('throw the A♥', L => L.won[ME] === 0) + ' | the 2♥ also takes a trick ' + fl('throw the A♥', L => L.won[ME] >= 2)); }
+// the game's card-reading bot at that trick-2 choice, on sampled positions (RB=positions per group)
+if (process.env.Q2 && process.env.RB) { const AS = C('A♠'), AH = C('A♥'), per = +process.env.RB, prng = M.mulberry32(99), groups = { 'nobody has trumped ahead of you': [], 'someone has trumped ahead of you': [] };
+  for (const r of rows) { if (M.suitOf(r.hist[0]) !== 3) continue; let w = 0; const cs = r.hist.slice(0, Pn); for (let j = 1; j < Pn; j++) if (M.beatsCard(cs[j], cs[w], trump)) w = j; if (w === ME) continue; const led2 = M.suitOf(r.hist[Pn]); if (led2 !== 2 && led2 !== 3) continue;
+    const pos = (ME - w + Pn) % Pn, before = r.hist.slice(Pn, Pn + pos), key = before.some(c => M.suitOf(c) === trump) ? 'someone has trumped ahead of you' : 'nobody has trumped ahead of you'; if (groups[key].length < per) groups[key].push({ r, w, pos, before }); }
+  for (const key of Object.keys(groups)) { const cnt = {}, sum = {}; let tot = 0;
+    for (const { r, w, pos, before } of groups[key]) { const seen = new Uint8Array(52), voids = order.map(() => [false, false, false, false]), hist = [], won = [0, 0, 0, 0, 0]; won[w] = 1;
+      for (let j = 0; j < Pn; j++) { const c = r.hist[j]; seen[c] = 1; hist.push({ seat: j, card: c }); if (M.suitOf(c) !== 3) voids[j][3] = true; }
+      let winCard = -1, winner = w; before.forEach((c, j) => { const q = (w + j) % Pn; seen[c] = 1; hist.push({ seat: q, card: c }); if (j > 0 && M.suitOf(c) !== M.suitOf(before[0])) voids[q][M.suitOf(before[0])] = true; if (j === 0 || M.beatsCard(c, winCard, trump)) { winCard = c; winner = q; } });
+      const lens = order.map(q => n - 1 - (hist.slice(Pn).some(e => e.seat === q) ? 1 : 0)), mine = hand.filter(c => c !== C('2♣'));
+      M.setKnown([r.turned]); const o = M.readChoose({ Pn, n, trump, turned: r.turned, bids: r.bids, order, hand: mine, seen, voids, lens, won, turn: ME, led: M.suitOf(before[0]), winCard, winner, playedInTrick: pos, trick: before.slice(), hist }, prng);
+      tot++; cnt[T(o.card)] = (cnt[T(o.card)] || 0) + 1; for (const a2 of o.alts) sum[T(a2.card)] = (sum[T(a2.card)] || 0) + a2.score; }
+    console.log('card-reading bot, ' + key + ' (' + tot + ' positions): ' + Object.keys(sum).sort((x, y) => sum[y] - sum[x]).map(k2 => k2 + ' chosen ' + (100 * (cnt[k2] || 0) / tot).toFixed(0) + '%, its own figure $' + (sum[k2] / tot).toFixed(2)).join(' | ')); } }
