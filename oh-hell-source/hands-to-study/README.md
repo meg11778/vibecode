@@ -92,3 +92,6 @@ Points to remember:
   deals). The bids total 3 on about half of all deals; the bot in your seat bids 1 every time.
   By opening lead (20,000 deals): spade 46% of hands, makes 95.3% ±0.2, $3.11; diamond 19%, 99.0% ±0.2, $3.12; heart
   17%, 88.8% ±0.5, $2.36; club 18%, 82.1% ±0.6, $1.84.
+  Busts (7.6% of hands) by Matt's definitions: eaten (someone else led) 59.8%, all of it the A♥ following a heart on
+  the last trick; knuckled (on lead) 40.2%: the A♥ led at the last trick 19.7%, the 2♣ 8.7%, the 2♥ 6.7%, the A♠ after
+  the A♥ had already won 5.0%. The A♥ is the unwanted trick in 79.5% of busts.
