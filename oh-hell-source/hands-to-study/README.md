@@ -84,3 +84,9 @@ Points to remember:
   looked at in the engine conversation, 22 Nov): holding 3♣ A♦ 6♦ on a heart lead, the report put the 3♣ ahead of the A♦.
   It is a tie: zero made 99.83% after the A♦ and 99.92% after the 3♣ on 40,000 layouts, two cents apart. Only the 6♦
   is worse (97%, about 30 cents). The report naming a "best" between two level cards is the confusing part.
+- Two aces and two deuces (in-depth study, started 24 Nov 2026): 5 players, 4 cards, spades trump, third seat A♠ A♥ 2♥
+  2♣ bids 1, table one under (`matt_5p4_two_aces.js`: real deals, your hand fixed, a random spade turned, the other
+  seats bid as the bots do, deals not totalling 3 thrown away). Baseline: makes 92.4% ±0.2, worth $2.75 ±0.02 (20,000
+  deals, bids drawn from the bidding network, network play in every seat); every miss is a second trick, never zero.
+  Card-reading bot in your seat: 93.1% ±1.0, $2.80 ±0.09 (650 deals). Simulation bidders: 91.1% ±2.1, $2.80 ±0.19 (180
+  deals). The bids total 3 on about half of all deals; the bot in your seat bids 1 every time.
