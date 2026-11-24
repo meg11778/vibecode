@@ -103,3 +103,10 @@ Points to remember:
   overtrumping with the A♠ is worth +$0.44 ±0.12 more than the throw although it makes 91.0% against 99.4%: 1.69
   opponents busted against 1.15. The card-reading bot agrees both ways (`RB=150`: A♥ 73% when nobody has trumped, A♠
   78% when someone has); the plain network trumps 61% overall, which is wrong when nobody has trumped.
+  Diamond opening lead, you are void (`Q3=1`; 14,675 hands of 80,000): when the second seat follows (91% of these),
+  throw the A♥: $3.19 against $2.96 for trumping with the A♠ (-$0.23 ±0.02), both making 99%; the throw busts the first
+  and fourth seats more. When the second seat has trumped (9%; it had bid 1 in 97% of them), overtrump and lead the
+  2♣: $3.37 against $2.94 (+$0.43 ±0.07), making 96.7% against 98.6%; the second seat is busted 47% against 33% and the
+  dealer 45% against 32%. After the A♠ lead the 2♣, not the 2♥ (99% against 97%; 97% against 90% after an overtrump).
+  Card-reading bot: A♥ 63% when the second seat follows, A♠ 97% when it has trumped. This corrects the first reading
+  ("the two are the same"), which compared the network's own choices and was not a forced, paired test.
