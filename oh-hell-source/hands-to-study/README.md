@@ -90,3 +90,5 @@ Points to remember:
   deals, bids drawn from the bidding network, network play in every seat); every miss is a second trick, never zero.
   Card-reading bot in your seat: 93.1% ±1.0, $2.80 ±0.09 (650 deals). Simulation bidders: 91.1% ±2.1, $2.80 ±0.19 (180
   deals). The bids total 3 on about half of all deals; the bot in your seat bids 1 every time.
+  By opening lead (20,000 deals): spade 46% of hands, makes 95.3% ±0.2, $3.11; diamond 19%, 99.0% ±0.2, $3.12; heart
+  17%, 88.8% ±0.5, $2.36; club 18%, 82.1% ±0.6, $1.84.
