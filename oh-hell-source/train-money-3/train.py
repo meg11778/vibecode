@@ -27,7 +27,7 @@ F, NC = 262, 52
 import os
 HIDDEN = tuple(int(v) for v in os.environ.get("HIDDEN", "128,128").split(","))
 OUT = os.environ.get("OUT", "net_weights.json")
-TAU = 0.25            # Vienna points; how sharply the target prefers the best card
+TAU = float(os.environ.get("TAU", "0.25"))            # Vienna points; how sharply the target prefers the best card
 BATCH = 512
 LR = 1e-3
 EPOCHS = int(sys.argv[1]) if len(sys.argv) > 1 else 40

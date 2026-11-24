@@ -1,0 +1,4 @@
+1. overbid 10-card hand (3000 deals): opens a trump 0%, the A♥ 25%; earns $-0.53 a deal
+2. A-4-3-2 as the whole hand, bid 1, on lead (6000 deals): leads the ace 100%; makes its bid 36%
+3. zero bidder following suit with a choice (16304 plays, 7 cards): highest losing card 95%, a lower card 5%, takes the trick 1%
+4. dollars a deal against net_weights.json, one seat: 5 cards +0.010 ±0.022 (overbid deals +0.020 ±0.043); 7 cards +0.017 ±0.030 (overbid deals -0.015 ±0.066); 10 cards +0.007 ±0.043 (overbid deals -0.026 ±0.093); 12 cards -0.032 ±0.050 (overbid deals -0.186 ±0.101); all +0.000 ±0.019, overbid -0.050 ±0.039

@@ -919,3 +919,25 @@ in training (the `perms` in `encode.js`), so that needed no change. Starts from 
 losing card, and money against the installed network at today's tables (all deals and overbid deals).
 Baseline, installed network: opens a trump 0% (A♥ 74%), earning -$0.77 a deal there; A-4-3-2 makes 36%; highest
 losing card 95%. Smoke-tested with one tiny generation (play, train, test). Install only on a money gain.
+
+## 24 November 2026: train-money-3 after 16 generations (Matt's laptop, about 70 minutes each): NO GAIN; the teacher's noise is the likely reason training plateaus
+
+`train-money-3/results/` (`net_g16.json`, `log_g16.txt`, `exam_g16.txt`). Generation by generation the log reads
++0.015, +0.008, +0.008, -0.008, +0.007, (rejected -0.018), -0.003, +0.001, -0.001, -0.001, +0.001, -0.001, +0.005,
++0.011, -0.003, +0.008, each +/-0.015.
+Exam, generation 16 against the installed network at today's tables (30,000 deals a size, one seat):
+all deals +$0.000 +/-0.019; overbid deals -$0.050 +/-0.039 (12 cards overbid -$0.186 +/-0.101). Matt's overbid
+10-card hand: opens a trump 0% (generation 2: 6%), the A♥ 25% (installed 74%), mostly a diamond now; earns -$0.53
+a deal (installed -$0.77). A-4-3-2 bid 1 on lead still makes 36%; highest losing card 95%. Not installed.
+WHY (`teacher_check.js`): on that hand the teacher's AVERAGE values are right (trump leads +$0.02 to +$0.17,
+4♦ -$0.24, J♦ -$0.40, A♥ -$0.75 to -$0.86), but with 20 imagined deals a decision its TOP PICK is close to random:
+a trump card is top 11 to 18% each, the A♥ 10 to 11%, the 2♣ 6 to 9%. `train.py` turns each decision's values into
+a target that puts nearly all its weight on that decision's best card (TAU 0.25 points), so in close or hard spots
+the network is taught mostly noise, and three touching trumps split what signal there is. Also only 8.6 of the 20
+deals fit the bids on that hand. This fits every card-play run so far gaining a cent or two and then stalling.
+Tried quickly, NOT conclusive (15,300 decisions from overbid 10-card deals, fine-tuning generation 16; far too little
+data): the same target, and softer targets (TAU 1 and 2), all left it leading an ace. Added for such experiments:
+`OVERSHARE` (share of deals redrawn until overbid, `table.js`) and `TAU` (`train.py`) as environment settings.
+What a real attempt would need: a teacher with far less noise per decision (ten times the deals, ten times the
+cost) or a network trained on the teacher's average value for each card instead of each decision's winner; the
+second changes the scale of the network's scores, which the card reading (`READ.beta`) depends on.

@@ -72,7 +72,14 @@ function makeLongDeal(rng, P, n, noTrump) {
    network practises hands and contracts it never met when every seat bid by
    the book. slack[p] is how far seat p's bid may be from the model's; the
    auction check uses it, so sampled deals still fit the bids. */
+/* OVERSHARE (environment, 0 to 1): that share of deals is redrawn until the table is overbid, so the network gets more
+   practice at overbid tables (24 to 29% of ordinary deals at today's bidding). Added 24 Nov 2026. */
+const OVERSHARE = Number(process.env.OVERSHARE || 0);
 function makeScenario(rng, P, n, ntShare, perturb, freak) {
+  if (OVERSHARE > 0 && rng() < OVERSHARE) { for (let t = 0; t < 40; t++) { const sc = makeScenario1(rng, P, n, ntShare, perturb, freak); if (sc.bids.reduce((x, y) => x + y, 0) > n) return sc; } }
+  return makeScenario1(rng, P, n, ntShare, perturb, freak);
+}
+function makeScenario1(rng, P, n, ntShare, perturb, freak) {
   const nt = rng() < (ntShare || 0);
   const long = n >= 5 && rng() < (freak || 0);
   const deal = long ? makeLongDeal(rng, P, n, nt) : makeDeal(rng, P, n, nt);
