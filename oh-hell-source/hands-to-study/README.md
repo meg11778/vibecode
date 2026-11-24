@@ -95,3 +95,5 @@ Points to remember:
   Busts (7.6% of hands) by Matt's definitions: eaten (someone else led) 59.8%, all of it the A♥ following a heart on
   the last trick; knuckled (on lead) 40.2%: the A♥ led at the last trick 19.7%, the 2♣ 8.7%, the 2♥ 6.7%, the A♠ after
   the A♥ had already won 5.0%. The A♥ is the unwanted trick in 79.5% of busts.
+  Of the A♥ busts (6.0% of hands), 96.9% never had a trick on which the A♥ could be thrown as a sure loser; the other
+  3% all trumped a diamond lead with the A♠ when the A♥ could have gone instead (0.18% of hands).

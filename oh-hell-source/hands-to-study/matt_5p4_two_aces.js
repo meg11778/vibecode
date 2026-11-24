@@ -68,3 +68,15 @@ for (const su of [0, 1, 2, 3]) { const s = rows.filter(r => M.suitOf(r.hist[0]) 
   console.log('  knuckled (on lead) ' + (100 * kn / B).toFixed(1) + '% of busts | ate (someone else led) ' + (100 * (B - kn) / B).toFixed(1) + '%');
   for (const k2 of Object.keys(cat).sort((x, y) => cat[y] - cat[x])) if (cat[k2] / B >= 0.005) console.log('    ' + (100 * cat[k2] / B).toFixed(1).padStart(5) + '% of busts (' + (100 * cat[k2] / N).toFixed(2) + '% of hands)  ' + k2);
   console.log('  with the wanted trick:'); for (const k3 of Object.keys(first).sort((x, y) => first[y] - first[x])) if (first[k3] / B >= 0.005) console.log('    ' + (100 * first[k3] / B).toFixed(1).padStart(5) + '%  ' + k3); }
+// the A♥ busts: was there an earlier trick on which the A♥ could have been thrown as a certain loser, and what was played instead?
+{ const AH = C('A♥'), cat = {}; let tot = 0;
+  for (const r of rows) { if (r.won[ME] <= MYBID || !hand.includes(AH)) continue; let leader = 0, mine = hand.slice(), myW = 0, unwanted = -1; const chances = [];
+    for (let t = 0; t < n; t++) { const cs = r.hist.slice(t * Pn, t * Pn + Pn), pos = (ME - leader + Pn) % Pn, c = cs[pos]; let w = 0; for (let j = 1; j < Pn; j++) if (M.beatsCard(cs[j], cs[w], trump)) w = j;
+      if (pos > 0 && mine.includes(AH) && c !== AH) { const led = M.suitOf(cs[0]), legal = M.legalCards(mine, led), trumped = cs.slice(0, pos).some(x => M.suitOf(x) === trump) && led !== trump;
+        if (legal.includes(AH) && (led !== 1 || trumped)) chances.push({ t, c, led, wonIt: (leader + w) % Pn === ME, hadWon: myW }); }
+      if ((leader + w) % Pn === ME) { myW++; if (myW === MYBID + 1) unwanted = c; }
+      mine.splice(mine.indexOf(c), 1); leader = (leader + w) % Pn; }
+    if (unwanted !== AH) continue; tot++;
+    const k2 = !chances.length ? 'no chance: never a trick the A♥ could be thrown on' : chances.map(x => 'trick ' + (x.t + 1) + ', ' + '♠♥♦♣'[x.led] + ' led: played the ' + T(x.c) + (x.wonIt ? ' and won' : '') + (x.hadWon ? ' (bid already made)' : '')).join('; '); cat[k2] = (cat[k2] || 0) + 1; }
+  console.log('the A♥ busts (' + tot + ', ' + (100 * tot / N).toFixed(1) + '% of hands): was there an earlier trick where the A♥ could have been thrown as a sure loser?');
+  for (const k2 of Object.keys(cat).sort((x, y) => cat[y] - cat[x])) if (cat[k2] / tot >= 0.004) console.log('  ' + (100 * cat[k2] / tot).toFixed(1).padStart(5) + '% (' + (100 * cat[k2] / N).toFixed(2) + '% of hands)  ' + k2); }
