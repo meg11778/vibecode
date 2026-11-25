@@ -864,7 +864,10 @@ function endHand(){
    Works from a saved record, so any saved hand can be assessed. Runs in short
    slices so the page stays responsive. */
 const ASSESS = { thin:30, samples:160, minor:0.25, major:1.0, fitOnly:true };   // fitOnly (21 Nov 2026): price choices only on imagined layouts that fit the bids
-function assessSetup(r){
+/* seat: whose decisions to collect (0 = You). judgeSet: also judge cards that were entered in the deal set-up, which
+   the ordinary report leaves alone (25 Nov 2026, for reviewing every player of a hand typed in from a book). */
+function assessSetup(r, seat, judgeSet){
+  const me=seat||0;
   const Pn=r.players.length, n=r.cards, trump=r.trump?"SHDC".indexOf(r.trump):-1, turned=r.turned?parseCard(r.turned):-1;
   const hands=r.hands.map(h=>h.map(parseCard)), bids=new Array(Pn).fill(0), order=r.bids.map(b=>b.seat);
   for(const b of r.bids) bids[b.seat]=b.bid;
@@ -874,10 +877,10 @@ function assessSetup(r){
     let led=-1, winCard=-1, winner=k.leader; const trick=[];
     k.plays.forEach((p,i)=>{
       const c=parseCard(p.card);
-      const snap=()=>({ hand:hands[0].slice(), seen:seen.slice(), voids:voids.map(v=>v.slice()), lens:hands.map(h=>h.length), won:won.slice(), led, winCard, winner, playedInTrick:i, trick:trick.slice() });
-      if(p.seat===0) mine.push({ trick:ti, card:c, st:snap(), truth:hands.map(h=>h.slice()) });     // for the value of the hand as the cards lay
-      if(p.seat===0)
-        decisions.push({ trick:ti, card:c, noChoice: p.by==="set" ? "set" : legalCards(hands[0],led).length>1 ? null : "only", st:{ hand:hands[0].slice(), seen:seen.slice(), voids:voids.map(v=>v.slice()), lens:hands.map(h=>h.length),
+      const snap=()=>({ hand:hands[me].slice(), seen:seen.slice(), voids:voids.map(v=>v.slice()), lens:hands.map(h=>h.length), won:won.slice(), led, winCard, winner, playedInTrick:i, trick:trick.slice() });
+      if(p.seat===me) mine.push({ trick:ti, card:c, st:snap(), truth:hands.map(h=>h.slice()) });     // for the value of the hand as the cards lay
+      if(p.seat===me)
+        decisions.push({ trick:ti, card:c, noChoice: p.by==="set" && !judgeSet ? "set" : legalCards(hands[me],led).length>1 ? null : "only", st:{ hand:hands[me].slice(), seen:seen.slice(), voids:voids.map(v=>v.slice()), lens:hands.map(h=>h.length),
           won:won.slice(), led, winCard, winner, playedInTrick:i, trick:trick.slice(), playedBy:playedBy.map(x=>x.slice()), hist:hist.slice() } });
       hands[p.seat].splice(hands[p.seat].indexOf(c),1); seen[c]=1; trick.push(c); playedBy[p.seat].push(c); hist.push({ seat:p.seat, card:c });
       if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[p.seat][led]=true;
@@ -885,8 +888,8 @@ function assessSetup(r){
     });
     won[k.winner]++;
   });
-  let h=0; for(const ch of (r.id+r.savedAt)) h=(Math.imul(h,31)+ch.charCodeAt(0))>>>0;
-  return { Pn, n, trump, turned, bids, order, decisions, mine, rng:mulberry32(h||1) };
+  let h=0; for(const ch of (r.id+r.savedAt+(me?"/"+me:""))) h=(Math.imul(h,31)+ch.charCodeAt(0))>>>0;
+  return { Pn, n, trump, turned, bids, order, decisions, mine, me, rng:mulberry32(h||1) };
 }
 /* Hidden hands for the other seats: random, respecting the suits each has
    shown out of (the sampler the self-play training used). */
@@ -942,8 +945,8 @@ function assessLayouts(A, st, K){
   const before=new Array(A.Pn).fill(0), posOf=new Array(A.Pn).fill(0); { let B=0; A.order.forEach((s,i)=>{ before[s]=B; posOf[s]=i; B+=A.bids[s]; }); }
   const deals=[], wts=[]; let wSum=0, wSum2=0;
   for(let d=0; d<K*8; d++){
-    const hands=dealHidden(unseen, st.lens, st.voids, A.Pn, A.rng); let w=1;
-    for(let s=1;s<A.Pn;s++){
+    const hands=dealHidden(unseen, st.lens, st.voids, A.Pn, A.rng, A.me); let w=1;
+    for(let s=0;s<A.Pn;s++){ if(s===A.me) continue;
       const full=hands[s].concat(st.playedBy[s]).sort((a,b)=>a-b), pos=posOf[s];
       w*=bidLikelihood(muFor(full,A.trump,A.n,A.Pn,pos)*auctionFactor(A.n,A.Pn,before[s],A.Pn-pos), A.n, pos===A.Pn-1 ? A.n-before[s] : -1, A.bids[s], PROFILE_DEFAULT);
     }
@@ -1305,8 +1308,8 @@ function bustStudy(Pn, n, deals, seed){
 }
 const verdictOf = (cost, se) => cost<ASSESS.minor ? "ok" : cost<=2*se ? "close" : cost<ASSESS.major ? "minor" : "major";
 /* How the bid did, from the simulation run on your hand when the hand ended. */
-function assessBid(r){
-  const b=r.bids.find(x=>x.seat===0);
+function assessBid(r, seat){
+  const b=r.bids.find(x=>x.seat===(seat||0));
   if(!b || !b.sim) return null;
   const mine=b.sim.find(x=>x.bid===b.bid), best=b.sim.reduce((a,x)=>x.edge>a.edge?x:a, b.sim[0]);
   if(!mine) return { bid:b.bid, best:best.bid, verdict:"unpriced" };
@@ -1315,8 +1318,9 @@ function assessBid(r){
 }
 /* Run the assessment. onProgress(done, total); onDone(assessment). Returns a
    function that cancels it. */
-function assessHand(r, onProgress, onDone){
-  const prec=ASSESS.prec||READ.prec, A=assessSetup(r), K=Math.round(ASSESS.samples*prec), useNet=netCovers(A.Pn,A.n,A.trump), out=[];
+function assessHand(r, onProgress, onDone, o){
+  o=o||{};
+  const me=o.seat||0, prec=ASSESS.prec||READ.prec, A=assessSetup(r, me, !!o.judgeSet), K=Math.round(ASSESS.samples*prec), useNet=netCovers(A.Pn,A.n,A.trump), out=[];
   let di=0, cur=null, dead=false;
   const total=A.decisions.length;
   function slice(){
@@ -1326,8 +1330,9 @@ function assessHand(r, onProgress, onDone){
     while(performance.now()-t0<30){
       if(di>=total){
         // the hand as the cards lay: after each card I played, my result if every seat then plays on as the bots do on the actual deal
-        const lay=A.mine.map(m=>({ trick:m.trick, worth:+playOut(A,m.st,m.truth,m.card,useNet).toFixed(2) }));
-        const a={ version:8, prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid:assessBid(r) };
+        const lay=A.mine.map(m=>({ trick:m.trick, worth:+playOut(A,m.st,m.truth,m.card,useNet,me).toFixed(2) }));
+        const a={ version:8, prec, unit:"money", reading:useNet, samples:K, by: useNet ? "neural network" : "rules engine", plays:out, lay, bid: o.bid!==undefined ? o.bid : assessBid(r, me) };
+        if(me) a.seat=me;
         return onDone(a);
       }
       const D=A.decisions[di];
@@ -1339,7 +1344,7 @@ function assessHand(r, onProgress, onDone){
         // with the network playing, the layouts are read from the play so far as well as from the bids
         let L;
         if(useNet){
-          const S={ Pn:A.Pn, n:A.n, trump:A.trump, turned:A.turned, bids:A.bids, order:A.order, hand:D.st.hand, seen:D.st.seen, voids:D.st.voids, lens:D.st.lens, turn:0, hist:D.st.hist };
+          const S={ Pn:A.Pn, n:A.n, trump:A.trump, turned:A.turned, bids:A.bids, order:A.order, hand:D.st.hand, seen:D.st.seen, voids:D.st.voids, lens:D.st.lens, turn:me, hist:D.st.hist };
           // Only layouts that fit the bids (21 Nov 2026). When the search ran out, the rest used to be filled with layouts
           // that ignored the bids: three quarters of them on Matt Glassman's overbid 10-card hand, which priced a trump
           // opening at +$1.72 and the ace of hearts at +$1.33 when real deals give +$0.03 and -$0.69. Fitted only: +$0.23, -$0.48.
@@ -1351,8 +1356,8 @@ function assessHand(r, onProgress, onDone){
         } else L=assessLayouts(A,D.st,K);
         cur={ single, groups, picks:L.picks, fit:L.fit, ess: L.ess==null ? K : Math.min(K,L.ess), k:0, vals:groups.map(()=>new Float32Array(K)), made:groups.map(()=>0) };
       }
-      const hands=cur.picks[cur.k].slice(); hands[0]=D.st.hand;
-      for(let g=0;g<cur.groups.length;g++){ cur.vals[g][cur.k]=playOut(A,D.st,hands,cur.groups[g][0],useNet); cur.made[g]+=playOut.made; }
+      const hands=cur.picks[cur.k].slice(); hands[me]=D.st.hand;
+      for(let g=0;g<cur.groups.length;g++){ cur.vals[g][cur.k]=playOut(A,D.st,hands,cur.groups[g][0],useNet,me); cur.made[g]+=playOut.made; }
       if(++cur.k===K){
         const mean=cur.vals.map(v=>{ let t=0; for(let k=0;k<K;k++) t+=v[k]; return t/K; });
         const gi=cur.groups.findIndex(g=>g.includes(D.card)); let bi=0;
@@ -1376,9 +1381,9 @@ function assessHand(r, onProgress, onDone){
   return ()=>{ dead=true; };
 }
 /* The report, as HTML. */
-function assessmentHtml(r){
+function assessmentHtml(r, a0){
   const money$=v=>(v<0?"\u2212":"+")+"$"+Math.abs(v).toFixed(2);
-  const a=r.assessment, t=c=>cardText(parseCard(c)), word={ ok:"fine", close:"too close to call", minor:"minor mistake", major:"major mistake", unpriced:"not priced" };
+  const a=a0||r.assessment, me=a.seat||0, who=me?r.players[me]:"You", t=c=>cardText(parseCard(c)), word={ ok:"fine", close:"too close to call", minor:"minor mistake", major:"major mistake", unpriced:"not priced" };
   const flagged=a.plays.filter(p=>p.verdict==="minor"||p.verdict==="major");
   const nMin=flagged.filter(p=>p.verdict==="minor").length, nMaj=flagged.length-nMin;
   const lost=flagged.reduce((x,p)=>x+p.cost,0);
@@ -1393,12 +1398,12 @@ function assessmentHtml(r){
   let h='<p class="verdict">'+bidLine+"Play: "+playLine+".</p>";
   const rows=a.plays.filter(p=>!p.same);
   if(r.tricks.length){
-    h+='<div class="scroll"><table><thead><tr><th>Trick</th><th>You played</th><th>Best</th><th class="num">Cost</th><th>Verdict</th><th class="num">Worth</th><th class="num">Makes</th><th class="num">As the cards lay</th><th>Every choice</th></tr></thead><tbody>';
+    h+='<div class="scroll"><table><thead><tr><th>Trick</th><th>'+who+' played</th><th>Best</th><th class="num">Cost</th><th>Verdict</th><th class="num">Worth</th><th class="num">Makes</th><th class="num">As the cards lay</th><th>Every choice</th></tr></thead><tbody>';
     r.tricks.forEach((k,ti)=>{
       const p=a.plays.find(x=>x.trick===ti), ly=a.lay && a.lay.find(x=>x.trick===ti), layCell='<td class="num">'+(ly ? money$(ly.worth) : "\u2013")+"</td>";
       if(!p || p.same){                       // no real choice on this trick
-        const c=k.plays.find(x=>x.seat===0).card;
-        h+='<tr style="opacity:.55"><td>'+(ti+1)+"</td><td>"+showCard(c,"small")+'</td><td>\u2013</td><td class="num">\u2013</td><td>'+(p ? (p.why==="set"?"as set up":p.why==="only"?"only card":"all equivalent") : k.plays.find(x=>x.seat===0).by==="set"?"as set up":"only card")
+        const c=k.plays.find(x=>x.seat===me).card;
+        h+='<tr style="opacity:.55"><td>'+(ti+1)+"</td><td>"+showCard(c,"small")+'</td><td>\u2013</td><td class="num">\u2013</td><td>'+(p ? (p.why==="set"?"as set up":p.why==="only"?"only card":"all equivalent") : k.plays.find(x=>x.seat===me).by==="set"?"as set up":"only card")
           +'</td><td class="num" style="white-space:nowrap">'+(p && p.worth!=null ? p.worth.toFixed(2)+' \u00b1'+p.pm.toFixed(2)+(p.rough?" rough":"") : "\u2013")+'</td><td class="num">'+(p && p.make!=null ? p.make+"%" : "\u2013")+"</td>"+layCell+"<td></td></tr>";
         return;
       }
@@ -1418,6 +1423,7 @@ function assessmentHtml(r){
   const money=a.unit==="money";
   const cur$=money?"$":"";
   h+='<details class="explain"><summary>Explain these columns</summary><div class="hint">'
+    +(me ? '<p style="margin:0 0 6px">This table is from '+who+'\u2019s seat: what '+who+' held and could see. Read \u201cyou\u201d below as '+who+'.</p>' : "")
     +'<p style="margin:0 0 6px"><b>Cost</b> answers \u201cwas this the right card?\u201d. Every card on a trick is played out on the same '+a.samples+' imagined layouts of the hidden cards, so the gap between two cards is steady. Under '+cur$+ASSESS.minor+' is fine, up to '+(money?"$1":ASSESS.major+" point")+' minor, more than that major; \u201ctoo close to call\u201d means the gap is within the sampling noise. \u201cLevel\u201d under Best means your card and the top one are within that noise of each other, so neither is named.</p>'
     +'<p style="margin:0 0 6px"><b>Worth</b> answers \u201chow was I doing, on what I could know?\u201d: '+(money?"your average result for the hand in dollars at $1 a point (your points less the table\u2019s average)":"your average points for the hand")+' after that card, with every seat playing on as the '+a.by+' does. It is given at every trick, including the greyed ones where you had no real choice. Each trick draws its own layouts, so read the \u00b1 before comparing one trick with the next; \u201crough\u201d means few layouts explained the play so far. To compare Worth across tricks, set Precision to High or Very high and assess again.</p>'
     +(a.version>=7 ? '<p style="margin:0 0 6px"><b>Makes</b> is how often you make your own bid after that card, on the same layouts and the same play as Worth. Under \u201cEvery choice\u201d each card\u2019s figure follows its worth in brackets. Cost and the verdict go by money, where busting an opponent pays and a made bid is not everything; when making your bid matters more than the money on this hand (at Bust Out, where a bust sits you out of the next hand), compare these. \u201cSafest\u201d marks a card that makes at least 3 points more often than the one worth most.</p>' : "")
@@ -1461,6 +1467,103 @@ function mountAssessment(r, opts){
   };
   if(opts.assess) run();
   else { el.innerHTML='<button class="btn quiet" id="rvAssessGo">Assess my play</button>'; $("rvAssessGo").onclick=run; }
+}
+
+/* ----- every player's play (25 Nov 2026, Matt Glassman) -----
+   The ordinary report judges your seat only, and leaves alone any card entered in a deal set-up. For a whole hand
+   typed in from a book that judges almost nothing. This reviews every seat in turn, each from what that seat held
+   and could see when it acted, cards from a set-up included, and judges every bid afresh on 600 simulated deals.
+   Kept on the saved hand as r.review = { version, prec, seats:[one assessment per seat] }. */
+const REVIEW_V=1, REVIEW_LINE=0.5;      // the summary lists bids and plays that cost this many dollars or more
+function reviewBid(r, seat){
+  const Pn=r.players.length, n=r.cards, trump=r.trump?"SHDC".indexOf(r.trump):-1, turned=r.turned?parseCard(r.turned):-1;
+  const pos=r.bids.findIndex(b=>b.seat===seat); if(pos<0) return null;
+  const mine=r.bids[pos].bid, prior=r.bids.slice(0,pos).map(b=>b.bid), hand=r.hands[seat].map(parseCard).sort((a,b)=>a-b), claimed=prior.reduce((a,b)=>a+b,0);
+  KNOWN = turned>=0 ? [turned] : [];
+  const est=muFor(hand,trump,n,Pn,pos), adj=Math.max(0,Math.min(n,est*auctionFactor(n,Pn,claimed,Pn-pos)));
+  const formula={ bid:bidAt(adj,n,pos===Pn-1?n-claimed:-1), est:+est.toFixed(2), adj:+adj.toFixed(2) };
+  let h=0; for(const ch of (r.id+r.savedAt+"/bid"+seat)) h=(Math.imul(h,31)+ch.charCodeAt(0))>>>0;
+  const sim=simulateBid(hand,trump,turned,n,Pn,pos,prior,formula,h||1,{ also:[mine], cmp:mine, samples:600, maxDraws:20000 });
+  if(!sim.table) return { bid:mine, best:sim.bid!=null?sim.bid:formula.bid, verdict:"unpriced" };
+  const row=sim.table.find(x=>x.bid===mine), best=sim.table.reduce((a,x)=>x.edge>a.edge?x:a, sim.table[0]);
+  if(!row) return { bid:mine, best:best.bid, verdict:"unpriced" };
+  const cost=Math.max(0, sim.cmp ? sim.cmp.cost : best.edge-row.edge), se=sim.cmp ? sim.cmp.se : 0.3;
+  return { bid:mine, best:best.bid, cost:+cost.toFixed(2), se, verdict:verdictOf(cost,se) };
+}
+/* onProgress(seat, fraction of that seat done); onDone(review). Returns a function that cancels it. */
+function reviewAll(r, prec, onProgress, onDone){
+  const Pn=r.players.length, seats=[]; let s=0, inner=null, dead=false;
+  const next=()=>{
+    if(dead) return;
+    if(s>=Pn) return onDone({ version:REVIEW_V, prec:prec||READ.prec, seats });
+    onProgress(s,0);
+    setTimeout(()=>{
+      if(dead) return;
+      const bid=(s===0 && assessBid(r,0)) || reviewBid(r,s);     // your own bid keeps the verdict your report already gave it
+      ASSESS.prec=prec||null;                                // read once, as each seat's assessment starts
+      inner=assessHand(r, (d,t)=>onProgress(s, t?d/t:1), a=>{ a.seat=s; seats.push(a); s++; next(); }, { seat:s, judgeSet:true, bid });
+      ASSESS.prec=null;
+    },0);
+  };
+  next();
+  return ()=>{ dead=true; if(inner) inner(); };
+}
+function reviewSummaryHtml(r, rv){
+  const nm=r.players, word={ minor:"minor mistake", major:"major mistake" }, flag=v=>v==="minor"||v==="major", items=[];
+  let h='<div class="scroll"><table><thead><tr><th>Player</th><th>Bid</th><th>Play</th><th class="num">Given up</th></tr></thead><tbody>';
+  rv.seats.forEach((a,s)=>{
+    const bad=a.plays.filter(p=>!p.same && flag(p.verdict)), nMaj=bad.filter(p=>p.verdict==="major").length, nMin=bad.length-nMaj, lost=bad.reduce((x,p)=>x+p.cost,0)+(a.bid && flag(a.bid.verdict) ? a.bid.cost : 0);
+    const b=a.bid, bidCell = !b ? "–" : b.verdict==="ok" ? b.bid+", fine" : b.verdict==="close" ? b.bid+", too close to call" : b.verdict==="unpriced" ? b.bid+", not priced" : b.bid+', <b class="mk '+b.verdict+'" style="margin:0;cursor:auto">'+word[b.verdict]+"</b> ("+b.best+" better)";
+    const playCell = !a.plays.some(p=>!p.same) ? "nothing to choose" : !bad.length ? "no mistakes" : [nMaj?'<b class="mk major" style="margin:0;cursor:auto">'+nMaj+" major</b>":"", nMin?'<b class="mk minor" style="margin:0;cursor:auto">'+nMin+" minor</b>":""].filter(Boolean).join(", ");
+    h+="<tr><td>"+nm[s]+"</td><td>"+bidCell+"</td><td>"+playCell+'</td><td class="num">'+(lost>0?"$"+lost.toFixed(2):"–")+"</td></tr>";
+    if(b && flag(b.verdict) && b.cost>=REVIEW_LINE) items.push({ ord:-1+r.bids.findIndex(x=>x.seat===s)/100, when:"Bidding", who:nm[s], did:"bid "+b.bid, best:"bid "+b.best, cost:b.cost, verdict:b.verdict });
+    for(const p of bad) if(p.cost>=REVIEW_LINE){ const k=r.tricks[p.trick];
+      items.push({ ord:p.trick+k.plays.findIndex(x=>x.seat===s)/100, when:"Trick "+(p.trick+1), who:nm[s], did:showCard(p.played,"small"), best:showCard(p.best,"small"), cost:p.cost, verdict:p.verdict }); }
+  });
+  h+="</tbody></table></div>";
+  items.sort((a,b)=>a.ord-b.ord);
+  if(!items.length) h+='<p class="hint" style="margin:8px 0 0">No bid or play in this hand cost $'+REVIEW_LINE.toFixed(2)+" or more.</p>";
+  else { h+='<p style="margin:10px 0 4px">Bids and plays that cost $'+REVIEW_LINE.toFixed(2)+' or more, in order:</p><div class="scroll"><table id="rvAllList"><thead><tr><th>When</th><th>Player</th><th>Did</th><th>Better</th><th class="num">Cost</th><th>Verdict</th></tr></thead><tbody>'
+    +items.map(x=>"<tr><td>"+x.when+"</td><td>"+x.who+"</td><td>"+x.did+"</td><td>"+x.best+'</td><td class="num">'+x.cost.toFixed(2)+'</td><td><b class="mk '+x.verdict+'" style="margin:0">'+word[x.verdict]+"</b></td></tr>").join("")+"</tbody></table></div>"; }
+  return h;
+}
+let reviewCancel=null, reviewKey=null, reviewAt="";
+function mountReview(r, opts){
+  const el=$("rvAll"); if(!el) return; opts=opts||{};
+  const key=r.id+r.savedAt, nm=r.players, sameRec=el.dataset.rec===key; el.dataset.rec=key;
+  if(reviewCancel && reviewKey!==key){ reviewCancel(); reviewCancel=null; }           // another hand is on screen now
+  const precSel=(id,cur)=>'<select id="'+id+'">'+[[1,"Normal"],[4,"High: about 4× slower"],[10,"Very high: 10× slower, best for study"]].map(o=>'<option value="'+o[0]+'"'+(cur===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select>";
+  const progress=()=>{
+    el.innerHTML='<p class="hint" style="margin:0">Reviewing <span id="rvAllWho">'+reviewAt+'</span>… <button class="btn quiet" id="rvAllStop" style="margin-left:8px">Stop</button></p><div class="bar"><i id="rvAllBar"></i></div>';
+    $("rvAllStop").onclick=()=>{ if(reviewCancel){ reviewCancel(); reviewCancel=null; } mountReview(r,{}); };
+  };
+  const run=prec=>{
+    if(reviewCancel) reviewCancel();
+    reviewKey=key; reviewAt=nm[0]; progress();
+    reviewCancel=reviewAll(r, prec, (s,f)=>{
+        reviewAt=nm[s]+" ("+(s+1)+" of "+nm.length+")";
+        const b=$("rvAllBar"); if(b && $("rvAll").dataset.rec===key){ b.style.width=(100*(s+f)/nm.length).toFixed(0)+"%"; $("rvAllWho").textContent=reviewAt; }
+      }, rv=>{
+        reviewCancel=null; r.review=rv; updateHand(r);
+        if($("rvAll") && $("rvAll").dataset.rec===key) mountReview(r,{});
+      });
+  };
+  if(reviewCancel && reviewKey===key) return progress();                              // the page was redrawn while a review runs
+  const rv = r.review && r.review.version===REVIEW_V && r.review.seats.length===nm.length && r.review.seats.every(a=>a.version===8) ? r.review : null;
+  if(!rv){
+    el.innerHTML='<p class="hint" style="margin:0 0 8px">Every seat’s bid and plays, each judged from what that seat held and could see, including cards entered in a deal set-up. It takes about as many times longer than your own report as there are players.</p>'
+      +'<p style="margin:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn quiet" id="rvAllGo">Review every player</button>'+precSel("rvAllPrec", READ.prec)+"</p>";
+    $("rvAllGo").onclick=()=>run(+$("rvAllPrec").value);
+    if(opts.start) run(READ.prec);
+    return;
+  }
+  const sel=Math.min(nm.length-1, opts.seat!=null ? opts.seat : sameRec && el.dataset.seat ? +el.dataset.seat : 0); el.dataset.seat=sel;
+  el.innerHTML=reviewSummaryHtml(r,rv)
+    +'<div class="toolbar" style="margin:12px 0 8px">'+nm.map((x,i)=>'<button class="btn'+(i===sel?"":" quiet")+'" data-rvseat="'+i+'">'+x+"</button>").join("")+"</div>"
+    +'<div id="rvAllSeat">'+assessmentHtml(r, rv.seats[sel])+"</div>"
+    +'<p class="hint" style="margin:10px 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label for="rvAllPrec">Precision of this review</label>'+precSel("rvAllPrec", rv.prec||1)+'<button class="btn quiet" id="rvAllAgain">Review again</button></p>';
+  for(const b of el.querySelectorAll("[data-rvseat]")) b.onclick=()=>mountReview(r,{ seat:+b.dataset.rvseat });
+  $("rvAllAgain").onclick=()=>run(+$("rvAllPrec").value);
 }
 
 /* ----- saved hands ----- */
@@ -1541,7 +1644,7 @@ function handText(r){
 const dollars = v => (v<0 ? "\u2212$" : "+$")+(Math.abs(v)%1 ? Math.abs(v).toFixed(2) : Math.abs(v).toFixed(0));
 /* Collapsible sections of the review. Which ones are open is remembered in
    this browser, so a section you open stays open for the next hand. */
-const SEC_KEY="ohhell-play-sections-v1", SEC_DEFAULT={ assess:true, hands:false, play:false, bid:false, history:false };
+const SEC_KEY="ohhell-play-sections-v1", SEC_DEFAULT={ assess:true, all:false, hands:false, play:false, bid:false, history:false };
 function secState(){ try{ return Object.assign({}, SEC_DEFAULT, JSON.parse(localStorage.getItem(SEC_KEY)||"{}")); }catch(e){ return Object.assign({}, SEC_DEFAULT); } }
 const sec = (key, title, body) => '<details class="sec" data-sec="'+key+'"'+(secState()[key]?" open":"")+"><summary>"+title+'</summary><div class="secbody">'+body+"</div></details>";
 function wireSections(root){
@@ -1653,6 +1756,7 @@ function showReview(r, opts){
       +'<button type="button" id="rvRedeal">Same hand, new opponents<small>Your cards and the trump stay; the other hands are dealt afresh</small></button>'
       +'<hr><label class="mrow">From the seat of <select id="rvWatchSeat">'+nm.map((x,i)=>'<option value="'+i+'">'+x+"</option>").join("")+"</select></label>"
       +'<button type="button" id="rvWatchGo">Watch the hand<small>Step through it seeing only what that seat could see</small></button>'
+      +'<button type="button" id="rvAllMenu">Review every player<small>Each seat\u2019s bid and plays, judged from what that seat could see</small></button>'
       +'<button type="button" id="rvCalc">Open in bid calculator<small>That seat\u2019s cards and the bids ahead of it, in a new tab</small></button>'
     +"</div></details>"
     +'<details class="menu" id="rvFile"><summary class="btn quiet">Save or share</summary><div class="menubody">'
@@ -1700,7 +1804,7 @@ function showReview(r, opts){
   h+="</tbody></table></div>";
   h+='<p class="hint" style="margin:6px 0 0">The arrow marks the lead; the outlined card won. Hover over any card to see how it was chosen.</p><details class="explain"><summary>Explain the hover figures</summary><p class="hint"> A bot playing with card reading shows the average result of each choice in dollars. Otherwise you see how the network ranked the legal cards at that point (higher is preferred; only the gaps matter, and a gap of 4 is roughly one point for the hand). Equivalent cards, such as a king and queen held together, share one figure. On your own cards, \u2260 marks a play where the network would have chosen differently, and ? or ?? a minor or major mistake by the assessment below.</p></details>';
   const secPlay=h;
-  h=top+sec("assess","Your play, assessed",'<div id="rvAssess"></div>')+sec("hands","Hands as dealt",secHands)+sec("play","Play",secPlay)+sec("bid","Bidding",secBid);
+  h=top+sec("assess","Your play, assessed",'<div id="rvAssess"></div>')+sec("all","Every player\u2019s play",'<div id="rvAll"></div>')+sec("hands","Hands as dealt",secHands)+sec("play","Play",secPlay)+sec("bid","Bidding",secBid);
   el.innerHTML=h; wireSections(el);
   $("rvSave").onclick=()=>download("ohhell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(r,null,1));
   $("rvDiag").onclick=()=>download("oh-hell-hand-"+stamp(r.savedAt)+"-"+r.cards+"cards.json", JSON.stringify(diagramHand(r),null,2));
@@ -1721,6 +1825,8 @@ function showReview(r, opts){
   if(opts.final) $("rvNew").onclick=()=>{ el.hidden=true; $("setup").hidden=false; };
   if(opts.close) $("rvClose").onclick=()=>{ el.hidden=true; };
   mountAssessment(r, opts);
+  mountReview(r, {});
+  $("rvAllMenu").onclick=()=>{ $("rvStudy").open=false; const d=el.querySelector('details.sec[data-sec="all"]'); d.open=true; d.scrollIntoView({block:"start"}); mountReview(r,{ start:true }); };
   if(!opts.keepScroll) el.scrollIntoView({block:"start"});
 }
 /* Look at a saved hand. If a game is going on it waits: a hand in progress is
@@ -2115,7 +2221,7 @@ $("onlyMarked").onchange=renderHistory;
 cuBuild(); dsBuild(); syncSetupHint(); renderHistory();
 
 /* hooks for automated checks */
-window.__ohhell={ READ, assessmentHtml, bustStudy, readArena, readArena2, readChoose, DS, dsSpec, dsLoad, calcLink, buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
+window.__ohhell={ READ, assessmentHtml, reviewAll, reviewBid, bustStudy, readArena, readArena2, readChoose, DS, dsSpec, dsLoad, calcLink, buildDeal, cuSpec, hint:()=>cardText(netChoose(observe(H,0)).card), assessHand, assessSetup, netChoose, rulesChoose, botBid, observe, handText, diagramHand, loadHands, bidWhy };
 })();
 </script>
 </body>

@@ -953,3 +953,25 @@ other round sizes are not practised. Judge with `exam.js` (the 10-card hand, and
 Cloud note (for Matt's question): a 96-thread machine rents for about $4.28 an hour on demand and roughly $1.10 to
 $2.30 at interruptible rates (AWS c7i.24xlarge, US East, mid-2026 listings), enough to run this teacher on every
 round size at about an hour a generation. Not started; depends on this test.
+
+## 25 November 2026: "Every player's play": a review of each seat's bid and plays from what that seat could see
+
+Asked for by Matt for hands typed in whole from "Set up a deal" (studying them, and checking that hands written for
+the book are realistic). The ordinary report judges seat 0 only and leaves alone any card entered in a set-up, so a
+typed-in hand got almost no judging. Now: Study this hand > Review every player, or the new "Every player's play" part
+of a hand's review.
+- `assessSetup(r, seat, judgeSet)`, `assessLayouts`, `assessBid(r, seat)`, `assessHand(r, onProgress, onDone, {seat,
+  judgeSet, bid})` and `assessmentHtml(r, a)` take a seat; with none they behave as before (assessment version still 8).
+  `judgeSet` judges cards marked `by:"set"`.
+- `reviewBid(r, seat)` prices each seat's bid afresh on 600 simulated deals (`simulateBid`, the same pricing as the
+  bid help); seat 0 keeps the verdict its own report gave when it has one.
+- `reviewAll(r, prec, onProgress, onDone)` runs the seats in turn; kept on the saved hand as
+  `r.review = { version:1, prec, seats:[assessment per seat] }`.
+- Shown: a line per player (bid verdict, count of mistakes, dollars given up), a list in order of play of every bid and
+  play costing $0.50 or more (`REVIEW_LINE`), then seat buttons for each player's full table.
+Time: Matt's 4-player 7-card hand, all four seats at Normal precision, 32 to 34 seconds in the 2-core workspace.
+Limits, not tested further: each seat is judged against opponents who bid and play as these bots do, so a play that is
+right against a particular human can show as a mistake; other seats' figures have the same noise as your own report
+(use High or Very high for study). Found while testing, left as it is: a report is not repeatable figure for figure,
+because a thin read draws extra layouts only when the clock allows (first run on a cold page differed by $0.10 on one
+card). Test `browser-tests/t35.js` (16 checks).
