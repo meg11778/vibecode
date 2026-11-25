@@ -941,3 +941,15 @@ data): the same target, and softer targets (TAU 1 and 2), all left it leading an
 What a real attempt would need: a teacher with far less noise per decision (ten times the deals, ten times the
 cost) or a network trained on the teacher's average value for each card instead of each decision's winner; the
 second changes the scale of the network's scores, which the card reading (`READ.beta`) depends on.
+
+## 25 November 2026: the careful-teacher test, packaged (`train-money-3/careful.js`, zip `ohhell-train4`)
+
+One change from `overnight.js`: `SAMPLES` 200 (imagined deals a decision) in place of 20; to keep a generation near
+an hour on Matt's laptop only 7- and 10-card rounds are played, 20,000 decisions each. `teacher_check.js` on Matt's
+overbid 10-card hand, 120 deals at 200 samples: a trump is the teacher's top pick 65% (2♠ 26%, 4♠ 21%, 3♠ 18%), 4♦
+17%, J♦ 8%, A♥ 7%, 2♣ 0%; at 20 samples it was about 40% for the trumps together, A♥ 10 to 11%, 2♣ 6 to 9%. Only 89
+of the 200 deals fit the bids on that hand, the rest reuse fitted ones. A test of the idea, not a network to install:
+other round sizes are not practised. Judge with `exam.js` (the 10-card hand, and money at 7 and 10 cards).
+Cloud note (for Matt's question): a 96-thread machine rents for about $4.28 an hour on demand and roughly $1.10 to
+$2.30 at interruptible rates (AWS c7i.24xlarge, US East, mid-2026 listings), enough to run this teacher on every
+round size at about an hour a generation. Not started; depends on this test.
