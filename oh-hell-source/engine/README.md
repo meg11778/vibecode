@@ -975,3 +975,17 @@ right against a particular human can show as a mistake; other seats' figures hav
 (use High or Very high for study). Found while testing, left as it is: a report is not repeatable figure for figure,
 because a thin read draws extra layouts only when the clock allows (first run on a cold page differed by $0.10 on one
 card). Test `browser-tests/t35.js` (16 checks).
+
+## 26 November 2026: careful-teacher test after 32 generations (Matt's laptop, 50 minutes each): learns the trump opening, NO MONEY GAIN
+
+`train-money-3/results/net_careful_g32.json`, `log_careful_g32.txt`, `exam_careful_g32.txt`. The log's "vs current
+network" figure never left its error bar in 32 generations (largest +0.070 ±0.042, most within ±0.03).
+Exam against the installed network (30,000 deals a round size for the money part):
+- Overbid 10-card hand: opens a trump 72% (installed 0%, 20-sample run 0%), earns -$0.09 a deal there (installed
+  -$0.77, 20-sample run -$0.53). So the diagnosis was right: a teacher with 200 imagined deals does teach this.
+- A-4-3-2 bid 1 on lead: unchanged (makes 36%). Highest losing card: 94% (installed 95%).
+- Money, one seat against three installed: 7 cards -$0.009 ±0.032, 10 cards -$0.003 ±0.045 (the two sizes it
+  practised); 5 cards -$0.016 ±0.024, 12 cards -$0.005 ±0.052; all -$0.008 ±0.020; overbid deals -$0.026 ±0.040.
+Reading: the careful teacher fixes the habit it was aimed at, but that spot is too rare, or is paid for elsewhere, to
+show in money, even on overbid deals. Not installed. No case for renting cloud time on this design. Card-play
+training parked. Not tested: this network under the card reading (the reading already opens the trump 55% there).

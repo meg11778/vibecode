@@ -1,0 +1,5 @@
+DEALS=30000 node exam.js results/net_careful_g32.json   (26 Nov 2026; careful teacher, 32 generations, Matt's laptop)
+1. overbid 10-card hand (3000 deals): opens a trump 72%, the A♥ 28%; earns $-0.09 a deal
+2. A-4-3-2 as the whole hand, bid 1, on lead (6000 deals): leads the ace 100%; makes its bid 36%
+3. zero bidder following suit with a choice (16407 plays, 7 cards): highest losing card 94%, a lower card 6%, takes the trick 0%
+4. dollars a deal against net_weights.json, one seat: 5 cards -0.016 ±0.024 (overbid deals +0.010 ±0.048); 7 cards -0.009 ±0.032 (overbid deals -0.023 ±0.069); 10 cards -0.003 ±0.045 (overbid deals -0.042 ±0.098); 12 cards -0.005 ±0.052 (overbid deals -0.054 ±0.104); all -0.008 ±0.020, overbid -0.026 ±0.040
