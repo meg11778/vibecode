@@ -16,9 +16,10 @@
  * nothing about best play against people.
  *
  *   node key.js <players> <cards> <deals> <seed> [maxLeft=3] [readSeeds=30] [reportSeeds=10]   -> JSON lines on stdout
+ *   Settings from the environment: MINLEFT (fewest cards hidden in the fullest other hand, default 0), MAXHANDS, DRAWS, LISTALL, OHHELL_PAGE.
  */
 const fs = require('fs'), path = require('path'), os = require('os');
-const page = fs.readFileSync(process.env.OHHELL_PAGE || path.join(__dirname, '..', '..', 'ohhell-play.html'), 'utf8').split('\n');
+const page = fs.readFileSync(process.env.OHHELL_PAGE || (fs.existsSync(path.join(__dirname, "ohhell-play.html")) ? path.join(__dirname, "ohhell-play.html") : path.join(__dirname, "..", "..", "ohhell-play.html")), 'utf8').split('\n');
 const a = page.findIndex(l => l.includes('===== cards:')), b = page.findIndex(l => l.startsWith('function bustStudy'));
 if (a < 0 || b < 0) throw new Error('page layout not recognised');
 let inScript = true; const body = page.slice(a, b).filter(l => { const t = l.trim(); if (t.startsWith('</script>')) { inScript = false; return false; } if (t.startsWith('<script')) { inScript = true; return false; } return inScript; }).join('\n');
@@ -72,6 +73,8 @@ function seatTable(S, q, unseen) {
 function answerKey(S, groups, rng, opt) {
   const me = S.turn, Pn = S.Pn, mine = new Set(S.hand), unseen = []; for (let c = 0; c < 52; c++) if (!S.seen[c] && !mine.has(c) && c !== S.turned) unseen.push(c);
   const others = []; for (let q = 0; q < Pn; q++) if (q !== me) others.push(q);
+  // too many possible hands to list in reasonable time: leave this decision out (MAXHANDS, default 400,000 over the seats)
+  { const choose = (x, y) => { if (y < 0 || y > x) return 0; let r = 1; for (let i = 1; i <= y; i++) r = r * (x - y + i) / i; return r; }; let tot = 0; for (const q of others) tot += choose(unseen.filter(c => !S.voids[q][suitOf(c)]).length, S.lens[q]); if (tot > +(process.env.MAXHANDS || 400000)) return null; }
   const tabs = others.map(q => S.lens[q] > 0 ? seatTable(S, q, unseen) : { hands: [[]], f: Float64Array.from([1]) });
   // drop hands that carry next to nothing (under a millionth of that seat's best), then cumulative tables
   for (const t of tabs) { let mx = 0; for (const v of t.f) if (v > mx) mx = v; if (!(mx > 0)) return null; const keep = []; for (let x = 0; x < t.hands.length; x++) if (t.f[x] > mx * 1e-6) keep.push(x); t.hands = keep.map(x => t.hands[x]); t.f = Float64Array.from(keep.map(x => t.f[x])); t.cum = new Float64Array(t.f.length); let s = 0; for (let x = 0; x < t.f.length; x++) { s += t.f[x]; t.cum[x] = s; } t.sum = s; }
@@ -125,7 +128,8 @@ if (require.main === module) {
       const lg = legalCards(h[turn], led); let c;
       const o = { hand: h[turn], seen, voids, lens: h.map(x => x.length), bids, won, turn, led, winCard, winner, playedInTrick: i, trick, turned, trump, n, P };
       c = lg.length === 1 ? lg[0] : netChoose(o, true).card;
-      if (lg.length > 1 && Math.max(...h.map((x, q) => q === turn ? 0 : x.length)) <= maxLeft) {
+      const hid = Math.max(...h.map((x, q) => q === turn ? 0 : x.length));
+      if (lg.length > 1 && hid <= maxLeft && hid >= +(process.env.MINLEFT || 0)) {
         const groups = mirrorGroups(equivGroups(lg, seen, trick, turned, winCard, trump), h[turn], seen, voids, trump, turned);
         if (groups.length > 1) cand.push({ S: { Pn: P, n, trump, turned, bids, order, hand: h[turn].slice(), seen: Uint8Array.from(seen), voids: voids.map(v => v.slice()), lens: h.map(x => x.length), won: won.slice(), turn, led, winCard, winner, playedInTrick: i, trick: trick.slice(), hist: hist.slice() }, groups, played: c, truth: h.map(x => x.slice()) });
       }
@@ -149,7 +153,7 @@ if (require.main === module) {
     const A0 = { Pn: P, n, trump, turned, bids }, st0 = { won: S.won, seen: S.seen, voids: S.voids, trick: S.trick, led: S.led, winCard: S.winCard, winner: S.winner, playedInTrick: S.playedInTrick };
     const truthVal = groups.map(g => +playOut(A0, st0, pickD.truth.map(x => x.slice()), g[0], true, S.turn).toFixed(3));
     let chk; if (process.env.CHECK && key.how === 'all') { const k2 = answerKey(S, groups, mulberry32(seed * 977 + d), { listAll: 0, draws: 20000 }); chk = { val: k2.val.map(v => +v.toFixed(4)), gapSe: k2.gapSe.map(v => +v.toFixed(4)) }; }
-    console.log(JSON.stringify({ P, n, d, seed, seat: S.turn, left: S.lens, hand: S.hand.map(cardStr), groups: groups.map(g => g.map(cardStr)), played: gi, bids, won: S.won,
+    console.log(JSON.stringify({ P, n, d, seed, hidden: Math.max(...S.lens.map((x, q) => q === S.turn ? 0 : x)), seat: S.turn, left: S.lens, hand: S.hand.map(cardStr), groups: groups.map(g => g.map(cardStr)), played: gi, bids, won: S.won,
       key: { val: key.val.map(v => +v.toFixed(4)), best: key.best, gapSe: key.gapSe.map(v => +v.toFixed(4)), how: key.how, layouts: key.layouts, ess: +key.ess.toFixed(1), total: key.total }, playedRegret: +regret(gi).toFixed(4), truthVal, chk, readMs, reads, reps }));
   }
 }

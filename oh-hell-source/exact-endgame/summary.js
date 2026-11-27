@@ -2,10 +2,13 @@
 const fs = require('fs'), rows = [].concat(...process.argv.slice(2).map(f => fs.readFileSync(f, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse)));
 const pc = (a, b) => b ? (100 * a / b).toFixed(1) + '%' : '-', mean = a => a.reduce((x, y) => x + y, 0) / (a.length || 1), se = a => { const m = mean(a); return Math.sqrt(a.reduce((x, y) => x + (y - m) * (y - m), 0) / a.length / Math.max(1, a.length - 1)); };
 const pm = a => (mean(a) >= 0 ? '+' : '') + mean(a).toFixed(3) + ' ±' + (2 * se(a)).toFixed(3);
-const sizes = [...new Set(rows.map(r => r.P + 'p' + r.n))];
-for (const sz of ['all'].concat(sizes)) {
-  const R = rows.filter(r => sz === 'all' || r.P + 'p' + r.n === sz); if (!R.length) continue;
-  console.log('\n=== ' + sz + ': ' + R.length + ' late decisions (one a deal), ' + R.filter(r => r.key.how === 'all').length + ' with every layout listed ===');
+for (const r of rows) if (r.hidden == null) r.hidden = Math.max(...r.left.map((x, q) => q === r.seat ? 0 : x));
+const tag = r => r.P + 'p' + r.n + (r.hidden <= 3 ? ' late (3 or fewer hidden)' : ' mid-hand (4 or more hidden)');
+const sizes = [...new Set(rows.map(tag))].sort();
+const extra = [['2 choices', r => r.groups.length === 2], ['3 choices', r => r.groups.length === 3], ['4 or more choices', r => r.groups.length >= 4]];
+for (const sz of ['all'].concat(sizes, extra.map(e => e[0]))) {
+  const ex = extra.find(e => e[0] === sz), R = rows.filter(r => sz === 'all' || (ex ? ex[1](r) : tag(r) === sz)); if (!R.length) continue;
+  console.log('\n=== ' + sz + ': ' + R.length + ' decisions (one a deal), ' + R.filter(r => r.key.how === 'all').length + ' with every layout listed ===');
   // a decision "matters" when the key puts the second-best choice at least $0.25 behind, clear of the key's own noise
   const second = r => Math.min(...r.key.val.map((v, g) => g === r.key.best ? Infinity : r.key.val[r.key.best] - v)), clear = r => { const g2 = r.key.val.map((v, g) => g === r.key.best ? Infinity : r.key.val[r.key.best] - v); const k = g2.indexOf(Math.min(...g2)); return g2[k] >= 0.25 && g2[k] > 3 * r.key.gapSe[k]; };
   const mat = R.filter(clear);
