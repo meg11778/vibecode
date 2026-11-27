@@ -1015,3 +1015,17 @@ Matt gave `REVIEW-BRIEF.md` and the repository to a second model; its review is 
    the hook to the dealer under old and new bidding; calibration on recorded human deals (none exist yet).
 Its main recommendation, accepted as the next piece of work: an exact reference for late positions (list every deal
 that fits, apply the same weights, price each card) to check the reader and the report against.
+
+## 27 November 2026 (later): answer key for late positions (`oh-hell-source/exact-endgame/`): the reader and report are close to their own target late in a hand
+
+`key.js` computes what the reader and the report estimate, without their sampler (every possible hand of each seat
+listed with its bid and play weight; layouts drawn exactly in proportion, or all listed). 109 late decisions (4 players,
+7 and 10 cards, 3 or fewer cards hidden a hand; 30 reader seeds and 10 report seeds each):
+- Reader: gives up $0.008 +/-0.005 a decision against the key; picks another card 1.8% where the key separates the
+  best by $0.25 or more (plain network 16%). Thin reads are where it errs: under 10 layouts carrying the read, wrong
+  6.1%; over 30, 0.2%.
+- Report: no inflation here (+$0.007 +/-0.012); false mistake flags 0.3%; real mistakes passed as fine 16%, "too close"
+  13% (9 decisions, small sample), again in thin reads.
+- The review's points 2 (early stop) and 3 (selection) are not seen to matter in these positions; weight collapse is.
+Not covered: earlier positions (more choices, more hidden cards), 5 and 6 players. Candidate from this, not built:
+late in a hand, draw the reader's layouts the key's way (seat tables, exact draws), which removes the collapse.
