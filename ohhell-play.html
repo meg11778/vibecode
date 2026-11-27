@@ -3788,9 +3788,19 @@ function dealHidden(unseen, lens, voids, Pn, rand, me){
   const card=[], owner=[]; for(let p=0;p<Pn;p++) if(p!==me) for(const c of start[p]){ card.push(c); owner.push(p); }
   const dealt=new Set(card); for(const c of unseen) if(!dealt.has(c)){ card.push(c); owner.push(-1); }
   const N=card.length, ok=(c,o)=> o<0 || !voids[o][suitOf(c)];
-  for(let step=0, steps=8*N; step<steps; step++){
-    const a=(rand()*N)|0, b=(rand()*N)|0; if(owner[a]===owner[b]) continue;
-    if(ok(card[a],owner[b]) && ok(card[b],owner[a])){ const t=card[a]; card[a]=card[b]; card[b]=t; }
+  // Exchanges of two cards alone cannot reach every deal: with three seats each out of a different suit and one card
+  // each, the two possible deals differ by a three-way exchange, and the first-fit start then came out 75 to 25
+  // (found by an outside review, 27 Nov 2026). So cards are also passed round rings of three and four places. With
+  // four suits, rings of up to four are enough to get from any deal that fits to any other.
+  const ix=[0,0,0,0];
+  for(let step=0, steps=Math.max(12*N,600); step<steps; step++){
+    const r=rand(), k = N<3 || r<0.4 ? 2 : N<4 || r<0.7 ? 3 : 4;
+    let good=true;
+    for(let i=0;i<k && good;i++){ ix[i]=(rand()*N)|0; for(let j=0;j<i;j++) if(ix[j]===ix[i]) good=false; }
+    if(!good) continue;
+    for(let i=0;i<k && good;i++) if(!ok(card[ix[i]], owner[ix[(i+1)%k]])) good=false;      // the card at each place moves on to the next
+    if(!good) continue;
+    const last=card[ix[k-1]]; for(let i=k-1;i>0;i--) card[ix[i]]=card[ix[i-1]]; card[ix[0]]=last;
   }
   const out=new Array(Pn); for(let p=0;p<Pn;p++) if(p!==me) out[p]=[];
   for(let i=0;i<N;i++) if(owner[i]>=0) out[owner[i]].push(card[i]);

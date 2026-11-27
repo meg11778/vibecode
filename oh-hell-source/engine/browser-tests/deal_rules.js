@@ -19,4 +19,26 @@ for (const p of [1, 2, 3]) { const a = allowed(p), want = f.N / a.length, worst 
   ok(worst < 0.12, names[p] + ': each of its ' + a.length + ' possible cards comes up equally often (largest departure ' + (100 * worst).toFixed(0) + '%)'); }
 const eSp = f.suit[3][0] / f.N, want = allowed(3).filter(c => suitOf(c) === 0).length / allowed(3).length; ok(Math.abs(eSp - want) < 0.015, 'East holds a spade ' + (100 * eSp).toFixed(1) + '% of the time (even deal: ' + (100 * want).toFixed(1) + '%)');
 const o = run('first'); console.log('     for the record, the old deal gave East a spade ' + (100 * o.suit[3][0] / o.N).toFixed(1) + '% of the time');
+/* 27 Nov 2026, from an outside review: deals that differ only by a three-way or four-way exchange. Three seats with one
+   card each, the unseen cards the three deuces, each seat out of a different suit: two deals fit and each must come up
+   half the time (exchanges of two cards alone left it 75 to 25). Then the same with four seats and four deuces. */
+READ.deal = 'fair';
+function split(P, unseen, lens, voids, label) { const cnt = {}, N = 40000; for (let i = 0; i < N; i++) { const h = M.dealHidden(unseen, lens, voids, P, rand, 0), k = h.slice(1).map(x => x.slice().sort((a, b) => a - b).join('.')).join(' | '); cnt[k] = (cnt[k] || 0) + 1; }
+  return { cnt, N }; }
+{ const r = split(4, [0, 13, 26], [1, 1, 1, 1], [[0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0]]), v = Object.values(r.cnt);
+  ok(v.length === 2 && v.every(x => Math.abs(x / r.N - 0.5) < 0.02), 'three seats, three deuces, each out of a different suit: the two deals come up ' + v.map(x => (100 * x / r.N).toFixed(1) + '%').join(' and ')); }
+{ const r = split(5, [0, 13, 26, 39], [1, 1, 1, 1, 1], [[0, 0, 0, 0], [0, 0, 1, 1], [1, 0, 0, 1], [1, 1, 0, 0], [0, 1, 1, 0]]), v = Object.values(r.cnt);
+  ok(v.length === 2 && v.every(x => Math.abs(x / r.N - 0.5) < 0.02), 'four seats, four deuces, each holding one of two suits: the two deals come up ' + v.map(x => (100 * x / r.N).toFixed(1) + '%').join(' and ')); }
+/* Against a full count: small random cases, every deal that fits listed, each must come up equally often. */
+{ let worstAll = 0, cases = 0, zero = 0;
+  for (let t = 0; t < 40; t++) { const P = 4, lens = [0, 1 + ((rand() * 2) | 0), 1 + ((rand() * 2) | 0), 1 + ((rand() * 2) | 0)], need = lens[1] + lens[2] + lens[3], nU = need + ((rand() * 3) | 0);
+    const deck = [...Array(52).keys()]; for (let i = 51; i > 0; i--) { const j = (rand() * (i + 1)) | 0; [deck[i], deck[j]] = [deck[j], deck[i]]; } const un = deck.slice(0, nU);
+    const vd = [0, 1, 2, 3].map(p => [0, 1, 2, 3].map(() => p > 0 && rand() < 0.35 ? 1 : 0));
+    const all = []; (function rec(p, left, acc) { if (p === 4) { all.push(acc.join(' | ')); return; } const can = left.filter(c => !vd[p][suitOf(c)]);
+      (function pick(i, chosen) { if (chosen.length === lens[p]) { rec(p + 1, left.filter(c => !chosen.includes(c)), acc.concat([chosen.slice().sort((a, b) => a - b).join('.')])); return; } for (let j = i; j < can.length; j++) pick(j + 1, chosen.concat([can[j]])); })(0, []); })(1, un, []);
+    if (all.length < 2 || all.length > 400) continue; cases++;
+    const N = 150 * all.length, cnt = {}; for (let i = 0; i < N; i++) { const h = M.dealHidden(un, lens, vd, P, rand, 0), k = h.slice(1).map(x => x.slice().sort((a, b) => a - b).join('.')).join(' | '); cnt[k] = (cnt[k] || 0) + 1; }
+    for (const k of all) { const d = Math.abs((cnt[k] || 0) - 150) / Math.sqrt(150); if (d > worstAll) worstAll = d; if (!cnt[k]) zero++; }
+    for (const k in cnt) if (!all.includes(k)) { zero += 1000; } }
+  ok(cases >= 10 && zero === 0 && worstAll < 5, cases + ' small random cases counted in full: every deal that fits comes up, none that does not, largest departure ' + worstAll.toFixed(1) + ' standard errors'); }
 console.log(fail ? fail + ' FAILED' : 'all passed'); process.exit(fail ? 1 : 0);

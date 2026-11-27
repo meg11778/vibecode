@@ -989,3 +989,29 @@ Exam against the installed network (30,000 deals a round size for the money part
 Reading: the careful teacher fixes the habit it was aimed at, but that spot is too rare, or is paid for elsewhere, to
 show in money, even on overbid deals. Not installed. No case for renting cloud time on this design. Card-play
 training parked. Not tested: this network under the card reading (the reading already opens the trump 55% there).
+
+## 27 November 2026: outside review (GPT-Astra 6.2); hidden-card deal fixed for three- and four-way exchanges. PUBLISHED
+
+Matt gave `REVIEW-BRIEF.md` and the repository to a second model; its review is `outside-review/astra-review-2026-11-27.md`.
+1. CONFIRMED AND FIXED (live reader). Three seats with one card each, unseen cards the three deuces, each seat out of a
+   different suit: two deals fit, and `dealHidden` gave them 75% and 25% (reproduced: 75,176 and 24,824 of 100,000).
+   The 17 Nov repair exchanged two cards at a time, and those two deals differ by a three-way exchange, so the uneven
+   first-fit start was never corrected. Now cards are also passed round rings of three and four places (enough with
+   four suits), with at least 600 moves a deal. `deal_rules.js` adds that case (50.1 / 49.9), a four-way case (50.0 /
+   50.0) and 30 small random cases counted in full (every fitting deal comes up, largest departure 2.9 standard
+   errors). Time for the every-player review of a 7-card hand: 42 s against 40 s for the old page the same hour (no
+   clear change). NOT measured: how often real positions are affected, or any money effect (the 17 Nov repair itself
+   showed none at 300 deals). NOT fixed: the same greedy deal in training (`train-money-3/br.js` `determinize`;
+   training is parked) and the last-resort deal that ignores voids after 12 failed tries (frequency not measured).
+2. CONFIRMED IN THE CODE, NOT YET TESTED: `readChoose` works out its standard error from the number of picks, and the
+   picks can be many copies of a few heavy layouts, so a thin read can look decisive and stop early (se 0 stops too).
+   A candidate cause of the reading bot taking the weaker of two close plays.
+3. RIGHT IN PRINCIPLE, SIZE UNKNOWN: the report picks the best card and prices the gap on the same layouts, so among
+   several equal cards the luckiest looks better than the one played. Fits the old note that the report faults the
+   network's own plays about 1 time in 8.
+4. CONFIRMED IN THE CODE, EFFECT UNKNOWN: the training teacher is told each seat's bid slack (`table.js`), which the
+   student cannot see. Also proposed: train on each card's value less the mean, on the records already saved.
+5 to 7. Proposed tests, not run: opening leads priced with each network playing the rest of the hand; the price of
+   the hook to the dealer under old and new bidding; calibration on recorded human deals (none exist yet).
+Its main recommendation, accepted as the next piece of work: an exact reference for late positions (list every deal
+that fits, apply the same weights, price each card) to check the reader and the report against.
