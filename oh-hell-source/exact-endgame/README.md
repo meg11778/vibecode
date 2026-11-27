@@ -39,3 +39,23 @@ in a gap $0.064, mean $0.003). Against the real deal the key's values are unbias
 Limits: 109 decisions, 4 players only; run before the positions the project already knows are troublesome (openings,
 mid-hand) because the key needs every possible hand of each seat listed: 3 cards hidden is about 5,000 hands a seat,
 5 cards about 300,000. Exact for these beliefs and this continuation only; says nothing about play against people.
+
+## 27 November 2026 (evening): the key's drawing put into the game for late positions. PUBLISHED
+
+`readExact` in `play_template.html`: when the other seats' possible hands number at most `READ.exact` (16,000 for the
+bots; `ASSESS.exact` 20,000 for the report), `readLayouts` returns layouts drawn exactly in proportion to weight in
+place of the fit-then-resample read. Same 110 decisions, same seeds (`results/after_*.jsonl`, `summary-after-*.txt`):
+
+| | before | after |
+|---|---|---|
+| reader: given up against the key, a decision | $0.008 +/-0.005 | $0.002 +/-0.002 |
+| reader: another card where it matters | 1.8% | 0.5% |
+| reads carried by under 30 layouts | 49% of reads | none |
+| report: typical miss in a cost | $0.051 | $0.027 |
+| report: real mistake passed as fine / "too close" | 16% / 13% | 4.4% / 2.2% |
+| report: fine play flagged | 0.3% | 0.1% |
+
+Time for a late read in the workspace: median 56 ms against 822 ms on 11 matched 10-card decisions (no fitting loop);
+with three cards hidden a hand it is about level. NOT measured: money over whole deals (the reader's late loss was
+under a cent a decision, so little is expected), 5 and 6 players, time on a phone. Test:
+`engine/browser-tests/exact_late.js`.

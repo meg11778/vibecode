@@ -3741,7 +3741,7 @@ function endHand(){
 
    Works from a saved record, so any saved hand can be assessed. Runs in short
    slices so the page stays responsive. */
-const ASSESS = { thin:30, samples:160, minor:0.25, major:1.0, fitOnly:true };   // fitOnly (21 Nov 2026): price choices only on imagined layouts that fit the bids
+const ASSESS = { thin:30, samples:160, minor:0.25, major:1.0, fitOnly:true, exact:20000 };   // fitOnly (21 Nov 2026): price choices only on imagined layouts that fit the bids
 /* seat: whose decisions to collect (0 = You). judgeSet: also judge cards that were entered in the deal set-up, which
    the ordinary report leaves alone (25 Nov 2026, for reviewing every player of a hand typed in from a book). */
 function assessSetup(r, seat, judgeSet){
@@ -3888,14 +3888,85 @@ function playOut(A, st, hands, first, useNet, me){
         led, winCard, winner, playedInTrick, trick, hist:[{seat,card}] } */
 /* strict:true since 21 Nov 2026: the bots read only from imagined layouts that fit the bids (no fill-up with layouts that ignore them).
    One reading seat against the plain network, 4,320 deals on Matt Glassman's laptop: +$0.115 +/-0.092 a deal over fill-up, about 1.2 times the time. */
-const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:true, tries:30, tieNet:true, budget:2880, kMax:300, prec:1, deal:"fair", rounds:4, z:2, touch:true, anyTouch:true };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
+const READ={ K:30, MF:12, beta:2, eps:0.02, bid:"net", sig:1, noPlay:false, strict:true, tries:30, tieNet:true, budget:2880, kMax:300, prec:1, deal:"fair", rounds:4, z:2, touch:true, anyTouch:true, exact:16000 };   // sig: width of the bid fit as a multiple of the bid model's own (below 1 is a tighter fit); noPlay: ignore the cards played (tests only)
 function readBidLik(mu,n,banned,obs){ const sig=sigLik(n,PROFILE_DEFAULT)*READ.sig; let p=0;
   for(const bd of bands(n,banned)){ if(bd.bid!==obs) continue; p += Phi(bd.hi>=n ? Infinity : (bd.hi-mu)/sig) - Phi(bd.lo<=0 ? -Infinity : (bd.lo-mu)/sig); }
   return Math.max(p,1e-12); }   // bid "exact": keep only layouts on which the bid formula makes exactly each bid (for tests against formula bidders)
 /* Layouts of the hidden cards for the seat to act, read from the bids and the
    play so far: M drawn to fit the bids, K of them kept in proportion to how
    well each explains the cards the other seats have played. */
+/* Late in a hand: layouts drawn exactly (27 Nov 2026, Matt Glassman's project; the method of oh-hell-source/exact-endgame).
+   The weight of a layout, bids and play together, is a product of one factor for each other seat, and each factor
+   depends only on that seat's own hand and on what everyone can see. So when the other seats hold few cards, every
+   hand each could hold is listed with its factor, and a layout is made by drawing each seat's hand from its own list
+   and starting again if two seats share a card. That gives layouts in exact proportion to their weight: nothing is
+   fitted against a budget, and no handful of candidates ends up carrying the whole read (the cause of nearly all the
+   reader's late mistakes against the answer key: wrong 6.1% when under 10 layouts carried the read, 0.2% over 30).
+   Used when the lists together are at most READ.exact hands (the report allows ASSESS.exact); null when it does not apply. */
+function readExact(S, rand, K){
+  const Pn=S.Pn, me=S.turn;
+  if(!(READ.exact>0) || READ.bid!=="net" || typeof bidNetCovers!=="function" || !bidNetCovers(Pn,S.n)) return null;
+  let tabs=S._exact;
+  if(tabs===undefined){
+    tabs=S._exact=null;
+    const mine=new Set(S.hand), unseen=[]; for(let c=0;c<52;c++) if(!S.seen[c] && !mine.has(c) && c!==S.turned) unseen.push(c);
+    const choose=(a,b)=>{ if(b<0||b>a) return 0; let r=1; for(let i=1;i<=b;i++) r=r*(a-b+i)/i; return r; };
+    const pools=[]; let total=0;
+    for(let q=0;q<Pn;q++){ if(q===me) continue; const pool=unseen.filter(c=>!S.voids[q][suitOf(c)]); pools[q]=pool; total+=choose(pool.length,S.lens[q]); }
+    if(total>READ.exact) return null;
+    const built=[];
+    for(let q=0;q<Pn;q++){ if(q===me) continue;
+      const k=S.lens[q], pool=pools[q], hands=[]; { const cur=[]; (function rec(i){ if(cur.length===k){ hands.push(cur.slice()); return; } for(let j=i;j<=pool.length-(k-cur.length);j++){ cur.push(pool[j]); rec(j+1); cur.pop(); } })(0); }
+      const playedQ=[]; for(const e of S.hist) if(e.seat===q) playedQ.push(e.card);
+      const pos=S.order.indexOf(q), ahead=S.order.slice(0,pos).map(x=>S.bids[x]), cum=new Float64Array(hands.length); let sum=0;
+      for(let x=0;x<hands.length;x++){
+        const hq=hands[x].concat(playedQ).sort((a,b)=>a-b);
+        let lw=Math.log(Math.max(1e-300, bidNetProbs(Pn,S.n,S.turned,pos,hq,ahead)[S.bids[q]])), bad=false;
+        if(!READ.noPlay && playedQ.length){
+          const won=new Array(Pn).fill(0), seen=new Uint8Array(52), voids=[...Array(Pn)].map(()=>[false,false,false,false]), lens=new Array(Pn).fill(S.n);
+          let led=-1, winCard=-1, winner=0, i=0, trick=[];
+          for(const e of S.hist){
+            const p=e.seat, c=e.card; if(i===0) winner=p;
+            if(p===q){
+              const lg=legalCards(hq,led);
+              if(!lg.includes(c)){ bad=true; break; }
+              if(lg.length>1){
+                const al=netChoose({ hand:hq, seen, voids, lens:lens.slice(), bids:S.bids, won, turn:q, led, winCard, winner, playedInTrick:i, trick, turned:S.turned, trump:S.trump, n:S.n, P:Pn }, 2).alts;
+                let mx=-Infinity, zc=0; for(const a of al){ if(a.score>mx) mx=a.score; if(a.card===c) zc=a.score; }
+                let tot=0; for(const a of al) tot+=Math.exp(READ.beta*(a.score-mx));
+                let pc=Math.exp(READ.beta*(zc-mx));
+                if(READ.touch){ const g=equivGroups(lg,seen,trick,S.turned,winCard,S.trump).find(z=>z.includes(c)); if(g && g.length>1){ pc=0; for(const a of al) if(g.includes(a.card)) pc+=Math.exp(READ.beta*(a.score-mx)); pc/=g.length; } }
+                lw+=Math.log((1-READ.eps)*pc/tot + READ.eps/lg.length);
+              }
+              hq.splice(hq.indexOf(c),1);
+            }
+            lens[p]--; seen[c]=1; trick.push(c);
+            if(i===0) led=suitOf(c); else if(suitOf(c)!==led) voids[p][led]=true;
+            if(beatsCard(c,winCard,S.trump)){ winCard=c; winner=p; }
+            if(++i===Pn){ won[winner]++; i=0; led=-1; winCard=-1; trick=[]; }
+          }
+        }
+        sum+= bad ? 0 : Math.exp(lw); cum[x]=sum;
+      }
+      if(!(sum>0)) return null;
+      built.push({ q, hands, cum, sum });
+    }
+    tabs=S._exact=built;
+  }
+  if(!tabs) return null;
+  const picks=[], used=new Uint8Array(52); let tries=0;
+  while(picks.length<K){
+    if(++tries>K*300) return null;                       // the seats' likely hands overlap too much to draw this way
+    used.fill(0); const hands=new Array(Pn); let clash=false;
+    for(const t of tabs){ const u=rand()*t.sum; let lo=0, hi=t.cum.length-1; while(lo<hi){ const m=(lo+hi)>>1; if(t.cum[m]<=u) lo=m+1; else hi=m; }
+      const h=t.hands[lo]; for(const c of h) if(used[c]){ clash=true; break; } if(clash) break; for(const c of h) used[c]=1; hands[t.q]=h.slice(); }
+    if(clash) continue;
+    hands[me]=S.hand; picks.push(hands);
+  }
+  return { picks, cands:picks, ess:K, fit:true, fitted:K, exact:true };
+}
 function readLayouts(S, rand, M, K){
+  { const X=readExact(S, rand, K); if(X) return X; }
   const Pn=S.Pn, me=S.turn;
   const mine=new Set(S.hand), unseen=[];
   for(let c=0;c<52;c++) if(!S.seen[c] && !mine.has(c) && c!==S.turned) unseen.push(c);
@@ -4236,11 +4307,11 @@ function assessHand(r, onProgress, onDone, o){
           // Only layouts that fit the bids (21 Nov 2026). When the search ran out, the rest used to be filled with layouts
           // that ignored the bids: three quarters of them on Matt Glassman's overbid 10-card hand, which priced a trump
           // opening at +$1.72 and the ace of hearts at +$1.33 when real deals give +$0.03 and -$0.69. Fitted only: +$0.23, -$0.48.
-          const strictWas=READ.strict; READ.strict=!!ASSESS.fitOnly;
+          const strictWas=READ.strict, exactWas=READ.exact; READ.strict=!!ASSESS.fitOnly; READ.exact=Math.max(READ.exact||0, ASSESS.exact||0);
           const tr=performance.now(); L=readLayouts(S, A.rng, K*4, K);
           // few layouts explain the play so far: draw up to four times as many to choose from, as far as about a second and a half allows
           if(L.ess<ASSESS.thin){ const f=Math.min(4, Math.floor(1500/Math.max(1,performance.now()-tr))); if(f>=2) L=readLayouts(S, A.rng, K*4*f, K); }
-          READ.strict=strictWas;
+          READ.strict=strictWas; READ.exact=exactWas;
         } else L=assessLayouts(A,D.st,K);
         cur={ single, groups, picks:L.picks, fit:L.fit, ess: L.ess==null ? K : Math.min(K,L.ess), k:0, vals:groups.map(()=>new Float32Array(K)), made:groups.map(()=>0) };
       }

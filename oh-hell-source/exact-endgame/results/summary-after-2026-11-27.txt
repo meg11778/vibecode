@@ -1,0 +1,39 @@
+
+=== all: 110 late decisions (one a deal), 12 with every layout listed ===
+decisions where the key separates the best card by $0.25 or more: 56 (50.9%)
+LIVE READER: given up against the key, a late decision: $0.002 ±0.002   (plain network's own play: $0.153 ±0.124)
+  where it matters: picks another card 0.5% of the time, giving up $0.002 ±0.003 a decision; plain network wrong 16.1%
+    reads carried by 0 to 10 layouts: 0 reads, wrong -, $- given up, stopped after one batch -
+    reads carried by 10 to 30 layouts: 0 reads, wrong -, $- given up, stopped after one batch -
+    reads carried by 30 to more layouts: 1680 reads, wrong 0.5%, $0.002 given up, stopped after one batch 90.6%
+REPORT (160 layouts, judging the card the network played; 1100 reports):
+  reported cost minus the key's: $+0.008 ±0.007; typical miss $0.027; where the played card is really the best or level, reported cost averages $0.003 (990)
+  plays the key calls fine (cost under $0.25): 1000 reports, flagged as a mistake 0.1% (major 0.0%)
+  plays the key calls a mistake ($0.25 or more): 90 reports, passed as fine 4.4%, "too close to call" 2.2%
+AGAINST THE REAL DEAL: key average error $-0.046 ±0.289, spread 2.32; report average error $-0.042 , spread 2.34
+
+=== 4p7: 60 late decisions (one a deal), 4 with every layout listed ===
+decisions where the key separates the best card by $0.25 or more: 31 (51.7%)
+LIVE READER: given up against the key, a late decision: $0.002 ±0.003   (plain network's own play: $0.078 ±0.101)
+  where it matters: picks another card 0.9% of the time, giving up $0.003 ±0.006 a decision; plain network wrong 16.1%
+    reads carried by 0 to 10 layouts: 0 reads, wrong -, $- given up, stopped after one batch -
+    reads carried by 10 to 30 layouts: 0 reads, wrong -, $- given up, stopped after one batch -
+    reads carried by 30 to more layouts: 930 reads, wrong 0.9%, $0.003 given up, stopped after one batch 88.6%
+REPORT (160 layouts, judging the card the network played; 600 reports):
+  reported cost minus the key's: $+0.007 ±0.006; typical miss $0.016; where the played card is really the best or level, reported cost averages $0.001 (550)
+  plays the key calls fine (cost under $0.25): 550 reports, flagged as a mistake 0.0% (major 0.0%)
+  plays the key calls a mistake ($0.25 or more): 40 reports, passed as fine 10.0%, "too close to call" 2.5%
+AGAINST THE REAL DEAL: key average error $-0.011 ±0.419, spread 2.49; report average error $-0.011 , spread 2.51
+
+=== 4p10: 50 late decisions (one a deal), 8 with every layout listed ===
+decisions where the key separates the best card by $0.25 or more: 25 (50.0%)
+LIVE READER: given up against the key, a late decision: $0.002 ±0.002   (plain network's own play: $0.244 ±0.243)
+  where it matters: picks another card 0.0% of the time, giving up $0.000 ±0.000 a decision; plain network wrong 16.0%
+    reads carried by 0 to 10 layouts: 0 reads, wrong -, $- given up, stopped after one batch -
+    reads carried by 10 to 30 layouts: 0 reads, wrong -, $- given up, stopped after one batch -
+    reads carried by 30 to more layouts: 750 reads, wrong 0.0%, $0.000 given up, stopped after one batch 93.1%
+REPORT (160 layouts, judging the card the network played; 500 reports):
+  reported cost minus the key's: $+0.010 ±0.014; typical miss $0.041; where the played card is really the best or level, reported cost averages $0.005 (440)
+  plays the key calls fine (cost under $0.25): 450 reports, flagged as a mistake 0.2% (major 0.0%)
+  plays the key calls a mistake ($0.25 or more): 50 reports, passed as fine 0.0%, "too close to call" 2.0%
+AGAINST THE REAL DEAL: key average error $-0.088 ±0.388, spread 2.09; report average error $-0.079 , spread 2.11

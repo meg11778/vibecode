@@ -102,7 +102,8 @@ function answerKey(S, groups, rng, opt) {
 /* The report's own sums for one decision, as assessHand does them (one read of 160 layouts; the clock-dependent extra draw left out). */
 function reportPrice(S, groups, rng) {
   const K = ASSESS.samples, me = S.turn, A = { Pn: S.Pn, n: S.n, trump: S.trump, turned: S.turned, bids: S.bids }, st = { won: S.won, seen: S.seen, voids: S.voids, trick: S.trick, led: S.led, winCard: S.winCard, winner: S.winner, playedInTrick: S.playedInTrick };
-  const L = readLayouts(S, rng, K * 4, K), ess = Math.min(K, L.ess), vals = groups.map(() => new Float32Array(K));
+  const was = READ.exact; if (READ.exact !== undefined) READ.exact = Math.max(READ.exact || 0, 20000);
+  const L = readLayouts(S, rng, K * 4, K), ess = Math.min(K, L.ess); READ.exact = was; const _e = 0, vals = groups.map(() => new Float32Array(K));
   for (let k = 0; k < K; k++) { const hands = L.picks[k].slice(); hands[me] = S.hand; for (let g = 0; g < groups.length; g++) vals[g][k] = playOut(A, st, hands, groups[g][0], true, me); }
   const mean = vals.map(v => { let t = 0; for (let k = 0; k < K; k++) t += v[k]; return t / K; });
   return { mean, ess, vals, K, uniq: new Set(L.picks).size };
@@ -138,9 +139,10 @@ if (require.main === module) {
     if (!key) continue;
     const gi = groups.findIndex(g => g.includes(pickD.played)), regret = g => key.val[key.best] - key.val[g];
     // the live reader, many seeds
-    const reads = []; for (let r = 0; r < readSeeds; r++) { const rr = readChoose(S, mulberry32(seed * 7919 + d * 101 + r)); reads.push({ g: groups.findIndex(g => g.includes(rr.card)), rounds: rr.rounds, ess: +rr.ess.toFixed(1) }); }
+    const reads = [], tR = Date.now(); for (let r = 0; r < readSeeds; r++) { const S1 = Object.assign({}, S), rr = readChoose(S1, mulberry32(seed * 7919 + d * 101 + r)); reads.push({ g: groups.findIndex(g => g.includes(rr.card)), rounds: rr.rounds, ess: +rr.ess.toFixed(1) }); }
+    const readMs = Math.round((Date.now() - tR) / readSeeds);
     // the report, several seeds, judging the card the network actually played
-    const reps = []; for (let r = 0; r < repSeeds; r++) { const R = reportPrice(S, groups, mulberry32(seed * 104729 + d * 37 + r)); let bi = 0; for (let g = 1; g < groups.length; g++) if (R.mean[g] > R.mean[bi]) bi = g;
+    const reps = []; for (let r = 0; r < repSeeds; r++) { const R = reportPrice(Object.assign({}, S), groups, mulberry32(seed * 104729 + d * 37 + r)); let bi = 0; for (let g = 1; g < groups.length; g++) if (R.mean[g] > R.mean[bi]) bi = g;
       const cost = R.mean[bi] - R.mean[gi]; let d2 = 0; for (let k = 0; k < R.K; k++) { const x = R.vals[bi][k] - R.vals[gi][k] - cost; d2 += x * x; } const se = Math.sqrt(d2 / R.K / (Math.max(2, R.ess) - 1));
       reps.push({ best: bi, cost: +cost.toFixed(3), se: +se.toFixed(3), verdict: verdictOf(cost, se), ess: +R.ess.toFixed(1), uniq: R.uniq, mean: R.mean.map(v => +v.toFixed(3)) }); }
     // what each choice actually earns on the deal as it really lay (same continuation): the yardstick no model can argue with
@@ -148,7 +150,7 @@ if (require.main === module) {
     const truthVal = groups.map(g => +playOut(A0, st0, pickD.truth.map(x => x.slice()), g[0], true, S.turn).toFixed(3));
     let chk; if (process.env.CHECK && key.how === 'all') { const k2 = answerKey(S, groups, mulberry32(seed * 977 + d), { listAll: 0, draws: 20000 }); chk = { val: k2.val.map(v => +v.toFixed(4)), gapSe: k2.gapSe.map(v => +v.toFixed(4)) }; }
     console.log(JSON.stringify({ P, n, d, seed, seat: S.turn, left: S.lens, hand: S.hand.map(cardStr), groups: groups.map(g => g.map(cardStr)), played: gi, bids, won: S.won,
-      key: { val: key.val.map(v => +v.toFixed(4)), best: key.best, gapSe: key.gapSe.map(v => +v.toFixed(4)), how: key.how, layouts: key.layouts, ess: +key.ess.toFixed(1), total: key.total }, playedRegret: +regret(gi).toFixed(4), truthVal, chk, reads, reps }));
+      key: { val: key.val.map(v => +v.toFixed(4)), best: key.best, gapSe: key.gapSe.map(v => +v.toFixed(4)), how: key.how, layouts: key.layouts, ess: +key.ess.toFixed(1), total: key.total }, playedRegret: +regret(gi).toFixed(4), truthVal, chk, readMs, reads, reps }));
   }
 }
 module.exports = { answerKey, seatTable, reportPrice, M };

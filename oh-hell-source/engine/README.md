@@ -1029,3 +1029,16 @@ listed with its bid and play weight; layouts drawn exactly in proportion, or all
 - The review's points 2 (early stop) and 3 (selection) are not seen to matter in these positions; weight collapse is.
 Not covered: earlier positions (more choices, more hidden cards), 5 and 6 players. Candidate from this, not built:
 late in a hand, draw the reader's layouts the key's way (seat tables, exact draws), which removes the collapse.
+
+## 27 November 2026 (evening): late in a hand the reader and the report draw their layouts exactly. PUBLISHED
+
+`readExact` (called first by `readLayouts`): each other seat's possible hands are listed with their bid and play
+weight, and layouts are drawn in exact proportion (a hand from each seat's list, redrawn on a shared card). Used when
+the lists total at most `READ.exact` = 16,000 hands (three cards hidden a hand at four players) or `ASSESS.exact` =
+20,000 for the report; otherwise the ordinary read. Against the answer key on the same 110 late decisions: reader's
+loss $0.008 -> $0.002 a decision, wrong card where it matters 1.8% -> 0.5%, no read carried by under 30 layouts (was
+49%); report's typical miss $0.051 -> $0.027, real mistakes passed as fine 16% -> 4.4%, "too close" 13% -> 2.2%.
+Late reads are faster, not slower (median 56 ms against 822 ms on matched 10-card decisions in the workspace); the
+every-player review of the 7-card test hand took 31 s (40 to 42 s earlier the same day). Table details in
+`exact-endgame/README.md`. NOT measured: money over whole deals, 5 and 6 players, phone speed. Tests:
+`browser-tests/exact_late.js` (5 checks), all others pass.
